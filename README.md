@@ -7,3 +7,4 @@ CMPUT404-project-socialdistribution
 * Madelaine Dalangin
 * Sam Francisco
 * Aaryan Shetty
+* Joshua Gomez
