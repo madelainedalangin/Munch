@@ -8,3 +8,4 @@ CMPUT404-project-socialdistribution
 * Sam Francisco
 * Aaryan Shetty
 * Joshua Gomez
+* Xander Flores
