@@ -13,3 +13,9 @@ class Comment(models.Model):
 
 class Like(models.Model):
     pass
+
+class Follow(models.Model):
+    pass
+
+class Inbox(models.Model):
+    pass
