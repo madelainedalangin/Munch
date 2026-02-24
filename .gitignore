@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+.venv/
+env/
+venv/
+dist/
+build/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+media/
+*.log
+db.sqlite3-journal
+
+# OS
+.DS_Store
+Thumbds.db
+EOF
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
