@@ -3,6 +3,7 @@ from datetime import datetime
 import uuid
 
 # possible tables needed for project
+host = "127.0.0.1:8000"
 
 class Author(models.Model):
     username = models.CharField(max_length=200)
@@ -14,7 +15,7 @@ class Author(models.Model):
     # override save to generate fqid from serial if no fqid is provided
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://host/munch/api/authors/{self.serial}"
+            self.fqid = f"https://{host}/munch/api/authors/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Entry(models.Model):
@@ -31,7 +32,7 @@ class Entry(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://host/munch/api/authors/{self.author.serial}/entries/{self.serial}"
+            self.fqid = f"https://{host}/munch/api/authors/{self.author.serial}/entries/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Comment(models.Model):
@@ -46,7 +47,7 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://host/munch/api/authors/{self.author.serial}/commented/{self.serial}"
+            self.fqid = f"https://{host}/munch/api/authors/{self.author.serial}/commented/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Like(models.Model):
@@ -59,7 +60,7 @@ class Like(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://host/munch/api/authors/{self.author.serial}/liked/{self.serial}"
+            self.fqid = f"https://{host}/munch/api/authors/{self.author.serial}/liked/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Follow(models.Model):
