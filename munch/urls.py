@@ -3,7 +3,10 @@ from . import views
 
 app_name = "munch"
 urlpatterns = [
-    # path('', views.IndexView.as_view(), name='index'),
+    path('', views.IndexView.as_view(), name='login'),
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('followers/', views.FollowersView.as_view(), name='followers'),
 
     # API endpoints
 

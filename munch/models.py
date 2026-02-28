@@ -64,5 +64,5 @@ class Like(models.Model):
         return super().save(*args, **kwargs)
 
 class Follow(models.Model):
-    actor = models.ForeignKey(Author, on_delete=models.CASCADE)
-    object = models.ForeignKey(Author, on_delete=models.CASCADE)
+    actor = models.ForeignKey(Author, on_delete=models.CASCADE,related_name="following")
+    object = models.ForeignKey(Author, on_delete=models.CASCADE,related_name="followers")
