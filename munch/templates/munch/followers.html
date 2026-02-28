@@ -1,0 +1,21 @@
+{% extends "munch/base.html" %}
+
+{% block title %}Followers{% endblock title %}
+
+{% block nav %}
+    <ul>
+        <li><a href="{% url 'munch:login' %}">Login</a></li>
+        <li><a href="{% url 'munch:profile' %}">Profile</a></li>
+    </ul>
+{% endblock nav %}
+
+{% block content %}
+            <label for="follow_list">Followers:</label>
+            {% block followers_list %}
+                <ul id="follower_list">
+                    <li>Example Follower #1</li>
+                    <li>Example Follower #2</li>
+                    <li>Example Follower #3</li>
+                </ul>
+            {% endblock followers_list %}
+{% endblock content %}
