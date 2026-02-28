@@ -3,14 +3,10 @@
 {% block title %}Followers{% endblock title %}
 
 {% block nav %}
-    <ul>
-        <li><a href="{% url 'munch:login' %}">Login</a></li>
-        <li><a href="{% url 'munch:profile' %}">Profile</a></li>
-    </ul>
 {% endblock nav %}
 
 {% block content %}
-            <label for="follow_list">Followers:</label>
+            <h2>Followers</h2>
             {% block followers_list %}
                 <ul id="follower_list">
                     <li>Example Follower #1</li>
@@ -18,4 +14,4 @@
                     <li>Example Follower #3</li>
                 </ul>
             {% endblock followers_list %}
-{% endblock content %}
+{% endblock content %}asdfasf

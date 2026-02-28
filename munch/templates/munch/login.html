@@ -1,32 +1,19 @@
-<<<<<<< HEAD
-<h2>Login to Munch</h2>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
-
-<hr>
-<p>New here? <a href="{% url 'munch:signup' %}">Create an account</a></p>
-=======
 {% extends "munch/base.html" %}
 
 {% block title %}Login{% endblock title %}
 
 {% block nav %}
-    <ul>
-        <li><a href="{% url 'munch:followers' %}">Followers</a></li>
-        <li><a href="{% url 'munch:profile' %}">Profile</a></li>
-    </ul>
 {% endblock nav %}
 
 {% block content %}
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="user_login">
-            <br>
-            <label for="password">Password:</label>
-            <input type="text" id="password" name="password_login">
-            <button>Submit</button>
+    <h2>Login to Munch</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
+    <hr>
+    <p>New here? <a href="{% url 'munch:signup' %}">Create an account</a></p>
 {% endblock content %}
->>>>>>> e843e8f1fd540b380b1e412a54a26f6138be26e0

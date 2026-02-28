@@ -4,6 +4,7 @@ from .forms import AuthorUpdateForm
 from .models import Author
 from django.contrib.auth.decorators import login_required
 from .forms import SignupForm
+from django.views import generic
 
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
@@ -50,3 +51,6 @@ def signup(request):
     else:
         form = SignupForm()
     return render(request, 'munch/signup.html', {'form': form})
+
+class FollowersView(generic.TemplateView):
+    template_name = "munch/followers.html"
