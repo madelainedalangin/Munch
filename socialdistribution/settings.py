@@ -132,3 +132,10 @@ USE_TZ = True
 
 STATIC_ROOT = BASE_DIR / "staticfiles" 
 STATIC_URL = "/static/"
+
+AUTH_USER_MODEL = 'munch.Author'
+
+LOGIN_REDIRECT_URL = '/munch/login-success/'  # Redirect to this URL after successful login
+LOGOUT_REDIRECT_URL = 'login'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

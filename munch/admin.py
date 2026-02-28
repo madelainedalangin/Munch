@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import Author
 
-# Register your models here.
+# add/edit/delete authors via /admin
+admin.site.register(Author)

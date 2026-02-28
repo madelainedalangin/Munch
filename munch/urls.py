@@ -1,8 +1,19 @@
-from django.urls import path
+from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from . import views
 
 app_name = "munch"
 urlpatterns = [
+
+    path('signup/', views.signup, name='signup'),
+
+    path('authors/<uuid:author_uuid>/', views.public_profile, name='public_profile'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
+    # Built-in Django login/logout
+    path('login/', auth_views.LoginView.as_view(template_name='munch/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('login-success/', views.login_success_redirect, name='login_success'),
+    
     # path('', views.IndexView.as_view(), name='index'),
 
     # API endpoints
