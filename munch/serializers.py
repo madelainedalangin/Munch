@@ -5,11 +5,6 @@ from .models import *   # replace * with specific models once defined
 
 class AuthorSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='author')
-    id = serializers.URLField(source='fqid')
-    host = serializers.URLField()
-    github = serializers.URLField()
-    profileImage = serializers.URLField()
-    web = serializers.URLField()
     
     class Meta:
         model = Author
