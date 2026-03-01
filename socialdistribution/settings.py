@@ -136,6 +136,6 @@ STATIC_URL = "/static/"
 AUTH_USER_MODEL = 'munch.Author'
 
 LOGIN_REDIRECT_URL = '/munch/login-success/'  # Redirect to this URL after successful login
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = '/munch/login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
