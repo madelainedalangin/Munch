@@ -100,6 +100,8 @@ class Follow(models.Model):
     #storing "DECLINED", "deClInED", "Declined" or even "heck no" in the db
     #this limits us having to only choose what's defined
     
+    #Source: https://docs.djangoproject.com/en/6.0/ref/models/fields/#choices
+    #Date Accessed: Saturday, Feb. 28, 2026
     STATUS_CHOICES =[
         ('requesting', 'Requesting'),
         ('accepted', 'Accepted'),
