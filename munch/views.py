@@ -80,8 +80,8 @@ def login_success_redirect(request):
         from django.contrib.auth import logout
         logout(request)
         from django.contrib import messages
-        messages.error(request, "Account pending for approval. Hold your horses.")
-        return redirect('munch: login')
+        messages.error(request, "Account pending for approval by admin.")
+        return redirect('munch:login')
     return redirect('munch:public_profile', author_uuid=request.user.uuid)
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
