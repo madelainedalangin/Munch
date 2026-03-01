@@ -8,6 +8,7 @@ from rest_framework.response import Response
 
 from .serializers import *
 from .models import *
+from django.views import generic
 
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
@@ -54,6 +55,9 @@ def signup(request):
     else:
         form = SignupForm()
     return render(request, 'munch/signup.html', {'form': form})
+
+class FollowersView(generic.TemplateView):
+    template_name = "munch/followers.html"
 
 @api_view(['GET'])
 def get_following(request, author_serial):
