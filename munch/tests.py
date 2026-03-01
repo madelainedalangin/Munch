@@ -157,10 +157,41 @@ class StreamAPITest(TestCase):
     self.assertEqual(len(response.json()), 3)
     
   #Friends only entries visible to friends ONLY
-    #friends-only entry from stranger is hidden
-    #Test for when Bob follows Alice (Accepted)
-    #But ALice has not yet followed back and Bob makes a friends-only post
-    #Alice shouldnt be able to see it
+  def test_friends_only_visibility(self):
+    """Ensures entries in friends-only visibility is only shown to friends"""
+    Entry.objects.create(
+      author = self.stranger,
+      title = "Friends only Post by Random",
+      content = "Hidden",
+      contentType = "text/plain",
+      visibility = "FRIENDS",
+      description = "test friends only post"
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 0)
+  
+  def test_one_way_follow_friends_only_visibility(self):
+    """
+    Ensures one-way follow (A -> B) and B's friends-only post shows to A
+    but B's friends-only post is not shown to A
+    """
+    Follow.objects.create(
+      actor = self.author,
+      object = self.user,
+      status = "accepted",
+    )
+    Entry.objects.create(
+      author = self.author,
+      title = "B's friends only entry",
+      content = "hidden",
+      contentType = "text/plain",
+      visibility = "FRIENDS",
+      description = "One way friendship test"
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 0)
       
   # User's own entries always visible
     # user's public entry shows
