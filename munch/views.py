@@ -80,7 +80,7 @@ def login_success_redirect(request):
         from django.contrib.auth import logout
         logout(request)
         from django.contrib import messages
-        messages.error(request, "Account pending for approval. Hold your horses.")
+        messages.error(request, "Account pending for approval by admin.")
         return redirect('munch:login')
     return redirect('munch:public_profile', author_uuid=request.user.uuid)
 
@@ -331,6 +331,37 @@ def stream_api(request):
 
 # Authors API
 
+@api_view(['GET'])
+def get_authors(request):
+    authors = Author.objects.all()
+    serializer = AuthorSerializer(authors, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def get_authors_paginated(request):
+    page = request.GET.get('page')
+    size = request.GET.get('size')
+
+    if (page != None) and (size != None):
+        start = page * size
+        end = start + size
+
+        authors = Author.objects.all()[start:end]
+        serializer = AuthorSerializer(authors, many=True)
+        return Response(serializer.data)
+    
+    elif (page == None) and (size == None):
+        authors = Author.objects.all()
+        serializer = AuthorSerializer(authors, many=True)
+        return Response(serializer.data)
+    
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT'])
+def get_author(request, author_id):
+    id_type = 'FQID' if (author_id.find("http://") != -1) else 'serial'
+
 # Following API
 
 @api_view(['GET'])
@@ -418,7 +449,7 @@ def get_follow_requests(request, author_serial):
     return Response(serializer.data)
 
 @api_view(['POST'])
-def follow(request, author_serial):
+def follow(request, target_serial):
     serializer = FollowRequestSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
