@@ -48,7 +48,8 @@ class Entry(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{host}/munch/api/authors/{self.author.serial}/entries/{self.serial}"
+            base_host = self.author.host if self.author.host.endswith('/') else f"{self.author.host}/"
+            self.fqid = f"{base_host}munch/api/authors/{self.author.uuid}/entries/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Comment(models.Model):
@@ -87,6 +88,21 @@ class Follow(models.Model):
     #accepted follows
     
     # Track if a follow request is pending, accepted or declined
+    #Each item is a tuple because the lowercase version is what gets stored
+    #in the db and the capitalized version is what gets displayed in the admin
+    #panel
+    #for example, when we follow.status="declined" django stores "declined" in
+    #the db but in the admin side of things, "Declined" is what would be shown
+    
+    #Django forms also only lets you pick from whats on the list. Cant type
+    # a random value
+    
+    #Without choices, there could be potential risks of someone accidentally
+    #storing "DECLINED", "deClInED", "Declined" or even "heck no" in the db
+    #this limits us having to only choose what's defined
+    
+    #Source: https://docs.djangoproject.com/en/6.0/ref/models/fields/#choices
+    #Date Accessed: Saturday, Feb. 28, 2026
     STATUS_CHOICES =[
         ('requesting', 'Requesting'),
         ('accepted', 'Accepted'),
