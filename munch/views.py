@@ -11,6 +11,10 @@ from django.db.models import Q #without Q, Django gonna always filter to an "AND
 import requests
 from django.http import JsonResponse
 
+from rest_framework import status
+
+host = 'http://127.0.0.1/'
+
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
 def edit_profile(request):
@@ -86,7 +90,8 @@ def signup(request):
 class FollowersView(generic.TemplateView):
     template_name = "munch/followers.html"
 
-def createEntry(request):
+
+def create_entry(request, author_id):
     if request.method == 'POST':
         form = EntryForm(request.POST)
         if form.is_valid():
@@ -97,12 +102,46 @@ def createEntry(request):
     else:
         form = EntryForm()
         
-    return render(request, 'munch/create_post.html', {'form': form})
+    return render(request, 'munch/create_entry.html', {'form': form, 'title':"Create Entry", 'button_title':"Create Entry"})
+
+def edit_entry(request, author_id, entry_serial):
+    entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+    
+    if request.method == "POST":
+        form = EntryForm(request.POST, instance=entry)
+        if form.is_valid():
+            updated_entry = form.save(commit=False)
+            updated_entry.author = entry.author
+            updated_entry.save()
+            return redirect(
+                'munch:manage_entry_by_serial',
+                author_id=entry.author.uuid,
+                entry_serial=entry.serial
+            )
+    else:
+        form = EntryForm(instance=entry)
+
+    return render(request, "munch/create_entry.html", {"form": form, "entry": entry, 'title':"Edit Entry", 'button_title':"Edit Entry"})
+
+def delete_entry(request, author_id, entry_serial):
+    entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+
+    if request.method == "POST":
+        if request.user != entry.author:
+            return redirect('munch:public_profile', author_uuid=author_id)
+
+        entry.delete()
+        return redirect('munch:public_profile', author_uuid=author_id)
+    return redirect('munch:manage_entry_by_serial', author_id=author_id, entry_serial=entry_serial)
+
 
 def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     return render(request, "munch/entry_detail.html", {"entry": entry})
 
+def manage_entry_by_FQID(request, entry_FQID):
+    entry = get_object_or_404(Entry, fqid=entry_FQID)
+    return render(request, "munch/entry_detail.html", {"entry": entry})
 
 def get_stream_entries(user):
     """
@@ -163,6 +202,7 @@ def stream(request):
     return render(request, 'munch/stream.html', {'entries': entries})
       
 @api_view(['GET'])
+@login_required
 def stream_api(request):
     """
     Purpose: This function runs whenever some user peeps /munch/stream
@@ -217,7 +257,7 @@ def manage_following(request, author_serial, target_FQID):
     follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
 
     if request.method == 'GET':
-        serializer = FollowSerializer(follow_entry)
+        serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
 
     elif request.method == 'DELETE':
@@ -230,15 +270,68 @@ def manage_following(request, author_serial, target_FQID):
         if follow_entry == None:
             return
         
-        url = f"{target_FQID.replace("/authors/", "api/authors/")}/inbox"
+        url = target_FQID
+        if url.find("api/authors/") == -1:
+            url = f"{url.replace("/authors/", "api/authors/")}/inbox"
+        
         serializer = FollowRequestSerializer(follow_entry)
         response = requests.post(url, json=serializer.data)
         return JsonResponse(response.json)
 
 
+
 # Followers API
 
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_follower(request, author_serial, target_FQID):
+    
+    
+    if request.method == 'GET':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial, status='accepted').first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+        if follow_entry != None:
+            follow_entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    elif request.method == 'PUT':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        follow_entry.status = 'accepted'
+        follow_entry.save()
+
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
+
 # Follow Request API
+
+@api_view(['GET'])
+def get_follow_requests(request, author_serial):
+    author = Author.objects.get(id=f"{host}/api/authors/{author_serial}")
+
+    # get authors that are requesting to follow given author
+    follow_requests = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
+
+    serializer = AuthorSerializer(follow_requests, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def follow(request, author_serial):
+    serializer = FollowRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(status=400, data=serializer.errors)
 
 # Entries API
 
