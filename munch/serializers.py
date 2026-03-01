@@ -10,9 +10,15 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ['type', 'id', 'host', 'displayName', 'github', 'profileImage', 'web']
 
+        # clear validators so it doesn't complain when receiving follow requests
+        extra_kwargs = {
+            'id': {'validators': []},
+            'web': {'validators': []},
+        }
+
 class FollowRequestSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='follow')
-    summary = serializers.CharField(max_length=200)
+    summary = serializers.SerializerMethodField()
     actor = AuthorSerializer()
     object = AuthorSerializer()
 
@@ -29,15 +35,17 @@ class FollowRequestSerializer(serializers.ModelSerializer):
 
         return Follow.objects.create(
             actor=actor_author,
-            object=object_author,
-            **validated_data
+            object=object_author
         )
+    
+    def get_summary(self, obj):
+        return f"{obj.actor.displayName} wants to follow {obj.object.displayName}"
     
     def update_or_create(self, author_data):
         author, _ = Author.objects.update_or_create(
             id=author_data.get('id'),
             defaults={
-                'uuid': author_data.get('id').rsplit(separator='/', maxsplit=1)[-1],
+                'uuid': author_data.get('id').rsplit('/', 1)[-1],
                 'host': author_data.get('host'),
                 'displayName': author_data.get('displayName'),
                 'github': author_data.get('github'),
