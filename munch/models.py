@@ -87,6 +87,19 @@ class Follow(models.Model):
     #accepted follows
     
     # Track if a follow request is pending, accepted or declined
+    #Each item is a tuple because the lowercase version is what gets stored
+    #in the db and the capitalized version is what gets displayed in the admin
+    #panel
+    #for example, when we follow.status="declined" django stores "declined" in
+    #the db but in the admin side of things, "Declined" is what would be shown
+    
+    #Django forms also only lets you pick from whats on the list. Cant type
+    # a random value
+    
+    #Without choices, there could be potential risks of someone accidentally
+    #storing "DECLINED", "deClInED", "Declined" or even "heck no" in the db
+    #this limits us having to only choose what's defined
+    
     STATUS_CHOICES =[
         ('requesting', 'Requesting'),
         ('accepted', 'Accepted'),
