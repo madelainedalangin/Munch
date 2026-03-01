@@ -83,11 +83,3 @@ class EntriesSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     count = serializers.IntegerField()
     src = EntrySerializer(many=True)
-
-class FollowSerializer(serializers.ModelSerializer):
-    actor = AuthorSerializer()
-    target = AuthorSerializer()
-
-    class Meta:
-        model = Follow
-        fields = ['status', 'actor', 'object']
