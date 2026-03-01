@@ -192,20 +192,133 @@ class StreamAPITest(TestCase):
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()), 0)
-      
+    
   # User's own entries always visible
-    # user's public entry shows
-    # user's private entry shows
-    # user's unlisted entry shows
-  
+  def test_users_own_public_entry_visibility(self):
+    """tests user's own entries visibility is shown to them"""
+    Entry.objects.create(
+      author=self.user,
+      title='My Public Post For Me',
+      content='Hello World',
+      contentType='text/plain',
+      visibility='PUBLIC',
+      description='test user and their own post'
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 1)
+    self.assertEqual(response.json()[0]['title'], 'My Public Post For Me')
+
+  def test_users_own_friends_only_entry_visibility(self):
+    """User's own friends-only entry should appear in stream"""
+    Entry.objects.create(
+      author=self.user,
+      title='My Private Post',
+      content='Secret',
+      contentType='text/plain',
+      visibility='FRIENDS',
+      description='test for friends only entries i can see for meself'
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 1)
+    self.assertEqual(response.json()[0]['title'], 'My Private Post')
+
+  def test_users_own_unlisted_entry_visibility(self):
+    """Tests User's own unlisted entry appear on their stream"""
+    Entry.objects.create(
+      author=self.user,
+      title='My Unlisted Post for meself',
+      content='Hidden',
+      contentType='text/plain',
+      visibility='UNLISTED',
+      description='test for meself unlisted'
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 1)
+    self.assertEqual(response.json()[0]['title'], 'My Unlisted Post for meself')
+
   # Deleted entries
-    #user's own deleted entry hidden
-    #user2's deleted entry hidden
-  
-  # Sorting
-    # entries sorted newest first
-    #edited entry shows OG published time
-  pass
+  def test_users_own_deleted_entry_visibility(self):
+    """User's own deleted entry should not be visible"""
+    Entry.objects.create(
+      author=self.user,
+      title='Deleted Post',
+      content='Gone',
+      contentType='text/plain',
+      visibility='DELETED',
+      description='test deleted post'
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 0)
+
+  def test_author_deleted_entry_visibility(self):
+      """Other author's deleted entry should not show at all"""
+      Entry.objects.create(
+          author=self.author,
+          title='Author Deleted Post',
+          content='Gone',
+          contentType='text/plain',
+          visibility='DELETED',
+          description='test author deleted entry'
+      )
+      response = self.client.get('/munch/api/stream/')
+      self.assertEqual(response.status_code, 200)
+      self.assertEqual(len(response.json()), 0)
+
+  def test_sorted_newest_first(self):
+    """Tests that Entries are sorted from newest"""
+    Entry.objects.create(
+      author=self.user,
+      title='Old Post',
+      content='First',
+      contentType='text/plain',
+      visibility='PUBLIC',
+      description='test',
+      published=timezone.now() - timedelta(days=2)
+    )
+    Entry.objects.create(
+      author=self.user,
+      title='New Post',
+      content='Second',
+      contentType='text/plain',
+      visibility='PUBLIC',
+      description='test',
+      published=timezone.now()
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    entries = response.json()
+    self.assertEqual(len(entries), 2)
+    self.assertEqual(entries[0]['title'], 'New Post')
+    self.assertEqual(entries[1]['title'], 'Old Post')
+
+  def test_edited_entry_shows_og_published_time(self):
+    """Edited entry should keep its original published time"""
+    original_time = timezone.now() - timedelta(days=5)
+    entry = Entry.objects.create(
+      author=self.user,
+      title='Original Title',
+      content='Original',
+      contentType='text/plain',
+      visibility='PUBLIC',
+      description='test',
+      published=original_time
+    )
+
+    entry.title = 'Edited Title'
+    entry.content = 'Updated content'
+    entry.save()
+
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    entries = response.json()
+    self.assertEqual(len(entries), 1)
+    self.assertEqual(entries[0]['title'], 'Edited Title')
+    # Published time should still be the original time
+    self.assertIn(original_time.strftime('%Y-%m-%d'), entries[0]['published'])
 class StreamViewTest(TestCase):
   pass
 
