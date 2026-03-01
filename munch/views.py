@@ -82,11 +82,24 @@ def createEntry(request):
 def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     return render(request, "munch/entry_detail.html", {"entry": entry})
+
 @login_required
-def stream(request):
+def get_stream_entries(user):
+    
+    """
+    Purpose: Helper function for stream and stream_api. Avoids code smell
+    
+    This function finds which people the user follows,
+    user's friends and gets public entries from anyone, unlisted from
+    the people they follow, friends from friends and user's own entries.
+    It removes deleted entries and sorts the entries newest first
+    
+    Arguments: author/user object of whoever is currently logged in
+    Return: a QuerySet of entry objects
+    """
     
     #Gimme a list of author IDs the user currently logged in is following
-    user_follows = Follow.objects.filter(actor=request.user, status='accepted')
+    user_follows = Follow.objects.filter(actor=user, status='accepted')
     
     #Gimme a list of author IDs the user currently logged in is following
     # but not the full follow object
@@ -97,7 +110,7 @@ def stream(request):
     
     user_friends = Follow.objects.filter(
         actor__in = user_following,
-        object = request.user,
+        object = user,
         status = 'accepted'
     ).values_list('actor', flat=True)
     
@@ -115,15 +128,61 @@ def stream(request):
         Q(visibility = 'PUBLIC') | 
         Q(visibility = 'UNLISTED', author__in=user_following) |
         Q(visibility = 'FRIENDS', author__in=user_friends) |
-        Q(author = request.user)
+        Q(author = user)
     ).exclude(
         visibility = 'DELETED'
     ).order_by('-published')
-    context = {
-        'entries': entries,
-    }
-    return render(request, 'munch/stream.html', context)
+    
+    return entries
 
+@login_required
+def stream(request):
+    """
+    Purpose: This function is UI for the stream page.
+    
+    Args:
+        request: HTTP GET req from user
+
+    Returns:
+        Rendered HTML page displaying what the user's stream
+    """
+    entries = get_stream_entries(request.user)
+    return render(request, 'munch/stream.html', {'entries': entries})
+      
+@api_view(['GET'])
+def stream_api(request):
+    """
+    Purpose: This function runs whenever some user peeps /munch/stream
+    Args:
+        request: HTTP GET req from user
+
+    Returns:
+        Response: JSON list of entry obj user should be seeing in their 
+        homepage.
+    """
+    entries = get_stream_entries(request.user)
+    entries_list = []
+    
+    for entry in entries:
+        entries_list.append({
+            "type": "entry",
+            "title": entry.title,
+            "id": entry.fqid,
+            "description": entry.description,
+            "contentType": entry.contentType,
+            "content": entry.content,
+            "author": {
+                "type": "author",
+                "id": entry.author.id,
+                "host": entry.author.host,
+                "displayName": entry.author.displayName,
+                "github": entry.author.github,
+                "profileImage": entry.author.profileImage,
+            },
+            "published": entry.published.isoformat(),
+            "visibility": entry.visibility,
+        })
+    return Response(entries_list)
 
 # Authors API
 
