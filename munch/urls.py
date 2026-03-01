@@ -16,7 +16,7 @@ urlpatterns = [
 
     path('followers/', views.FollowersView.as_view(), name="followers"),
     path('stream/', views.stream, name='stream'),
-    path('api/stream', views.stream_api, name='stream_api')
+    path('api/stream', views.stream_api, name='stream_api'),
     
     # path('', views.IndexView.as_view(), name='index'),
 
