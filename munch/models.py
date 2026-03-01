@@ -3,6 +3,7 @@ from datetime import datetime
 import uuid
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.utils import timezone
 
 # The following class from Google, Gemini, "Django Author Identity", 02-28-2026
 class Author(AbstractUser):
@@ -70,12 +71,21 @@ class Comment(models.Model):
 
 class Like(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    object = models.ForeignKey(Entry, on_delete=models.CASCADE)
-    published = models.DateTimeField(default=datetime.now)
+    #Like needs to work on an entry or a comment, so we need to use URL
+    object_url = models.URLField(max_length=555)
+    published = models.DateTimeField(default=timezone.now)
 
     serial = models.UUIDField(default=uuid.uuid4)
     fqid = models.URLField(blank=True, unique=True)
 
+    class Meta:
+        """dont let the author like the same thing more than once"""
+        constraints = [
+            models.UniqueConstraint(
+                fields=["author", "object_url"],
+                name="unique_like_per_author"
+            )
+        ]   
     def save(self, *args, **kwargs):
         if not self.fqid:
             self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.serial}/liked/{self.serial}"
