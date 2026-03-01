@@ -88,11 +88,73 @@ class StreamAPITest(TestCase):
     
   #AUthentication
     #unaunthenticated user cannot access stream 
+  def test_unauthenticated_user_to_302_redirect(self):
+    self.client.logout()
+    self.assertEqual(self.client.get('/munch/api/stream/').status_code, 302)
     
   #Test public entries visible to everyone
-    #public entry from anyone shows
-    #public entry from stranger shows
-    #public entries (multiple) can shows
+  
+  #public entry from anyone shows
+  def test_public_entry_visibility(self):
+    """Test to ensure entries from anyone set to public is visible"""
+    Entry.objects.create(
+      author = self.author,
+      title = "Public PSA TEST",
+      content = "I am conducting a public test of my entry. YALL SEE THIS?!",
+      contentType = "text/plain",
+      visibility = "PUBLIC",
+      description = "This entry is a test with public visibility setting",
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 1)
+    self.assertEqual(response.json()[0]['title'], 'Public PSA TEST')
+    
+  #public entry from stranger shows
+  def test_public_entry_by_stranger_visibility(self):
+    """Test to ensure entries by stranger set to public is visible to anyone"""
+    Entry.objects.create(
+      author = self.stranger,
+      title = "Public PSA Test by Stranger",
+      content = "I am conducting a public test of my entry. I'm a strange",
+      contentType = "text/plain",
+      visibility = "PUBLIC",
+      description = "This entry is a test using stranger",
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 1)
+    self.assertEqual(response.json()[0]['title'], 'Public PSA Test by Stranger')
+  
+  #public entries (multiple) can shows
+  def test_many_public_entries_visibility(self):
+    Entry.objects.create(
+      author = self.user,
+      title = "Multiple testing by User",
+      content = "I like pizza. Anyone else?",
+      contentType = "text/plain",
+      visibility = "PUBLIC",
+      description = "User entry test for many entries",
+    )
+    Entry.objects.create(
+      author = self.author,
+      title = "Multiple testing by Author",
+      content = "I like pizza",
+      contentType = "text/plain",
+      visibility = "PUBLIC",
+      description = "This entry is a test using author for many entries",
+    )
+    Entry.objects.create(
+      author = self.stranger,
+      title = "Multiple testing by Stranger",
+      content = "I like sushi",
+      contentType = "text/plain",
+      visibility = "PUBLIC",
+      description = "This entry is a test using stranger for many entries",
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 3)
     
   #Friends only entries visible to friends ONLY
     #friends-only entry from stranger is hidden
@@ -104,7 +166,7 @@ class StreamAPITest(TestCase):
     # user's public entry shows
     # user's private entry shows
     # user's unlisted entry shows
-      
+  
   # Deleted entries
     #user's own deleted entry hidden
     #user2's deleted entry hidden
