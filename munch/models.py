@@ -16,6 +16,7 @@ class Author(AbstractUser):
     github = models.URLField(blank=True, null=True)
     profileImage = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True, help_text="Tell us about yourself")
+    is_approved = models.BooleanField(default=False)
 
     REQUIRED_FIELDS = ['displayName']
 

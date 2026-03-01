@@ -73,7 +73,15 @@ def public_profile(request, author_uuid):
 def login_success_redirect(request):
     """
     Redirects the user to their specific public profile after login.
+    
+    If user is not approved by admin, log them out and send them back to login
     """
+    if not request.user.is_approved:
+        from django.contrib.auth import logout
+        logout(request)
+        from django.contrib import messages
+        messages.error(request, "Account pending for approval. Hold your horses.")
+        return redirect('munch: login')
     return redirect('munch:public_profile', author_uuid=request.user.uuid)
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026

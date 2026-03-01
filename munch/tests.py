@@ -42,6 +42,7 @@ class StreamAPITest(TestCase):
       username = 'user1test',
       password='user11234',
       displayName = 'User 1 Test',
+      is_approved = True,
     )
     
     #An object that is following or friends with the user
@@ -49,6 +50,7 @@ class StreamAPITest(TestCase):
       username = 'author1test',
       password='author11234',
       displayName = 'Author 1 Test',
+      is_approved = True,
     )
     
     #an object that has no relationship with the user
@@ -56,6 +58,7 @@ class StreamAPITest(TestCase):
       username = 'stranger1test',
       password='stranger11234',
       displayName = 'Stranger 1 Test',
+      is_approved = True,
     )
     self.client = Client()
     self.client.login(username='user1test', password='user11234')
