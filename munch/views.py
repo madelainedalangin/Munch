@@ -100,6 +100,9 @@ class FollowersView(generic.TemplateView):
 
 
 def create_entry_UI(request, author_id):
+    if not request.user.is_authenticated:
+        return redirect('munch:login')
+
     if request.method == 'POST':
         form = EntryForm(request.POST)
         if form.is_valid():
