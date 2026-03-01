@@ -11,6 +11,8 @@ from django.db.models import Q #without Q, Django gonna always filter to an "AND
 import requests
 from django.http import JsonResponse
 
+from rest_framework import status
+
 host = 'http://127.0.0.1/'
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
@@ -225,13 +227,30 @@ def manage_follower(request, author_serial, target_FQID):
     
     if request.method == 'GET':
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial, status='accepted').first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
 
     elif request.method == 'DELETE':
-        pass
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+        if follow_entry != None:
+            follow_entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     elif request.method == 'PUT':
-        pass
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        follow_entry.status = 'accepted'
+        follow_entry.save()
+
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
 
 # Follow Request API
 
