@@ -13,6 +13,8 @@ from .models import *
 from django.views import generic
 from django.db.models import Q #without Q, Django gonna always filter to an "AND"
 
+import requests
+from django.http import JsonResponse
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
@@ -186,11 +188,20 @@ def manage_following(request, author_serial, target_FQID):
         return Response(serializer.data)
 
     elif request.method == 'DELETE':
+        if follow_entry == None:
+            return
+        
         follow_entry.delete()
-        return
 
     elif request.method == 'PUT':
-        pass
+        if follow_entry == None:
+            return
+        
+        url = f"{target_FQID.replace("/authors/", "api/authors/")}/inbox"
+        serializer = FollowRequestSerializer(follow_entry)
+        response = requests.post(url, json=serializer.data)
+        return JsonResponse(response.json)
+
 
 # Followers API
 
