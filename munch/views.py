@@ -78,7 +78,7 @@ def stream(request):
     user_friends = Follow.objects.filter(
         actor__in = user_following,
         object = request.user,
-        status = 'Accepted'
+        status = 'accepted'
     ).values_list('actor', flat=True)
     
     #Source: https://www.freecodecamp.org/news/what-is-q-in-django-and-why-its-super-useful/
@@ -99,4 +99,7 @@ def stream(request):
     ).exclude(
         visibility = 'DELETED'
     ).order_by('-published')
-    pass
+    context = {
+        'entries': entries,
+    }
+    return render(request, 'munch/stream.html', context)

@@ -15,6 +15,7 @@ urlpatterns = [
     path('login-success/', views.login_success_redirect, name='login_success'),
 
     path('followers/', views.FollowersView.as_view(), name="followers"),
+    path('stream/', views.stream, name='stream'),
     
     # path('', views.IndexView.as_view(), name='index'),
 
@@ -27,6 +28,7 @@ urlpatterns = [
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
     path('api/authors/<str:author_serial>/following/<str:target_FQID>', views.manage_following, name='manage_following'),
+    
 
     # # Followers API
     # path('api/authors/<str:author_serial>/followers/<str:target_FQID>', views.manage_follower, name='manage_follower'),
