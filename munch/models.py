@@ -2,21 +2,20 @@ from django.db import models
 from datetime import datetime
 import uuid
 from django.contrib.auth.models import AbstractUser
-
-# possible tables needed for project
-host = "127.0.0.1:8000"
+from django.conf import settings
 
 # The following class from Google, Gemini, "Django Author Identity", 02-28-2026
 class Author(AbstractUser):
     # Primary Key is a URL (the FQID)
     id = models.URLField(primary_key=True, max_length=500)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    host = models.URLField(default="http://127.0.0.1:8000/")
+    host = models.URLField(default=f"{settings.BACKEND_URL}/munch/api/")
     displayName = models.CharField(max_length=255)
     github = models.URLField(blank=True, null=True)
     profileImage = models.URLField(blank=True, null=True)
     description = models.TextField(blank=True, null=True, help_text="Tell us about yourself")
     is_approved = models.BooleanField(default=False)
+    web = models.URLField(blank=True, unique=True)
 
     REQUIRED_FIELDS = ['displayName']
 
@@ -28,10 +27,11 @@ class Author(AbstractUser):
             self.uuid = uuid.uuid4()
             
         if not self.id:
-            # Construct the FQID: http://host/munch/authors/uuid
-            # Ensure host ends with a slash for clean URL construction
-            base_host = self.host if self.host.endswith('/') else f"{self.host}/"
-            self.id = f"{base_host}munch/authors/{self.uuid}"
+            # Construct the FQID: http://host/munch/api/authors/uuid
+            self.id = f"{self.host}authors/{self.uuid}"
+
+        if not self.web:
+            self.web = f"{self.host.replace("api/", "")}authors/{self.uuid}"
             
         super().save(*args, **kwargs)
 
@@ -65,7 +65,7 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{host}/munch/api/authors/{self.author.serial}/commented/{self.serial}"
+            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.serial}/commented/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Like(models.Model):
@@ -78,7 +78,7 @@ class Like(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{host}/munch/api/authors/{self.author.serial}/liked/{self.serial}"
+            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.serial}/liked/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Follow(models.Model):
