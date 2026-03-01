@@ -99,7 +99,6 @@ def stream(request):
     ).exclude(
         visibility = 'DELETED'
     ).order_by('-published')
-    pass
 
 @api_view(['GET'])
 def get_following(request, author_serial):
