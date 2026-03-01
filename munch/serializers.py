@@ -13,7 +13,7 @@ class AuthorSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Author
-        fields = ['displayName']
+        fields = ['type', 'id', 'host', 'displayName', 'github', 'profileImage', 'web']
 
 class FollowRequestSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='follow')
@@ -23,7 +23,7 @@ class FollowRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        fields = ['actor', 'object']
+        fields = ['type', 'summary', 'actor', 'object']
 
 class LikeSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='like')
@@ -33,7 +33,7 @@ class LikeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Like
-        fields = ['author', 'published']
+        fields = ['type', 'author', 'published', 'id', 'object']
 
 class LikesSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='likes')
@@ -53,7 +53,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ['author', 'comment', 'contentType', 'published']
+        fields = ['type', 'author', 'comment', 'contentType', 'published', 'id', 'entry', 'likes']
 
 class CommentsSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='comments')
@@ -75,7 +75,7 @@ class EntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Entry
-        fields = ['title', 'description', 'contentType', 'content', 'author', 'published', 'visibility']
+        fields = ['type', 'title', 'id', 'web', 'description', 'contentType', 'content', 'author', 'comments', 'likes', 'published', 'visibility']
 
 class EntriesSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='entries')
