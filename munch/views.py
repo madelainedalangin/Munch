@@ -83,7 +83,7 @@ def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     return render(request, "munch/entry_detail.html", {"entry": entry})
 
-@login_required
+
 def get_stream_entries(user):
     
     """
