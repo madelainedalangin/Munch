@@ -1,9 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import AuthorUpdateForm
-from .models import Author
-from django.contrib.auth.decorators import login_required
 from .forms import SignupForm
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from .serializers import *
+from .models import *
 from django.views import generic
 
 
@@ -54,3 +58,23 @@ def signup(request):
 
 class FollowersView(generic.TemplateView):
     template_name = "munch/followers.html"
+
+@api_view(['GET'])
+def get_following(request, author_serial):
+    author = Author.objects.get(uuid=author_serial)
+
+    # get authors that are in a follower_relations relation with the specified actor
+    following = Author.objects.filter(follower_relations__actor=author)
+
+    serializer = AuthorSerializer(following, many=True)
+    return Response(serializer.data)
+    
+
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_following(request, author_serial, target_FQID):
+    if request.method == 'GET':
+        pass
+    elif request.method == 'DELETE':
+        pass
+    elif request.method == 'PUT':
+        pass
