@@ -23,9 +23,10 @@ urlpatterns = [
 
     # API endpoints
 
-    # # Authors API
-    # path('api/authors/', views.get_authors, name='get_authors'),
-    # path('api/authors/<str:author_id>/', views.get_author, name='get_author'),
+    # Authors API
+    path('api/authors/', views.get_authors, name='get_authors'),
+    path('api/authors', views.get_authors_paginated, name='get_authors_paginated'),
+    path('api/authors/<str:author_id>/', views.get_author, name='get_author'),
 
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
