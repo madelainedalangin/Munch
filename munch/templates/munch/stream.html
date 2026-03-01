@@ -5,6 +5,15 @@
     <style></style>
   </head>
   <body>
-    this is the body
+    {% for entry in entries %}
+    <div>
+      <h2>{{ entry.title}}</h2>
+      <p>By {{ entry.author.displayName }}</p>
+      <p>{{ entry.content }}</p>
+      <small>{{ entry.published}}</small>
+    </div>
+    {% empty %}
+    <p>Nothing yet :3</p>
+    {% endfor %}
   </body>
 </html>
