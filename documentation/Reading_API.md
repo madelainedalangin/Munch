@@ -1,6 +1,6 @@
 # STREAM API
 
-## GET /munch/api/stream
+### GET /munch/api/stream
 
 **When:** Use this so that as a user, one can see their homefeed personalized to them based on their entries, friends' entries and public entries.  
 **How:** Send a GET request while logged in.  
@@ -40,15 +40,15 @@ GET /munch/api/stream/
 
 ### Response Fields
 
-- `**type**` (string): Always "entry"
-- `**title**` (string): Title of the entry
-- `**id**` (string): Full URL of the entry
-- `**description**` (string): Brief summary of the entry
-- `**contentType**` (string): "text/plain" or "text/markdown"
-- `**content**` (string): The actual entry body
-- `**author**` (object): The author who wrote it
-- `**published**` (string): ISO 8601 timestamp
-- `**visibility**` (string): PUBLIC, FRIENDS, or UNLISTED
+- `type` (string): Always "entry"
+- `title` (string): Title of the entry
+- `id` (string): Full URL of the entry
+- `description` (string): Brief summary of the entry
+- `contentType` (string): "text/plain" or "text/markdown"
+- `content` (string): The actual entry body
+- `author` (object): The author who wrote it
+- `published` (string): ISO 8601 timestamp
+- `visibility` (string): PUBLIC, FRIENDS, or UNLISTED
 
 ### Visibility Rules
 
