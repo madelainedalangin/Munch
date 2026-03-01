@@ -5,11 +5,6 @@ from .models import *   # replace * with specific models once defined
 
 class AuthorSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='author')
-    id = serializers.URLField(source='fqid')
-    host = serializers.URLField()
-    github = serializers.URLField()
-    profileImage = serializers.URLField()
-    web = serializers.URLField()
     
     class Meta:
         model = Author
@@ -24,6 +19,33 @@ class FollowRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ['type', 'summary', 'actor', 'object']
+
+    def create(self, validated_data):
+        actor_data = validated_data.pop('actor')
+        object_data = validated_data.pop('object')
+
+        actor_author = self.update_or_create(actor_data)
+        object_author = self.update_or_create(object_data)
+
+        return Follow.objects.create(
+            actor=actor_author,
+            object=object_author,
+            **validated_data
+        )
+    
+    def update_or_create(self, author_data):
+        author, _ = Author.objects.update_or_create(
+            id=author_data.get('id'),
+            defaults={
+                'uuid': author_data.get('id').rsplit(separator='/', maxsplit=1)[-1],
+                'host': author_data.get('host'),
+                'displayName': author_data.get('displayName'),
+                'github': author_data.get('github'),
+                'profileImage': author_data.get('profileImage'),
+                'web': author_data.get('web')
+            }
+        )
+        return author
 
 class LikeSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='like')
