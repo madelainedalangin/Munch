@@ -15,6 +15,8 @@ urlpatterns = [
     path('login-success/', views.login_success_redirect, name='login_success'),
 
     path('followers/', views.FollowersView.as_view(), name="followers"),
+
+    path('createEntry/', views.createEntry, name="create_entry"),
     
     # path('', views.IndexView.as_view(), name='index'),
 
@@ -36,7 +38,7 @@ urlpatterns = [
     # path('api/authors/<str:target_serial>/inbox', views.follow, name='follow'),
 
     # # Entries API
-    # path('api/authors/<str:author_id>/entries/<str:entry_serial>', views.manage_entry_by_serial, name='manage_entry_by_serial'),
+    path('api/authors/<str:author_id>/entries/<str:entry_serial>', views.manage_entry_by_serial, name='manage_entry_by_serial'),
     # path('api/entries/<str:entry_FQID>', views.manage_entry_by_FQID, name='manage_entry_by_FQID'),
     # path('api/authors/<str:author_id>/entries/', views.create_entry, name='create-entry'),
 

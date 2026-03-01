@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import Author
+from .models import Author,Entry
 
 # The following class from Google, Gemini, "Django Author Identity", 02-28-2026
 class AuthorUpdateForm(forms.ModelForm):
@@ -33,3 +33,38 @@ class SignupForm(UserCreationForm):
         if commit:
             author.save()
         return author
+    
+class EntryForm(forms.ModelForm):
+    VISIBILITY_CHOICES = [('PUBLIC', 'Public'),('PRIVATE', 'Private'),('UNLISTED', 'Unlisted'),]
+    CONTENT_TYPE_CHOICES = [('text/plain', 'Plain Text'),('text/markdown', 'Markdown')]
+
+    visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES)
+    contentType = forms.ChoiceField(choices=CONTENT_TYPE_CHOICES)
+
+    class Meta:
+        model = Entry
+        fields = ('title', 'description', 'contentType', 'content', 'visibility')
+        labels = {
+            'contentType': 'Content Type',
+        }
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'placeholder': 'Enter title',
+                'class': 'form-input'
+            }),
+            'description': forms.TextInput(attrs={
+                'placeholder': 'Short description',
+                'class': 'form-input'
+            }),
+            'content': forms.Textarea(attrs={
+                'placeholder': 'Write your post here...',
+                'rows': 6,
+                'class': 'form-input'
+            }),
+        }
+
+        
+        
+    
+
+    
