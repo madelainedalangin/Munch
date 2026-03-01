@@ -318,8 +318,6 @@ class StreamAPITest(TestCase):
     self.assertEqual(entries[0]['title'], 'Edited Title')
     # Published time should still be the original time
     self.assertIn(original_time.strftime('%Y-%m-%d'), entries[0]['published'])
-class StreamViewTest(TestCase):
-  pass
 
 ##############################
 # VISIBILITY USER STORY TEST #
