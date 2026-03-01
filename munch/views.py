@@ -104,6 +104,11 @@ def stream(request):
     }
     return render(request, 'munch/stream.html', context)
 
+
+# Authors API
+
+# Following API
+
 @api_view(['GET'])
 def get_following(request, author_serial):
     author = Author.objects.get(uuid=author_serial)
@@ -129,3 +134,19 @@ def manage_following(request, author_serial, target_FQID):
 
     elif request.method == 'PUT':
         pass
+
+# Followers API
+
+# Follow Request API
+
+# Entries API
+
+# Image Entries API
+
+# Comments API
+
+# Commented API
+
+# Likes API
+
+# Liked API
