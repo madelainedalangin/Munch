@@ -138,6 +138,7 @@ def stream(request):
     return render(request, 'munch/stream.html', {'entries': entries})
       
 @api_view(['GET'])
+@login_required
 def stream_api(request):
     """
     Purpose: This function runs whenever some user peeps /munch/stream
