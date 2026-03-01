@@ -81,6 +81,19 @@ class Like(models.Model):
         return super().save(*args, **kwargs)
 
 class Follow(models.Model):
+    
+    
+    #Alice follows Bob (bob accepts) and Bob follows Alice (accepted).
+    #Separate friends model not required because we check for mutual
+    #accepted follows
+    
+    # Track if a follow request is pending, accepted or declined
+    STATUS_CHOICES =[
+        ('requesting', 'Requesting'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+    ]
+    
     # The person DOING the following
     actor = models.ForeignKey(
         'Author', 
@@ -94,6 +107,8 @@ class Follow(models.Model):
         on_delete=models.CASCADE, 
         related_name='follower_relations' # Changed from default
     )
+    
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='requesting')
     
     # Optional: ensure an author can't follow the same person twice
     class Meta:

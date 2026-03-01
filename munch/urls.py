@@ -17,6 +17,7 @@ urlpatterns = [
     path('followers/', views.FollowersView.as_view(), name="followers"),
 
     path('createEntry/', views.createEntry, name="create_entry"),
+    path('stream/', views.stream, name='stream'),
     
     # path('', views.IndexView.as_view(), name='index'),
 
@@ -26,16 +27,17 @@ urlpatterns = [
     # path('api/authors/', views.get_authors, name='get_authors'),
     # path('api/authors/<str:author_id>/', views.get_author, name='get_author'),
 
-    # # Following API
-    # path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
-    # path('api/authors/<str:author_serial>/following/<str:target_FQID>', views.manage_following, name='manage_following'),
+    # Following API
+    path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
+    path('api/authors/<str:author_serial>/following/<str:target_FQID>', views.manage_following, name='manage_following'),
+    
 
-    # # Followers API
-    # path('api/authors/<str:author_serial>/followers/<str:target_FQID>', views.manage_follower, name='manage_follower'),
+    # Followers API
+    path('api/authors/<str:author_serial>/followers/<str:target_FQID>', views.manage_follower, name='manage_follower'),
 
-    # # Follow Request API
-    # path('api/authors/<str:author_serial>/follow_requests', views.get_follow_requests, name='get_follow_requests'),
-    # path('api/authors/<str:target_serial>/inbox', views.follow, name='follow'),
+    # Follow Request API
+    path('api/authors/<str:author_serial>/follow_requests', views.get_follow_requests, name='get_follow_requests'),
+    path('api/authors/<str:target_serial>/inbox', views.follow, name='follow'),
 
     # # Entries API
     path('api/authors/<str:author_id>/entries/<str:entry_serial>', views.manage_entry_by_serial, name='manage_entry_by_serial'),

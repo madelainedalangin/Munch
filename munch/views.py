@@ -1,10 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import AuthorUpdateForm
-from .models import Author,Entry
+from .models import Author, Follow, Entry
 from django.contrib.auth.decorators import login_required
 from .forms import SignupForm,EntryForm
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from .serializers import *
+from .models import *
 from django.views import generic
+from django.db.models import Q #without Q, Django gonna always filter to an "AND"
 
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
@@ -73,3 +80,91 @@ def createEntry(request):
 def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     return render(request, "munch/entry_detail.html", {"entry": entry})
+@login_required
+def stream(request):
+    
+    #Gimme a list of author IDs the user currently logged in is following
+    user_follows = Follow.objects.filter(actor=request.user, status='accepted')
+    
+    #Gimme a list of author IDs the user currently logged in is following
+    # but not the full follow object
+    user_following = user_follows.values_list('object', flat=True)
+    
+    #Source: https://docs.djangoproject.com/en/6.0/ref/models/querysets/#top
+    #Date Accessed: Feb. 28, 2026
+    
+    user_friends = Follow.objects.filter(
+        actor__in = user_following,
+        object = request.user,
+        status = 'accepted'
+    ).values_list('actor', flat=True)
+    
+    #Source: https://www.freecodecamp.org/news/what-is-q-in-django-and-why-its-super-useful/
+    #Date Accessed: Saturday, Feb. 28, 2026
+    #This answers the question of, what posts/entries should a user currently
+    #logged in should see?
+    entries = Entry.objects.filter(
+        #Get all public posts on the node OR
+        #Get unlisted posts from the authors user follows (ONLY) OR
+        #Get posts only from friends OR
+        #Get user's own posts
+        #Exclude deleted entries even user's own entries
+        #order it by newest first (not like those twitter algorithms now T^T)
+        Q(visibility = 'PUBLIC') | 
+        Q(visibility = 'UNLISTED', author__in=user_following) |
+        Q(visibility = 'FRIENDS', author__in=user_friends) |
+        Q(author = request.user)
+    ).exclude(
+        visibility = 'DELETED'
+    ).order_by('-published')
+    context = {
+        'entries': entries,
+    }
+    return render(request, 'munch/stream.html', context)
+
+
+# Authors API
+
+# Following API
+
+@api_view(['GET'])
+def get_following(request, author_serial):
+    author = Author.objects.get(uuid=author_serial)
+
+    # get authors that are in a follower_relations relation with the specified actor
+    following = Author.objects.filter(follower_relations__actor=author)
+
+    serializer = AuthorSerializer(following, many=True)
+    return Response(serializer.data)
+    
+
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_following(request, author_serial, target_FQID):
+    follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
+
+    if request.method == 'GET':
+        serializer = FollowSerializer(follow_entry)
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        follow_entry.delete()
+        return
+
+    elif request.method == 'PUT':
+        pass
+
+# Followers API
+
+# Follow Request API
+
+# Entries API
+
+# Image Entries API
+
+# Comments API
+
+# Commented API
+
+# Likes API
+
+# Liked API
