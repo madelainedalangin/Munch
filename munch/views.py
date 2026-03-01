@@ -73,7 +73,7 @@ def stream(request):
         actor__in = user_following,
         object = request.user,
         status = 'Accepted'
-    ).values_list('actor', flate=True)
+    ).values_list('actor', flat=True)
     
     #Source: https://www.freecodecamp.org/news/what-is-q-in-django-and-why-its-super-useful/
     #Date Accessed: Saturday, Feb. 28, 2026
