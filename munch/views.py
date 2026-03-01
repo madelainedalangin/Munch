@@ -247,6 +247,37 @@ def stream_api(request):
 
 # Authors API
 
+@api_view(['GET'])
+def get_authors(request):
+    authors = Author.objects.all()
+    serializer = AuthorSerializer(authors, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def get_authors_paginated(request):
+    page = request.GET.get('page')
+    size = request.GET.get('size')
+
+    if (page != None) and (size != None):
+        start = page * size
+        end = start + size
+
+        authors = Author.objects.all()[start:end]
+        serializer = AuthorSerializer(authors, many=True)
+        return Response(serializer.data)
+    
+    elif (page == None) and (size == None):
+        authors = Author.objects.all()
+        serializer = AuthorSerializer(authors, many=True)
+        return Response(serializer.data)
+    
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT'])
+def get_author(request, author_id):
+    id_type = 'FQID' if (author_id.find("http://") != -1) else 'serial'
+
 # Following API
 
 @api_view(['GET'])
