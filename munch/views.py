@@ -1,13 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import AuthorUpdateForm
-from .models import Author, Follow, Entry
-from django.contrib.auth.decorators import login_required
-from .forms import SignupForm,EntryForm
-
+from .forms import AuthorUpdateForm, SignupForm, EntryForm
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
 from .serializers import *
 from .models import *
 from django.views import generic
