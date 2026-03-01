@@ -29,7 +29,32 @@ def edit_profile(request):
 def public_profile(request, author_uuid):
     # This matches the <uuid:author_uuid> in your urls.py
     author = get_object_or_404(Author, uuid=author_uuid)
-    entries = Entry.objects.filter(author__uuid=author_uuid)
+    entries = Entry.objects.filter(author=author)
+
+    if request.user.is_authenticated and request.user == author:
+        entries = entries.exclude(visibility='DELETED')
+    else:
+        visibility_filter = Q(visibility='PUBLIC')
+
+        if request.user.is_authenticated:
+            follows_author = Follow.objects.filter(
+                actor=request.user,
+                object=author,
+                status='accepted'
+            ).exists()
+            author_follows_user = Follow.objects.filter(
+                actor=author,
+                object=request.user,
+                status='accepted'
+            ).exists()
+            is_friend = follows_author and author_follows_user
+
+            if follows_author:
+                visibility_filter |= Q(visibility='UNLISTED')
+            if is_friend:
+                visibility_filter |= Q(visibility='PRIVATE')
+
+        entries = entries.exclude(visibility='DELETED').filter(visibility_filter)
     
     # For now, only pass the author. 
     # add 'posts' for user story 5 when implemented
