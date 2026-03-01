@@ -13,7 +13,7 @@
 GET /munch/api/stream/
 ```
 
-### Example Response
+## Example Response
 
 ```json
 [
@@ -38,7 +38,14 @@ GET /munch/api/stream/
 ]
 ```
 
-### Response Fields
+## Example Empty Response
+```json
+[]
+```
+
+This is for when there are no entries or all entries are deleted.  
+
+## Response Fields
 
 - `type` (string): Always "entry"
 - `title` (string): Title of the entry
@@ -50,7 +57,7 @@ GET /munch/api/stream/
 - `published` (string): ISO 8601 timestamp
 - `visibility` (string): PUBLIC, FRIENDS, or UNLISTED
 
-### Visibility Rules
+## Visibility Rules
 
 - `PUBLIC` entries from anyone on the node appear. 
 - `UNLISTED` entries appear only from authors you follow. 
