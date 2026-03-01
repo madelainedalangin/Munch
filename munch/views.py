@@ -99,4 +99,29 @@ def stream(request):
     ).exclude(
         visibility = 'DELETED'
     ).order_by('-published')
-    pass
+
+@api_view(['GET'])
+def get_following(request, author_serial):
+    author = Author.objects.get(uuid=author_serial)
+
+    # get authors that are in a follower_relations relation with the specified actor
+    following = Author.objects.filter(follower_relations__actor=author)
+
+    serializer = AuthorSerializer(following, many=True)
+    return Response(serializer.data)
+    
+
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_following(request, author_serial, target_FQID):
+    follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
+
+    if request.method == 'GET':
+        serializer = FollowSerializer(follow_entry)
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        follow_entry.delete()
+        return
+
+    elif request.method == 'PUT':
+        pass
