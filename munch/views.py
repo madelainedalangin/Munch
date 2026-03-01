@@ -85,7 +85,6 @@ def manage_entry_by_serial(request, author_id, entry_serial):
 
 
 def get_stream_entries(user):
-    
     """
     Purpose: Helper function for stream and stream_api. Avoids code smell
     
@@ -119,12 +118,6 @@ def get_stream_entries(user):
     #This answers the question of, what posts/entries should a user currently
     #logged in should see?
     entries = Entry.objects.filter(
-        #Get all public posts on the node OR
-        #Get unlisted posts from the authors user follows (ONLY) OR
-        #Get posts only from friends OR
-        #Get user's own posts
-        #Exclude deleted entries even user's own entries
-        #order it by newest first (not like those twitter algorithms now T^T)
         Q(visibility = 'PUBLIC') | 
         Q(visibility = 'UNLISTED', author__in=user_following) |
         Q(visibility = 'FRIENDS', author__in=user_friends) |
