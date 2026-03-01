@@ -539,3 +539,6 @@ tests/report/
 tests/screenshots/
 
 *.sqlite3
+
+#make migrations
+munch/migrations/0*.py
