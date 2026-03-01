@@ -66,7 +66,8 @@ def signup(request):
 class FollowersView(generic.TemplateView):
     template_name = "munch/followers.html"
 
-def createEntry(request):
+
+def create_entry(request, author_id):
     if request.method == 'POST':
         form = EntryForm(request.POST)
         if form.is_valid():
@@ -77,10 +78,45 @@ def createEntry(request):
     else:
         form = EntryForm()
         
-    return render(request, 'munch/create_post.html', {'form': form})
+    return render(request, 'munch/create_entry.html', {'form': form, 'title':"Create Entry", 'button_title':"Create Entry"})
+
+def edit_entry(request, author_id, entry_serial):
+    entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+    
+    if request.method == "POST":
+        form = EntryForm(request.POST, instance=entry)
+        if form.is_valid():
+            updated_entry = form.save(commit=False)
+            updated_entry.author = entry.author
+            updated_entry.save()
+            return redirect(
+                'munch:manage_entry_by_serial',
+                author_id=entry.author.uuid,
+                entry_serial=entry.serial
+            )
+    else:
+        form = EntryForm(instance=entry)
+
+    return render(request, "munch/create_entry.html", {"form": form, "entry": entry, 'title':"Edit Entry", 'button_title':"Edit Entry"})
+
+def delete_entry(request, author_id, entry_serial):
+    entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+
+    if request.method == "POST":
+        if request.user != entry.author:
+            return redirect('munch:public_profile', author_uuid=author_id)
+
+        entry.delete()
+        return redirect('munch:public_profile', author_uuid=author_id)
+    return redirect('munch:manage_entry_by_serial', author_id=author_id, entry_serial=entry_serial)
+
 
 def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+    return render(request, "munch/entry_detail.html", {"entry": entry})
+
+def manage_entry_by_FQID(request, entry_FQID):
+    entry = get_object_or_404(Entry, fqid=entry_FQID)
     return render(request, "munch/entry_detail.html", {"entry": entry})
 
 @login_required
@@ -221,6 +257,7 @@ def manage_following(request, author_serial, target_FQID):
         serializer = FollowRequestSerializer(follow_entry)
         response = requests.post(url, json=serializer.data)
         return JsonResponse(response.json)
+
 
 
 # Followers API

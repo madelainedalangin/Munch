@@ -1,13 +1,40 @@
 {% extends "munch/base.html" %}
 
 {% block content %}
+    <style>
+        html{
+            padding: 20px;
+        }
+        #line{
+            width: 300px;
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid gray;
+        }
+        .entry_buttons{
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+    </style>
+
     <h1>{{ entry.title }}</h1>
     <h3>{{ entry.description }}</h3>
 
     <p>By {{ entry.author }} | {{ entry.published }}</p>
 
-    <hr>
+    <hr id="line">
 
     <p>{{ entry.content }}</p>
+
+    <hr id="line">
+    <div class="entry_buttons">
+        <button id="profile_button" onclick="window.location.href='/munch/authors/{{ entry.author.uuid }}/'">Go to Profile</button>
+        <a href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}"><button id="edit_button" type="button">Edit</button></a>
+        <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
+        {% csrf_token %}
+        <button id="delete_button" type="submit" onclick="window.location.href='/munch/authors/{{ entry.author.uuid }}/'">Delete</button>
+    </form>
+    </div>
     
 {% endblock content %}

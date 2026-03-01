@@ -55,6 +55,15 @@
             background: white;
             border-radius: 3px;
         }
+        #create_button{
+            color: gray;
+            text-decoration: underline;
+        }
+        .entry-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -81,12 +90,15 @@
 
         <div class="entries-section">
             <h3 class="section-title">Public Entries</h3>
+            <a href="{% url 'munch:create_entry' author.uuid %}" class="btn" id="create_button">+ Create Entry</a>
             {% for entry in entries %}
-                <div class="entry-card">
-                    <h4>{{ entry.title }}</h4>
-                    <p>{{ entry.content|linebreaks }}</p>
-                    <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
-                </div>
+                 <a href="{% url 'munch:manage_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
+                    <div class="entry-card">
+                        <h4>{{ entry.title }}</h4>
+                        <p>{{ entry.content|linebreaks }}</p>
+                        <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
+                    </div>
+                </a>
             {% empty %}
                 <p>No public entries available yet.</p>
             {% endfor %}
