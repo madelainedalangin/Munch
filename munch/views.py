@@ -1,13 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import AuthorUpdateForm
-from .models import Author, Follow, Entry
-from django.contrib.auth.decorators import login_required
-from .forms import SignupForm,EntryForm
-
+from .forms import AuthorUpdateForm, SignupForm, EntryForm
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
 from .serializers import *
 from .models import *
 from django.views import generic
@@ -15,6 +10,10 @@ from django.db.models import Q #without Q, Django gonna always filter to an "AND
 
 import requests
 from django.http import JsonResponse
+
+from rest_framework import status
+
+host = 'http://127.0.0.1/'
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
@@ -119,9 +118,7 @@ def manage_entry_by_FQID(request, entry_FQID):
     entry = get_object_or_404(Entry, fqid=entry_FQID)
     return render(request, "munch/entry_detail.html", {"entry": entry})
 
-@login_required
 def get_stream_entries(user):
-    
     """
     Purpose: Helper function for stream and stream_api. Avoids code smell
     
@@ -155,12 +152,6 @@ def get_stream_entries(user):
     #This answers the question of, what posts/entries should a user currently
     #logged in should see?
     entries = Entry.objects.filter(
-        #Get all public posts on the node OR
-        #Get unlisted posts from the authors user follows (ONLY) OR
-        #Get posts only from friends OR
-        #Get user's own posts
-        #Exclude deleted entries even user's own entries
-        #order it by newest first (not like those twitter algorithms now T^T)
         Q(visibility = 'PUBLIC') | 
         Q(visibility = 'UNLISTED', author__in=user_following) |
         Q(visibility = 'FRIENDS', author__in=user_friends) |
@@ -186,6 +177,7 @@ def stream(request):
     return render(request, 'munch/stream.html', {'entries': entries})
       
 @api_view(['GET'])
+@login_required
 def stream_api(request):
     """
     Purpose: This function runs whenever some user peeps /munch/stream
@@ -240,7 +232,7 @@ def manage_following(request, author_serial, target_FQID):
     follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
 
     if request.method == 'GET':
-        serializer = FollowSerializer(follow_entry)
+        serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
 
     elif request.method == 'DELETE':
@@ -253,7 +245,10 @@ def manage_following(request, author_serial, target_FQID):
         if follow_entry == None:
             return
         
-        url = f"{target_FQID.replace("/authors/", "api/authors/")}/inbox"
+        url = target_FQID
+        if url.find("api/authors/") == -1:
+            url = f"{url.replace("/authors/", "api/authors/")}/inbox"
+        
         serializer = FollowRequestSerializer(follow_entry)
         response = requests.post(url, json=serializer.data)
         return JsonResponse(response.json)
@@ -262,7 +257,56 @@ def manage_following(request, author_serial, target_FQID):
 
 # Followers API
 
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_follower(request, author_serial, target_FQID):
+    
+    
+    if request.method == 'GET':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial, status='accepted').first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+        if follow_entry != None:
+            follow_entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    elif request.method == 'PUT':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        follow_entry.status = 'accepted'
+        follow_entry.save()
+
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
+
 # Follow Request API
+
+@api_view(['GET'])
+def get_follow_requests(request, author_serial):
+    author = Author.objects.get(id=f"{host}/api/authors/{author_serial}")
+
+    # get authors that are requesting to follow given author
+    follow_requests = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
+
+    serializer = AuthorSerializer(follow_requests, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def follow(request, author_serial):
+    serializer = FollowRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(status=400, data=serializer.errors)
 
 # Entries API
 
