@@ -1,19 +1,11 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Stream :3</title>
-    <style></style>
-  </head>
-  <body>
-    {% for entry in entries %}
-    <div>
-      <h2>{{ entry.title}}</h2>
-      <p>By {{ entry.author.displayName }}</p>
-      <p>{{ entry.content }}</p>
-      <small>{{ entry.published}}</small>
-    </div>
-    {% empty %}
-    <p>Nothing yet :3</p>
-    {% endfor %}
-  </body>
-</html>
+{% extends "munch/base.html" %} {% block title %}Stream{% endblock title %} {%
+block content %} {% for entry in entries %}
+<div>
+  <h2>{{ entry.title }}</h2>
+  <p>By {{ entry.author.displayName }}</p>
+  <p>{{ entry.content }}</p>
+  <small>{{ entry.published }}</small>
+</div>
+{% empty %}
+<p>Nothing yet :3</p>
+{% endfor %} {% endblock content %}
