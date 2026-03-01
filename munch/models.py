@@ -48,7 +48,8 @@ class Entry(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{host}/munch/api/authors/{self.author.serial}/entries/{self.serial}"
+            base_host = self.author.host if self.author.host.endswith('/') else f"{self.author.host}/"
+            self.fqid = f"{base_host}munch/api/authors/{self.author.uuid}/entries/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Comment(models.Model):

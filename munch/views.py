@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import AuthorUpdateForm
 from .models import Author, Follow, Entry
 from django.contrib.auth.decorators import login_required
-from .forms import SignupForm
+from .forms import SignupForm,EntryForm
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -34,11 +34,13 @@ def edit_profile(request):
 def public_profile(request, author_uuid):
     # This matches the <uuid:author_uuid> in your urls.py
     author = get_object_or_404(Author, uuid=author_uuid)
+    entries = Entry.objects.filter(author__uuid=author_uuid)
     
     # For now, only pass the author. 
     # add 'posts' for user story 5 when implemented
     context = {
         'author': author,
+        'entries': entries,
     }
     return render(request, 'munch/public_profile.html', context)
 
@@ -64,6 +66,24 @@ def signup(request):
 class FollowersView(generic.TemplateView):
     template_name = "munch/followers.html"
 
+def createEntry(request):
+    if request.method == 'POST':
+        form = EntryForm(request.POST)
+        if form.is_valid():
+            entry = form.save(commit=False)
+            entry.author = request.user
+            entry.save()
+            return redirect(entry.fqid)
+    else:
+        form = EntryForm()
+        
+    return render(request, 'munch/create_post.html', {'form': form})
+
+def manage_entry_by_serial(request, author_id, entry_serial):
+    entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+    return render(request, "munch/entry_detail.html", {"entry": entry})
+
+@login_required
 def get_stream_entries(user):
     
     """
