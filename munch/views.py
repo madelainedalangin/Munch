@@ -16,6 +16,8 @@ from django.db.models import Q #without Q, Django gonna always filter to an "AND
 import requests
 from django.http import JsonResponse
 
+host = 'http://127.0.0.1/'
+
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
 def edit_profile(request):
@@ -184,7 +186,7 @@ def manage_following(request, author_serial, target_FQID):
     follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
 
     if request.method == 'GET':
-        serializer = FollowSerializer(follow_entry)
+        serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
 
     elif request.method == 'DELETE':
@@ -197,7 +199,10 @@ def manage_following(request, author_serial, target_FQID):
         if follow_entry == None:
             return
         
-        url = f"{target_FQID.replace("/authors/", "api/authors/")}/inbox"
+        url = target_FQID
+        if url.find("api/authors/") == -1:
+            url = f"{url.replace("/authors/", "api/authors/")}/inbox"
+        
         serializer = FollowRequestSerializer(follow_entry)
         response = requests.post(url, json=serializer.data)
         return JsonResponse(response.json)
@@ -205,7 +210,39 @@ def manage_following(request, author_serial, target_FQID):
 
 # Followers API
 
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_follower(request, author_serial, target_FQID):
+    
+    
+    if request.method == 'GET':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial, status='accepted').first()
+        
+
+    elif request.method == 'DELETE':
+        pass
+
+    elif request.method == 'PUT':
+        pass
+
 # Follow Request API
+
+@api_view(['GET'])
+def get_follow_requests(request, author_serial):
+    author = Author.objects.get(id=f"{host}/api/authors/{author_serial}")
+
+    # get authors that are requesting to follow given author
+    follow_requests = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
+
+    serializer = AuthorSerializer(follow_requests, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def follow(request, author_serial):
+    serializer = FollowRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(status=400, data=serializer.errors)
 
 # Entries API
 
