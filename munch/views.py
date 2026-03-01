@@ -365,7 +365,7 @@ def get_follow_requests(request, author_serial):
     return Response(serializer.data)
 
 @api_view(['POST'])
-def follow(request, author_serial):
+def follow(request, target_serial):
     serializer = FollowRequestSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
