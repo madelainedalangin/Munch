@@ -12,8 +12,7 @@ import requests
 from django.http import JsonResponse
 
 from rest_framework import status
-
-host = 'http://127.0.0.1/'
+from django.conf import settings
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
@@ -356,7 +355,7 @@ def manage_follower(request, author_serial, target_FQID):
 
 @api_view(['GET'])
 def get_follow_requests(request, author_serial):
-    author = Author.objects.get(id=f"{host}/api/authors/{author_serial}")
+    author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
 
     # get authors that are requesting to follow given author
     follow_requests = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
