@@ -86,7 +86,9 @@ def login_success_redirect(request):
 
 # The following function from Google, Gemini, "Django Login Function", 03-01-2026
 def logout_user(request):
+    from django.contrib.auth import logout
     logout(request)
+    from django.contrib import messages
     messages.info(request, "You have successfully logged out.")
     return redirect('munch:login')
 
