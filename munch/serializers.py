@@ -59,7 +59,7 @@ class LikeSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='like')
     author = AuthorSerializer()
     id = serializers.URLField(source='fqid')
-    object = serializers.URLField()
+    object = serializers.URLField(source='object_url')
 
     class Meta:
         model = Like
