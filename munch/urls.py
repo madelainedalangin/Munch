@@ -81,5 +81,6 @@ urlpatterns = [
     # path('api/authors/{AUTHOR_FQID}/liked', views., name=''),
     # path('api/liked/{LIKE_FQID}', views., name=''),
 
+    # Author API at the last
     path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
 ]
