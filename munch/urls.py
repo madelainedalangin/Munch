@@ -13,6 +13,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='munch/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('login-success/', views.login_success_redirect, name='login_success'),
+    path('logout/', views.logout_user, name='logout'),
 
     path('followers/', views.FollowersView.as_view(), name="followers"),
 

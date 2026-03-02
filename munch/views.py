@@ -83,6 +83,11 @@ def login_success_redirect(request):
         return redirect('munch:login')
     return redirect('munch:public_profile', author_uuid=request.user.uuid)
 
+def logout_user(request):
+    logout(request)
+    messages.info(request, "You have successfully logged out.")
+    return redirect('munch:login')
+
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 def signup(request):
     if request.method == 'POST':
