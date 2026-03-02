@@ -96,4 +96,4 @@ This is for when there are no entries or all entries are deleted.
 - Authentication is required. Unauthenticated requests redirect to login (302).
 - Pagination not yet implemented.
 - Sorted by newest published date first.
-  - Edited entries after publishing keep their original published date
+  - Edited entries after publishing keep their original published timestamp
