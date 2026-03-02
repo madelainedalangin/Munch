@@ -157,6 +157,30 @@ def delete_entry(request, author_id, entry_serial):
 
 def display_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+    author = get_object_or_404(Author, uuid=author_id)
+
+    if request.user.is_authenticated:
+        follows_author = Follow.objects.filter(
+            actor=request.user,
+            object=author,
+            status='accepted'
+        ).exists()
+        author_follows_user = Follow.objects.filter(
+            actor=author,
+            object=request.user,
+            status='accepted'
+        ).exists()
+        
+        is_friend = follows_author and author_follows_user
+
+        if entry.visibility == 'PRIVATE' and (not is_friend):
+            return redirect('munch:public_profile', author_uuid=author_id)
+        elif entry.visibility == 'DELETED':
+            return redirect('munch:public_profile', author_uuid=author_id)
+    else:
+        if entry.visibility in ['PRIVATE', 'DELETED']:
+            return redirect('munch:public_profile', author_uuid=author_id) # Get clarity on assumption of what "public" implies // Unauthenticated users to be considered?
+
     content = entry.content
     if entry.contentType == "text/markdown":
         content = markdown.markdown(entry.content)
