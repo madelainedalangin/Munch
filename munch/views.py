@@ -30,7 +30,7 @@ def edit_profile(request):
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 def public_profile(request, author_uuid):
-    # This matches the <uuid:author_uuid> in your urls.py
+    
     author = get_object_or_404(Author, uuid=author_uuid)
     entries = Entry.objects.filter(author=author)
 
@@ -82,6 +82,12 @@ def login_success_redirect(request):
         messages.error(request, "Account pending for approval by admin.")
         return redirect('munch:login')
     return redirect('munch:public_profile', author_uuid=request.user.uuid)
+
+# The following function from Google, Gemini, "Django Login Function", 03-01-2026
+def logout_user(request):
+    logout(request)
+    messages.info(request, "You have successfully logged out.")
+    return redirect('munch:login')
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 def signup(request):
