@@ -92,6 +92,7 @@ This is for when there are no entries or all entries are deleted.
 - Sorted by newest published date first. 
 
 ## Additional Notes
+
 - Authentication is required. Unauthenticated requests redirect to login (302).
 - Pagination not yet implemented.
 - Sorted by newest published date first.
