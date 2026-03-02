@@ -403,6 +403,7 @@ def get_author(request, author_id):
 
 # Following API
 
+@login_required
 @api_view(['GET'])
 def get_following(request, author_serial):
     author = Author.objects.get(uuid=author_serial)
@@ -413,7 +414,7 @@ def get_following(request, author_serial):
     serializer = AuthorSerializer(following, many=True)
     return Response(serializer.data)
     
-
+@login_required
 @api_view(['GET', 'DELETE', 'PUT'])
 def manage_following(request, author_serial, target_FQID):
     follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
@@ -471,7 +472,6 @@ def manage_following(request, author_serial, target_FQID):
 @api_view(['GET', 'DELETE', 'PUT'])
 def manage_follower(request, author_serial, target_FQID):
     
-    
     if request.method == 'GET':
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial, status='accepted').first()
 
@@ -480,8 +480,14 @@ def manage_follower(request, author_serial, target_FQID):
         
         serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
+    
+    if not request.user.is_authenticated:
+        return Response(
+            {'detail': 'Authentication is required'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
-    elif request.method == 'DELETE':
+    if request.method == 'DELETE':
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
         if follow_entry != None:
             follow_entry.delete()
