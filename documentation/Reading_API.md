@@ -61,7 +61,7 @@ This is for when there are no entries or all entries are deleted.
 
 - `PUBLIC` entries from anyone on the node appear. 
 - `UNLISTED` entries appear only from authors you follow. 
-- `FRIENDS` entries appear only from mutual follows (friends). 
+- `PRIVATE` entries appear only from mutual follows (friends). 
 - Your own entries always appear except for the deleted ones. 
 - `DELETED` entries never appear. 
 - Sorted by newest published date first. 
