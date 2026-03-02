@@ -90,12 +90,14 @@
 
         <div class="entries-section">
             <h3 class="section-title">Public Entries</h3>
-            <a href="{% url 'munch:create_entry' author.uuid %}" class="btn" id="create_button">+ Create Entry</a>
+            {% if request.user.is_authenticated and request.user.uuid == author.uuid %}
+                <a href="{% url 'munch:create_entry_UI' author.uuid %}" class="btn" id="create_button">+ Create Entry</a>
+            {% endif %}
             {% for entry in entries %}
-                 <a href="{% url 'munch:manage_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
+                 <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
                     <div class="entry-card">
                         <h4>{{ entry.title }}</h4>
-                        <p>{{ entry.content|linebreaks }}</p>
+                            <p>{{ entry.content|linebreaks }}</p>
                         <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
                     </div>
                 </a>

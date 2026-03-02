@@ -7,6 +7,7 @@ from .serializers import *
 from .models import *
 from django.views import generic
 from django.db.models import Q #without Q, Django gonna always filter to an "AND"
+import markdown
 
 import requests
 from django.http import JsonResponse
@@ -109,7 +110,9 @@ def create_entry_UI(request, author_id):
             entry = form.save(commit=False)
             entry.author = request.user
             entry.save()
-            return redirect(entry.fqid)
+            return redirect('munch:display_entry_by_serial',
+                            author_id=entry.author.uuid,
+                            entry_serial=entry.serial)
     else:
         form = EntryForm()
         
@@ -125,7 +128,7 @@ def edit_entry(request, author_id, entry_serial):
             updated_entry.author = entry.author
             updated_entry.save()
             return redirect(
-                'munch:manage_entry_by_serial',
+                'munch:display_entry_by_serial',
                 author_id=entry.author.uuid,
                 entry_serial=entry.serial
             )
@@ -147,7 +150,10 @@ def delete_entry(request, author_id, entry_serial):
 
 def display_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
-    return render(request, "munch/entry_detail.html", {"entry": entry})
+    content = entry.content
+    if entry.contentType == "text/markdown":
+        content = markdown.markdown(entry.content)
+    return render(request, "munch/entry_detail.html", {"entry": entry, "content":content})
 
 def display_entry_by_FQID(request, entry_FQID):
     entry = get_object_or_404(Entry, fqid=entry_FQID)
