@@ -4,6 +4,7 @@ import uuid
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.utils import timezone
+import markdown
 
 # The following class from Google, Gemini, "Django Author Identity", 02-28-2026
 class Author(AbstractUser):
@@ -44,6 +45,7 @@ class Entry(models.Model):
     description = models.CharField(max_length=200)
     contentType = models.CharField(max_length=200)
     content = models.TextField()
+    markdownContent = models.TextField(blank=True)
 
     serial = models.UUIDField(default=uuid.uuid4)
     fqid = models.URLField(blank=True, unique=True)
@@ -52,6 +54,8 @@ class Entry(models.Model):
         if not self.fqid:
             base_host = self.author.host if self.author.host.endswith('/') else f"{self.author.host}/"
             self.fqid = f"{base_host}munch/api/authors/{self.author.uuid}/entries/{self.serial}"
+        if self.contentType == "text/markdown":
+            self.markdownContent = markdown.markdown(self.content)
         return super().save(*args, **kwargs)
 
 class Comment(models.Model):

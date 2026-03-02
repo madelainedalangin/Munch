@@ -15,7 +15,7 @@ urlpatterns = [
     path('login-success/', views.login_success_redirect, name='login_success'),
     path('logout/', views.logout_user, name='logout'),
 
-    path('followers/', views.FollowersView.as_view(), name="followers"),
+    path('authors/<uuid:author_uuid>/followers/', views.followers_view, name="followers"),
 
     path('stream/', views.stream, name='stream'),
     path('api/stream/', views.stream_api, name='stream_api'),
@@ -48,7 +48,7 @@ urlpatterns = [
     # # ENTRY PATHS FOR UI
     path('authors/<str:author_id>/entries/', views.create_entry_UI, name='create_entry_UI'),
     path('authors/<str:author_id>/entries/<str:entry_serial>/', views.display_entry_by_serial, name = 'display_entry_by_serial'),
-    path('entries/<path:entry_FQID>/', views.display_entry_by_FQID, name = 'display_entry_by_FQID'),
+    # path('entries/<path:entry_FQID>/', views.display_entry_by_FQID, name = 'display_entry_by_FQID'),
     path('authors/<str:author_id>/entries/<str:entry_serial>/edit/', views.edit_entry, name='edit_entry'),
     path('authors/<str:author_id>/entries/<str:entry_serial>/delete/', views.delete_entry, name='delete_entry'),
     # path('api/entries/<str:entry_FQID>', views.manage_entry_by_FQID, name='manage_entry_by_FQID'),

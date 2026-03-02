@@ -2,16 +2,48 @@
 
 {% block title %}Followers{% endblock title %}
 
-{% block nav %}
-{% endblock nav %}
+{% block scripts %}
+<script>
+    window.addEventListener("load", main);
+    function main() {
+        const follower_list = document.getElementById('follower_list');
+        follower_list.addEventListener('click', (event) => {
+            if (event.target && event.target.classList.contains('unfollow')) {
+                const fqid = event.target.getAttribute('data-follower-id');
+                document.getElementById(`unfollow-${fqid}`).disabled = true;
+                unfollow(fqid);
+            }
+        })
+    }
+
+    async function unfollow(fqid) {
+        const csrftoken = "{{ csrf_token }}";
+        let url = "{% url 'munch:manage_follower' user.uuid 'TARGET_FQID' %}";
+        url = url.replace('TARGET_FQID', encodeURIComponent(fqid));
+
+        // send DELETE request to following api
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken,
+            }
+        });
+
+        if (response.ok) {
+            document.getElementById(`follower-${fqid}`).remove();
+        }
+    }
+</script>
+{% endblock scripts %}
 
 {% block content %}
-            <h2>Followers</h2>
-            {% block followers_list %}
-                <ul id="follower_list">
-                    <li>Example Follower #1</li>
-                    <li>Example Follower #2</li>
-                    <li>Example Follower #3</li>
-                </ul>
-            {% endblock followers_list %}
-{% endblock content %}asdfasf
+<h2>Followers</h2>
+    <ul id="follower_list">
+        {% for follower in followers %}
+            <li id="follower-{{ follower.id }}">
+                <a href="{{ follower.web }}">{{ follower.displayName }}</a>
+                <button id="unfollow-{{ follower.id }}" class="unfollow" data-follower-id="{{ follower.id }}">unfollow</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock content %}
