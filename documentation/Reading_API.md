@@ -1,13 +1,13 @@
 # STREAM API
 
-### GET /munch/api/stream
+## GET /munch/api/stream
 
 **When:** Use this so that as a user, one can see their homefeed personalized to them based on their entries, friends' entries and public entries.  
 **How:** Send a GET request while logged in.  
 **Why**: This is the primary method to see all entries a user should know.  
 **Authentication:** Required. Or else, it will redirect to login if a person is not logged in.  
 
-### Example Request
+## Example Request
 
 ```txt
 GET /munch/api/stream/
@@ -19,11 +19,11 @@ GET /munch/api/stream/
 [
     {
       "type": "entry",
-      "title": "First Entry Ever",
+      "title": "Hello Munch!",
       "id": "http://127.0.0.1:8000/munch/api/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e/entries/5b072938-c424-43a2-8df9-4c71dcb6af4a",
-      "description": "Exciting",
+      "description": "greeting entry",
       "contentType": "text/plain",
-      "content": ":3",
+      "content": "Hello! Can't wait to meet new people :)",
       "author": {
           "type": "author",
           "id": "http://127.0.0.1:8000/munch/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e",
@@ -91,7 +91,7 @@ This is for when there are no entries or all entries are deleted.
 - `DELETED` entries never appear. 
 - Sorted by newest published date first. 
 
-### Additional Notes
+## Additional Notes
 - Authentication is required. Unauthenticated requests redirect to login (302).
 - Pagination not yet implemented.
 - Sorted by newest published date first.
