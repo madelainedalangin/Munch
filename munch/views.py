@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from .forms import AuthorUpdateForm, SignupForm, EntryForm
 from rest_framework.decorators import api_view
@@ -179,6 +180,7 @@ def delete_entry(request, author_id, entry_serial):
         return redirect('munch:public_profile', author_uuid=author_id)
     return redirect('munch:manage_entry_by_serial', author_id=author_id, entry_serial=entry_serial)
 
+@login_required
 def display_entry_by_serial(request, author_id, entry_serial):
     '''
     Purpose: Display a given entry's details 
@@ -188,27 +190,28 @@ def display_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     author = get_object_or_404(Author, uuid=author_id)
 
-    if request.user.is_authenticated:
-        follows_author = Follow.objects.filter(
-            actor=request.user,
-            object=author,
-            status='accepted'
-        ).exists()
-        author_follows_user = Follow.objects.filter(
-            actor=author,
-            object=request.user,
-            status='accepted'
-        ).exists()
-        
-        is_friend = follows_author and author_follows_user
+    if request.user == author:
+        if entry.visibility == 'DELETED':
+            return HttpResponse(status=410)
+        return render(request, "munch/entry_detail.html", {"entry": entry})
 
-        if entry.visibility == 'PRIVATE' and (not is_friend):
-            return redirect('munch:public_profile', author_uuid=author_id)
-        elif entry.visibility == 'DELETED':
-            return redirect('munch:public_profile', author_uuid=author_id)
-    else:
-        if entry.visibility in ['PRIVATE', 'DELETED']:
-            return redirect('munch:public_profile', author_uuid=author_id) # Get clarity on assumption of what "public" implies // Unauthenticated users to be considered?
+    follows_author = Follow.objects.filter(
+        actor=request.user,
+        object=author,
+        status='accepted'
+    ).exists()
+    author_follows_user = Follow.objects.filter(
+        actor=author,
+        object=request.user,
+        status='accepted'
+    ).exists()
+    
+    is_friend = follows_author and author_follows_user
+
+    if entry.visibility == 'DELETED':
+        return HttpResponse(status=410)
+    elif entry.visibility == 'PRIVATE' and (not is_friend):
+        return HttpResponse(status=403)
 
     return render(request, "munch/entry_detail.html", {"entry": entry})
 
