@@ -105,9 +105,14 @@ def signup(request):
         form = SignupForm()
     return render(request, 'munch/signup.html', {'form': form})
 
-class FollowersView(generic.TemplateView):
-    template_name = "munch/followers.html"
-
+def followers_view(request, author_uuid):
+    author = Author.objects.get(uuid=author_uuid)   # use fqid in future
+    follower_list = Author.objects.filter(following_relations__object=author)
+    context = {
+        "user": author,
+        "followers": follower_list
+    }
+    return render(request, 'munch/followers.html', context)
 
 def create_entry_UI(request, author_id):
     if not request.user.is_authenticated:
