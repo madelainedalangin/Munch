@@ -27,7 +27,6 @@ urlpatterns = [
     # Authors API
     path('api/authors/', views.get_authors, name='get_authors'),
     path('api/authors', views.get_authors_paginated, name='get_authors_paginated'),
-    path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
 
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
@@ -81,4 +80,6 @@ urlpatterns = [
     # path('api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}', views., name=''),
     # path('api/authors/{AUTHOR_FQID}/liked', views., name=''),
     # path('api/liked/{LIKE_FQID}', views., name=''),
+
+    path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
 ]
