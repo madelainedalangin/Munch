@@ -27,14 +27,14 @@ urlpatterns = [
     # Authors API
     path('api/authors/', views.get_authors, name='get_authors'),
     path('api/authors', views.get_authors_paginated, name='get_authors_paginated'),
-    path('api/authors/<str:author_id>/', views.get_author, name='get_author'),
+    path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
 
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
-    path('api/authors/<str:author_serial>/following/<str:target_FQID>', views.manage_following, name='manage_following'),
+    path('api/authors/<str:author_serial>/following/<path:target_FQID>', views.manage_following, name='manage_following'),
 
     # Followers API
-    path('api/authors/<str:author_serial>/followers/<str:target_FQID>', views.manage_follower, name='manage_follower'),
+    path('api/authors/<str:author_serial>/followers/<path:target_FQID>', views.manage_follower, name='manage_follower'),
 
     # Follow Request API
     path('api/authors/<str:author_serial>/follow_requests', views.get_follow_requests, name='get_follow_requests'),
