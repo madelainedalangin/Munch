@@ -101,17 +101,19 @@
                 <a href="{% url 'munch:create_entry_UI' author.uuid %}" class="btn" id="create_button">+ Create Entry</a>
             {% endif %}
             {% for entry in entries %}
-                 <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
-                    <div class="entry-card">
-                        <h4>{{ entry.title }}</h4>
-                            {% if entry.contentType == 'text/markdown' %}
-                                <div>{{ entry.markdownContent|safe }}</div>
-                            {% else %}
-                                <p>{{ entry.content|linebreaks }}</p>
-                            {% endif %}
-                        <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
-                    </div>
-                </a>
+                {% if entry.visibility != "DELETED" %}
+                    <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
+                        <div class="entry-card">
+                            <h4>{{ entry.title }}</h4>
+                                {% if entry.contentType == 'text/markdown' %}
+                                    <div>{{ entry.markdownContent|safe }}</div>
+                                {% else %}
+                                    <p>{{ entry.content|linebreaks }}</p>
+                                {% endif %}
+                            <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
+                        </div>
+                    </a>
+                {% endif%}
             {% empty %}
                 <p>No public entries available yet.</p>
             {% endfor %}

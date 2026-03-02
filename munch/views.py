@@ -110,6 +110,11 @@ class FollowersView(generic.TemplateView):
 
 
 def create_entry_UI(request, author_id):
+    '''
+    Purpose: Creates an entry through a filled out form from the user in the UI 
+
+    If user fills the form correctly, it will save as an entry in the database
+    '''
     if not request.user.is_authenticated:
         return redirect('munch:login')
 
@@ -128,8 +133,16 @@ def create_entry_UI(request, author_id):
     return render(request, 'munch/create_entry.html', {'form': form, 'title':"Create Entry", 'button_title':"Create Entry"})
 
 def edit_entry(request, author_id, entry_serial):
+    '''
+    Purpose: Modifies an existing form created by the author in the UI
+
+    User will be taken to a page with the entry details already filled in which they can modify and save once they are done
+    '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     
+    # TODO - cancel button
+    # TODO - if the filled form is invalid, redirct user back to entry details and show error
+
     if request.method == "POST":
         form = EntryForm(request.POST, instance=entry)
         if form.is_valid():
@@ -147,17 +160,26 @@ def edit_entry(request, author_id, entry_serial):
     return render(request, "munch/create_entry.html", {"form": form, "entry": entry, 'title':"Edit Entry", 'button_title':"Edit Entry"})
 
 def delete_entry(request, author_id, entry_serial):
+    '''
+    Purpose: Deletes an author's entry
+    '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
 
     if request.method == "POST":
         if request.user != entry.author:
             return redirect('munch:public_profile', author_uuid=author_id)
 
-        entry.delete()
+        entry.visibility = "DELETED"
+        entry.save()
         return redirect('munch:public_profile', author_uuid=author_id)
     return redirect('munch:manage_entry_by_serial', author_id=author_id, entry_serial=entry_serial)
 
 def display_entry_by_serial(request, author_id, entry_serial):
+    '''
+    Purpose: Display a given entry's details 
+
+    If you are the author of the entry, you will have access to modify and delete it through the UI
+    '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     author = get_object_or_404(Author, uuid=author_id)
 
@@ -185,9 +207,10 @@ def display_entry_by_serial(request, author_id, entry_serial):
 
     return render(request, "munch/entry_detail.html", {"entry": entry})
 
-def display_entry_by_FQID(request, entry_FQID):
-    entry = get_object_or_404(Entry, fqid=entry_FQID)
-    return render(request, "munch/entry_detail.html", {"entry": entry})
+# (this function may be used in the future)
+# def display_entry_by_FQID(request, entry_FQID):
+#     entry = get_object_or_404(Entry, fqid=entry_FQID)
+#     return render(request, "munch/entry_detail.html", {"entry": entry})
 
 # # Following entry functions deal with the given API functions
 @api_view(['GET', 'DELETE', 'PUT'])
