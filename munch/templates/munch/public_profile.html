@@ -104,7 +104,11 @@
                  <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
                     <div class="entry-card">
                         <h4>{{ entry.title }}</h4>
-                            <p>{{ entry.content|linebreaks }}</p>
+                            {% if entry.contentType == 'text/markdown' %}
+                                <div>{{ entry.markdownContent|safe }}</div>
+                            {% else %}
+                                <p>{{ entry.content|linebreaks }}</p>
+                            {% endif %}
                         <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
                     </div>
                 </a>

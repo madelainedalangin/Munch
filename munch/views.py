@@ -183,10 +183,7 @@ def display_entry_by_serial(request, author_id, entry_serial):
         if entry.visibility in ['PRIVATE', 'DELETED']:
             return redirect('munch:public_profile', author_uuid=author_id) # Get clarity on assumption of what "public" implies // Unauthenticated users to be considered?
 
-    content = entry.content
-    if entry.contentType == "text/markdown":
-        content = markdown.markdown(entry.content)
-    return render(request, "munch/entry_detail.html", {"entry": entry, "content":content})
+    return render(request, "munch/entry_detail.html", {"entry": entry})
 
 def display_entry_by_FQID(request, entry_FQID):
     entry = get_object_or_404(Entry, fqid=entry_FQID)
