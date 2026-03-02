@@ -131,6 +131,68 @@ class AuthorTest(TestCase):
 # POSTING USER STORY TEST #
 ##########################
 
+class PostingTest(TestCase):
+  def setUp(self):
+    self.client = Client()
+    self.user = Author.objects.create_user(
+      username = 'posty',
+      password='ilove6767',
+      displayName = 'posty the post tester!',
+      is_approved = True,
+    )
+    self.client.login(username='posty', password='ilove6767')
+
+  def mockEntry(self):
+    entry = Entry.objects.create(
+      author = self.user,
+      title='testing',
+      content='this is test for PostingTest',
+      contentType="text/plain",
+      visibility='PUBLIC',
+      description='this is a test under StreamAPITest',
+    )
+
+    return entry
+
+  # Tests creating an entry by checking if we can access the entry's details page
+  def test_create_entry(self):
+    #lets first create an entry 
+    entry = self.mockEntry()
+    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    self.assertEqual(response.status_code, 200)
+
+  # Tests modifying an entry by checking if the content changed before and after modification
+  def test_edit_entry(self):
+    entry = self.mockEntry()
+    initial_content = entry.content
+    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    self.assertEqual(response.status_code, 200)
+    self.client.post(
+      f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
+      {
+        "author": self.user,
+        "title": 'Posty posts',
+        "content":'post messages in here',
+        "contentType": "text/plain",
+        "visibility": 'PUBLIC',
+        "description": 'this is a test under PostingTest',
+      }
+    )
+    entry.refresh_from_db()
+    post_content = entry.content
+    self.assertNotEqual(initial_content,post_content)
+    
+  # Tests deleting an entry by checking if the visibility of the entry is 'DELETED' after deletion
+  def test_delete_entry(self):
+    entry = self.mockEntry()
+    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    self.assertEqual(response.status_code, 200)
+    self.client.post(f'/munch/authors/{self.user.uuid}/entries/{entry.serial}/delete/')
+    entry.refresh_from_db()
+    self.assertEqual(entry.visibility,"DELETED")
+
+  
+
 
 
 ###########################
