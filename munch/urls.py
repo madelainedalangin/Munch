@@ -15,7 +15,7 @@ urlpatterns = [
     path('login-success/', views.login_success_redirect, name='login_success'),
     path('logout/', views.logout_user, name='logout'),
 
-    path('followers/', views.FollowersView.as_view(), name="followers"),
+    path('authors/<uuid:author_uuid>/followers/', views.followers_view, name="followers"),
 
     path('stream/', views.stream, name='stream'),
     path('api/stream/', views.stream_api, name='stream_api'),
@@ -27,7 +27,7 @@ urlpatterns = [
     # Authors API
     path('api/authors/', views.get_authors, name='get_authors'),
     path('api/authors', views.get_authors_paginated, name='get_authors_paginated'),
-    path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
+    
 
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
@@ -41,11 +41,16 @@ urlpatterns = [
     path('api/authors/<str:target_serial>/inbox', views.follow, name='follow'),
 
     # # Entries API
-    path('api/authors/<str:author_id>/entries/<str:entry_serial>', views.manage_entry_by_serial, name='manage_entry_by_serial'),
+    path('api/authors/<str:author_id>/entries/<str:entry_serial>/', views.manage_entry_by_serial, name='manage_entry_by_serial'),
     path('api/entries/<path:entry_FQID>/', views.manage_entry_by_FQID, name='manage_entry_by_FQID'),
     path('api/authors/<str:author_id>/entries/', views.create_entry, name='create_entry'),
-    path('api/authors/<str:author_id>/entries/<str:entry_serial>/edit/', views.edit_entry, name='edit_entry'),
-    path('api/authors/<str:author_id>/entries/<str:entry_serial>/delete/', views.delete_entry, name='delete_entry'),
+
+    # # ENTRY PATHS FOR UI
+    path('authors/<str:author_id>/entries/', views.create_entry_UI, name='create_entry_UI'),
+    path('authors/<str:author_id>/entries/<str:entry_serial>/', views.display_entry_by_serial, name = 'display_entry_by_serial'),
+    # path('entries/<path:entry_FQID>/', views.display_entry_by_FQID, name = 'display_entry_by_FQID'),
+    path('authors/<str:author_id>/entries/<str:entry_serial>/edit/', views.edit_entry, name='edit_entry'),
+    path('authors/<str:author_id>/entries/<str:entry_serial>/delete/', views.delete_entry, name='delete_entry'),
     # path('api/entries/<str:entry_FQID>', views.manage_entry_by_FQID, name='manage_entry_by_FQID'),
     # path('api/authors/<str:author_id>/entries/', views.create_entry, name='create-entry'),
 
@@ -76,4 +81,7 @@ urlpatterns = [
     # path('api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}', views., name=''),
     # path('api/authors/{AUTHOR_FQID}/liked', views., name=''),
     # path('api/liked/{LIKE_FQID}', views., name=''),
+
+    # Author API at the last
+    path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
 ]

@@ -131,6 +131,68 @@ class AuthorTest(TestCase):
 # POSTING USER STORY TEST #
 ##########################
 
+class PostingTest(TestCase):
+  def setUp(self):
+    self.client = Client()
+    self.user = Author.objects.create_user(
+      username = 'posty',
+      password='ilove6767',
+      displayName = 'posty the post tester!',
+      is_approved = True,
+    )
+    self.client.login(username='posty', password='ilove6767')
+
+  def mockEntry(self):
+    entry = Entry.objects.create(
+      author = self.user,
+      title='testing',
+      content='this is test for PostingTest',
+      contentType="text/plain",
+      visibility='PUBLIC',
+      description='this is a test under StreamAPITest',
+    )
+
+    return entry
+
+  # Tests creating an entry by checking if we can access the entry's details page
+  def test_create_entry(self):
+    #lets first create an entry 
+    entry = self.mockEntry()
+    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    self.assertEqual(response.status_code, 200)
+
+  # Tests modifying an entry by checking if the content changed before and after modification
+  def test_edit_entry(self):
+    entry = self.mockEntry()
+    initial_content = entry.content
+    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    self.assertEqual(response.status_code, 200)
+    self.client.post(
+      f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
+      {
+        "author": self.user,
+        "title": 'Posty posts',
+        "content":'post messages in here',
+        "contentType": "text/plain",
+        "visibility": 'PUBLIC',
+        "description": 'this is a test under PostingTest',
+      }
+    )
+    entry.refresh_from_db()
+    post_content = entry.content
+    self.assertNotEqual(initial_content,post_content)
+    
+  # Tests deleting an entry by checking if the visibility of the entry is 'DELETED' after deletion
+  def test_delete_entry(self):
+    entry = self.mockEntry()
+    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    self.assertEqual(response.status_code, 200)
+    self.client.post(f'/munch/authors/{self.user.uuid}/entries/{entry.serial}/delete/')
+    entry.refresh_from_db()
+    self.assertEqual(entry.visibility,"DELETED")
+
+  
+
 
 
 ###########################
@@ -272,24 +334,25 @@ class StreamAPITest(TestCase):
     self.assertEqual(len(response.json()), 3)
     
   #Friends only entries visible to friends ONLY
-  def test_friends_only_entry(self):
+  def test_private_entry(self):
     """Ensures entries in friends-only visibility is only shown to friends"""
     Entry.objects.create(
       author = self.stranger,
       title = 'Friends only Post by Random',
       content = 'Hidden',
       contentType = 'text/plain',
-      visibility = 'FRIENDS',
+      visibility = 'PRIVATE',
       description = 'test friends only post',
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()), 0)
   
-  def test_one_way_friends_entry(self):
+  def test_one_way_private_entry(self):
     """
-    Ensures one-way follow (A -> B) and B's friends-only post shows to A
-    but B's friends-only post is not shown to A
+    Author follows user but user doesnt follow back.
+    Author's private's post should NOT show in user's stream
+    because one-way follow is not a friendship.
     """
     Follow.objects.create(
       actor = self.author,
@@ -301,7 +364,7 @@ class StreamAPITest(TestCase):
       title = 'B friends only entry',
       content = 'hidden',
       contentType = 'text/plain',
-      visibility = 'FRIENDS',
+      visibility = 'PRIVATE',
       description = 'One way friendship test',
     )
     response = self.client.get('/munch/api/stream/')
@@ -323,14 +386,14 @@ class StreamAPITest(TestCase):
     self.assertEqual(len(response.json()), 1)
     self.assertEqual(response.json()[0]['title'], 'My Public Post For Me')
 
-  def test_own_entry_friends(self):
+  def test_own_private_entry(self):
     """User's own friends-only entry should appear in stream"""
     Entry.objects.create(
       author=self.user,
       title='My Private Post',
       content='Secret',
       contentType='text/plain',
-      visibility='FRIENDS',
+      visibility='PRIVATE',
       description='test for friends only entries i can see for meself'
     )
     response = self.client.get('/munch/api/stream/')
