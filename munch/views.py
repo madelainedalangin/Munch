@@ -248,8 +248,12 @@ def manage_entry_by_serial(request, author_id, entry_serial):
                 status=status.HTTP_403_FORBIDDEN
             )
         entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
-        entry.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if entry.visibility == "DELETED":
+            return Response({"detail": "Entry already deleted."},status=status.HTTP_204_NO_CONTENT)
+        entry.visibility = "DELETED"
+        entry.save()
+        
+        return Response({"detail": "Entry successfully deleted."},status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
 def manage_entry_by_FQID(request, entry_FQID):
