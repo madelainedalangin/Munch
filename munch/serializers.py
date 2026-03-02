@@ -95,17 +95,20 @@ class CommentsSerializer(serializers.Serializer):
     src = CommentSerializer(many=True)
 
 class EntrySerializer(serializers.ModelSerializer):
-    type = serializers.CharField(max_length=100, default='entry')
-    id = serializers.URLField(source='fqid')
-    web = serializers.URLField()
+    type = serializers.CharField(max_length=100, default='entry', read_only=True)
+    id = serializers.URLField(source='fqid', read_only=True)
+    web = serializers.URLField(source='fqid', read_only=True)
     author = AuthorSerializer()
-    comments = CommentsSerializer()
-    likes = LikesSerializer()
 
+    # TODO - implement comments and likes!
+    # comments = CommentsSerializer()
+    # likes = LikesSerializer()
+
+    # removed comments and likes in the fields 
 
     class Meta:
         model = Entry
-        fields = ['type', 'title', 'id', 'web', 'description', 'contentType', 'content', 'author', 'comments', 'likes', 'published', 'visibility']
+        fields = ['type', 'title', 'id', 'web', 'description', 'contentType', 'content', 'author', 'published', 'visibility']
 
 class EntriesSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='entries')

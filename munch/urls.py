@@ -41,11 +41,16 @@ urlpatterns = [
     path('api/authors/<str:target_serial>/inbox', views.follow, name='follow'),
 
     # # Entries API
-    path('api/authors/<str:author_id>/entries/<str:entry_serial>', views.manage_entry_by_serial, name='manage_entry_by_serial'),
+    path('api/authors/<str:author_id>/entries/<str:entry_serial>/', views.manage_entry_by_serial, name='manage_entry_by_serial'),
     path('api/entries/<path:entry_FQID>/', views.manage_entry_by_FQID, name='manage_entry_by_FQID'),
     path('api/authors/<str:author_id>/entries/', views.create_entry, name='create_entry'),
-    path('api/authors/<str:author_id>/entries/<str:entry_serial>/edit/', views.edit_entry, name='edit_entry'),
-    path('api/authors/<str:author_id>/entries/<str:entry_serial>/delete/', views.delete_entry, name='delete_entry'),
+
+    # # ENTRY PATHS FOR UI
+    path('authors/<str:author_id>/entries/', views.create_entry_UI, name='create_entry_UI'),
+    path('authors/<str:author_id>/entries/<str:entry_serial>/', views.display_entry_by_serial, name = 'display_entry_by_serial'),
+    path('entries/<path:entry_FQID>/', views.display_entry_by_FQID, name = 'display_entry_by_FQID'),
+    path('authors/<str:author_id>/entries/<str:entry_serial>/edit/', views.edit_entry, name='edit_entry'),
+    path('authors/<str:author_id>/entries/<str:entry_serial>/delete/', views.delete_entry, name='delete_entry'),
     # path('api/entries/<str:entry_FQID>', views.manage_entry_by_FQID, name='manage_entry_by_FQID'),
     # path('api/authors/<str:author_id>/entries/', views.create_entry, name='create-entry'),
 
