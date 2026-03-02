@@ -14,6 +14,8 @@ from django.http import JsonResponse
 
 from rest_framework import status
 from django.conf import settings
+from urllib.parse import quote
+import re
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
@@ -417,28 +419,52 @@ def manage_following(request, author_serial, target_FQID):
     follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
 
     if request.method == 'GET':
+        follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID, status='accepted').first()
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
         serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
 
     elif request.method == 'DELETE':
         if follow_entry == None:
-            return
+            return Response(status=status.HTTP_404_NOT_FOUND)
         
         follow_entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     elif request.method == 'PUT':
+
+        # to be used for future milestones maybe
+        # capture group 1: 0+ chars as few as possible until 
+        # capture group 2: 1+ chars until /
+        regex_match = re.search(r'^(.*?api\/authors\/)([^/]+)', target_FQID)
+        target_service = regex_match.group(1)
+        target_serial = regex_match.group(2)
+
+        # create follow object if none exists yet
         if follow_entry == None:
-            return
+
+            target_author = Author.objects.get(id=target_FQID)
+            if target_author == None:
+                # TODO request user data from other nodes in future milestones
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
+
+            follow_entry = Follow(
+                actor=actor_author,
+                object=target_author,
+                status='requesting'
+            )
         
-        url = target_FQID
-        if url.find("api/authors/") == -1:
-            url = f"{url.replace("/authors/", "api/authors/")}/inbox"
-        
+        # serialize follow request and post to target inbox
         serializer = FollowRequestSerializer(follow_entry)
-        response = requests.post(url, json=serializer.data)
-        return JsonResponse(response.json)
+        response = requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
 
-
+        if response.status_code == 201:
+            return Response(response.json())
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
 # Followers API
 
@@ -459,7 +485,8 @@ def manage_follower(request, author_serial, target_FQID):
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
         if follow_entry != None:
             follow_entry.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     elif request.method == 'PUT':
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
@@ -490,7 +517,7 @@ def follow(request, target_serial):
     serializer = FollowRequestSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=201)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(status=400, data=serializer.errors)
 
 # Entries API
