@@ -401,8 +401,31 @@ def get_authors_paginated(request):
 def get_author(request, author_id):
     id_type = 'FQID' if (author_id.find("http://") != -1) else 'serial'
 
+    if id_type == 'serial':
+        fqid = f"{settings.BACKEND_URL}/munch/api/authors/{author_id}"
+    else:
+        fqid = author_id
+    
+    author = Author.objects.get(id=fqid)
+    if author == None:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = AuthorSerializer(author)
+        return Response(serializer.data)
+    
+    elif request.method == 'PUT' and id_type == 'serial':
+        serializer = AuthorSerializer(author, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
+    
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 # Following API
 
+@login_required
 @api_view(['GET'])
 def get_following(request, author_serial):
     author = Author.objects.get(uuid=author_serial)
@@ -413,7 +436,7 @@ def get_following(request, author_serial):
     serializer = AuthorSerializer(following, many=True)
     return Response(serializer.data)
     
-
+@login_required
 @api_view(['GET', 'DELETE', 'PUT'])
 def manage_following(request, author_serial, target_FQID):
     follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
@@ -471,7 +494,6 @@ def manage_following(request, author_serial, target_FQID):
 @api_view(['GET', 'DELETE', 'PUT'])
 def manage_follower(request, author_serial, target_FQID):
     
-    
     if request.method == 'GET':
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial, status='accepted').first()
 
@@ -480,8 +502,14 @@ def manage_follower(request, author_serial, target_FQID):
         
         serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
+    
+    if not request.user.is_authenticated:
+        return Response(
+            {'detail': 'Authentication is required'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
 
-    elif request.method == 'DELETE':
+    if request.method == 'DELETE':
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
         if follow_entry != None:
             follow_entry.delete()
