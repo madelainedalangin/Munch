@@ -15,7 +15,9 @@ urlpatterns = [
     path('login-success/', views.login_success_redirect, name='login_success'),
     path('logout/', views.logout_user, name='logout'),
 
-    path('authors/<uuid:author_uuid>/followers/', views.followers_view, name="followers"),
+    path('authors/<uuid:author_uuid>/followers/', views.followers_view, name="list_followers"),
+    path('authors/<uuid:author_uuid>/following/', views.list_following, name="list_following"),
+    path('authors/<uuid:author_uuid>/follow_requests/', views.list_follow_requests, name="list_follow_requests"),
 
     path('stream/', views.stream, name='stream'),
     path('api/stream/', views.stream_api, name='stream_api'),
