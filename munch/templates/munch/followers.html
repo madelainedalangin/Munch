@@ -42,7 +42,7 @@
         {% for follower in followers %}
             <li id="follower-{{ follower.id }}">
                 <a href="{{ follower.web }}">{{ follower.displayName }}</a>
-                <button id="unfollow-{{ follower.id }}" class="unfollow" data-follower-id="{{ follower.id }}">unfollow</a>
+                <button id="unfollow-{{ follower.id }}" class="unfollow" data-follower-id="{{ follower.id }}">remove</a>
             </li>
         {% endfor %}
     </ul>
