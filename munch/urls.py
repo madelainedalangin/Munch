@@ -15,7 +15,9 @@ urlpatterns = [
     path('login-success/', views.login_success_redirect, name='login_success'),
     path('logout/', views.logout_user, name='logout'),
 
-    path('authors/<uuid:author_uuid>/followers/', views.followers_view, name="followers"),
+    path('authors/<uuid:author_uuid>/followers/', views.followers_view, name="list_followers"),
+    path('authors/<uuid:author_uuid>/following/', views.list_following, name="list_following"),
+    path('authors/<uuid:author_uuid>/follow_requests/', views.list_follow_requests, name="list_follow_requests"),
 
     path('stream/', views.stream, name='stream'),
     path('api/stream/', views.stream_api, name='stream_api'),
@@ -27,7 +29,6 @@ urlpatterns = [
     # Authors API
     path('api/authors/', views.get_authors, name='get_authors'),
     path('api/authors', views.get_authors_paginated, name='get_authors_paginated'),
-    path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
 
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
@@ -81,4 +82,7 @@ urlpatterns = [
     # path('api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}', views., name=''),
     # path('api/authors/{AUTHOR_FQID}/liked', views., name=''),
     # path('api/liked/{LIKE_FQID}', views., name=''),
+
+    # Author API at the last
+    path('api/authors/<path:author_id>/', views.get_author, name='get_author'),
 ]

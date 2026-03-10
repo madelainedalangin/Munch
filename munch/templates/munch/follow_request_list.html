@@ -1,0 +1,60 @@
+{% extends "munch/base.html" %}
+
+{% block title %}Follow Requests{% endblock title %}
+
+{% block scripts %}
+<script>
+    window.addEventListener("load", main);
+    function main() {
+        const following_list = document.getElementById('follower_list');
+        following_list.addEventListener('click', (event) => {
+            if (event.target && event.target.classList.contains('accept-follow')) {
+                const fqid = event.target.getAttribute('data-follower-id');
+                document.getElementById(`accept-${fqid}`).disabled = true;
+                document.getElementById(`reject-${fqid}`).disabled = true;
+                manageFollow(fqid, 'PUT');
+
+            } else if (event.target && event.target.classList.contains('reject-follow')) {
+                const fqid = event.target.getAttribute('data-follower-id');
+                document.getElementById(`accept-${fqid}`).disabled = true;
+                document.getElementById(`reject-${fqid}`).disabled = true;
+                manageFollow(fqid, 'DELETE');
+            }
+        })
+    }
+
+    async function manageFollow(fqid, method) {
+        const csrftoken = "{{ csrf_token }}";
+        let url = "{% url 'munch:manage_follower' user.uuid 'TARGET_FQID' %}";
+        url = url.replace('TARGET_FQID', encodeURIComponent(fqid));
+
+        // send request to following api
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'X-CSRFToken': csrftoken,
+            }
+        });
+
+        if (response.ok) {
+            document.getElementById(`follower-${fqid}`).remove();
+        } else {
+            document.getElementById(`accept-${fqid}`).disabled = false;
+            document.getElementById(`reject-${fqid}`).disabled = false;
+        }
+    }
+</script>
+{% endblock scripts %}
+
+{% block content %}
+<h2>Follow Requests</h2>
+<ul id="follower_list">
+    {% for follower in followers %}
+    <li id="follower-{{ follower.id }}">
+        <a href="{{ follower.web }}">{{ follower.displayName }}</a>
+        <button id="accept-{{ follower.id }}" class="accept-follow" data-follower-id="{{ follower.id }}">accept</button>
+        <button id="reject-{{ follower.id }}" class="reject-follow" data-follower-id="{{ follower.id }}">reject</button>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock content %}

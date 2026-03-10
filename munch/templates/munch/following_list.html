@@ -1,0 +1,51 @@
+{% extends "munch/base.html" %}
+
+{% block title %}Following{% endblock title %}
+
+{% block scripts %}
+<script>
+    window.addEventListener("load", main);
+    function main() {
+        const following_list = document.getElementById('following_list');
+        following_list.addEventListener('click', (event) => {
+            if (event.target && event.target.classList.contains('unfollow')) {
+                const fqid = event.target.getAttribute('data-followee-id');
+                document.getElementById(`unfollow-${fqid}`).disabled = true;
+                unfollow(fqid);
+            }
+        })
+    }
+
+    async function unfollow(fqid) {
+        const csrftoken = "{{ csrf_token }}";
+        let url = "{% url 'munch:manage_following' user.uuid 'TARGET_FQID' %}";
+        url = url.replace('TARGET_FQID', encodeURIComponent(fqid));
+
+        // send DELETE request to following api
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken,
+            }
+        });
+
+        if (response.ok) {
+            document.getElementById(`followee-${fqid}`).remove();
+        } else {
+            document.getElementById(`unfollow-${fqid}`).disabled = false;
+        }
+    }
+</script>
+{% endblock scripts %}
+
+{% block content %}
+<h2>Following</h2>
+<ul id="following_list">
+    {% for followee in following %}
+    <li id="followee-{{ followee.id }}">
+        <a href="{{ followee.web }}">{{ followee.displayName }}</a>
+        <button id="unfollow-{{ followee.id }}" class="unfollow" data-followee-id="{{ followee.id }}">unfollow</button>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock content %}
