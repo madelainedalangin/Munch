@@ -70,7 +70,7 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.serial}/commented/{self.serial}"
+            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/commented/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Like(models.Model):
@@ -92,7 +92,7 @@ class Like(models.Model):
         ]   
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.serial}/liked/{self.serial}"
+            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/liked/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Follow(models.Model):

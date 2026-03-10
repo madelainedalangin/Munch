@@ -65,9 +65,9 @@ class LikeSerializer(serializers.ModelSerializer):
         model = Like
         fields = ['type', 'author', 'published', 'id', 'object']
 
-class LikesSerializer(serializers.Serializer):
+class LikesSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='likes')
-    web = serializers.URLField()
+    web = serializers.SerializerMethodField()
     id = serializers.URLField()
     page_number = serializers.IntegerField()
     size = serializers.IntegerField()
@@ -77,13 +77,42 @@ class LikesSerializer(serializers.Serializer):
 class CommentSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='comment')
     author = AuthorSerializer()
-    id = serializers.URLField(source='fqid')
-    entry = serializers.URLField()
-    likes = LikesSerializer()
-
+    web = serializers.SerializerMethodField()
+    id = serializers.URLField(source="fqid")
+    likes = serializers.SerializerMethodField()
+    entry = serializers.SerializerMethodField()
+    
     class Meta:
         model = Comment
-        fields = ['type', 'author', 'comment', 'contentType', 'published', 'id', 'entry', 'likes']
+        fields = [
+            "type",
+            "author",
+            "comment",
+            "contentType",
+            "published",
+            "id",
+            "entry",
+            "web",
+            "likes"
+        ]
+        
+    def get_entry(self, obj):
+        return obj.entry.fqid
+    
+    def get_web(self, obj):
+        return obj.entry.fqid.replace("/api/", "/") #add web field to Entry
+    
+    def get_likes(self, obj):
+        likes = Like.objects.filter(object_url=obj.fqid)
+        return {
+            "type": "likes",
+            "id": f"{obj.fqid}/likes",
+            "web": obj.entry.web,
+            "page_number": 1,
+            "size": likes.count(),
+            "count": likes.count(),
+            "src": LikeSerializer(likes, many=True).data,
+        }
 
 class CommentsSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='comments')

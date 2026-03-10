@@ -603,9 +603,29 @@ def follow(request, target_serial):
 # Image Entries API
 
 # Comments API
+@api_view(["GET"])
+def get_entry_comments(request, author_serial, entry_serial):
+    pass
 
 # Commented API
+@api_view(["GET", "POST"])
+def commented():
+    pass
 
 # Likes API
+@api_view(["GET"])
+def get_entry_likes():
+    pass
+
+@api_view(["GET"])
+def get_comment_likes():
+    pass
+
+@api_view(["GET"])
+def get_like():
+    pass
 
 # Liked API
+@api_view(["GET", "POST"])
+def liked():
+    pass
