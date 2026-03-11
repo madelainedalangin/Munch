@@ -47,6 +47,8 @@ class Entry(models.Model):
     content = models.TextField()
     markdownContent = models.TextField(blank=True)
 
+    github_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+
     serial = models.UUIDField(default=uuid.uuid4)
     fqid = models.URLField(blank=True, unique=True)
 

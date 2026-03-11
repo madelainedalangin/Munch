@@ -18,6 +18,8 @@ from django.conf import settings
 from urllib.parse import quote
 import re
 
+from .utils import sync_github_activity
+
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
 def edit_profile(request):
@@ -36,6 +38,14 @@ def edit_profile(request):
 def public_profile(request, author_uuid):
     
     author = get_object_or_404(Author, uuid=author_uuid)
+
+    try:
+        sync_github_activity(author)
+    except Exception as e:
+        # We wrap this in try/except so if GitHub is down, 
+        # the profile page still loads.
+        print(f"GitHub sync failed: {e}")
+
     entries = Entry.objects.filter(author=author)
 
     if request.user.is_authenticated and request.user == author:
@@ -62,6 +72,8 @@ def public_profile(request, author_uuid):
                 visibility_filter |= Q(visibility='PRIVATE')
 
         entries = entries.exclude(visibility='DELETED').filter(visibility_filter)
+
+    entries = entries.order_by('-published')
     
     # For now, only pass the author. 
     # add 'posts' for user story 5 when implemented

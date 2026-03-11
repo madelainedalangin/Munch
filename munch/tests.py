@@ -4,6 +4,9 @@ from django.utils import timezone
 from datetime import timedelta
 import uuid
 from django.urls import reverse
+from unittest.mock import patch
+from munch.utils import sync_github_activity
+from rest_framework.test import APIClient
 
 # Create your tests here.
 
@@ -126,6 +129,65 @@ class AuthorTest(TestCase):
         self.author.refresh_from_db()
         self.assertEqual(self.author.displayName, 'Joshua Updated')
         self.assertEqual(self.author.github, 'https://github.com/joshua-new')
+
+# The following test function from Google, Gemini, "Django Author Identity tests", 03-11-2026
+    ## STORY: Edit Profile (API)
+    def test_edit_profile_via_api(self):
+        """
+        Tests the user story: Manage profile via REST API.
+        """
+        # Initialize the API Client
+        api_client = APIClient()
+        
+        # Authenticate as the author
+        api_client.force_authenticate(user=self.author)
+        
+        # Define the API URL
+        # Based on your view logic, this uses the author's UUID
+        url = reverse('munch:get_author', kwargs={'author_id': self.author.uuid})
+        
+        update_json = {
+            'displayName': 'API Joshua',
+            'description': 'Bio updated via API',
+            'github': 'https://github.com/api-joshua',
+            'profileImage': 'https://example.com/api-pic.jpg'
+        }
+        
+        # Send PUT request with JSON data
+        response = api_client.put(url, update_json, format='json')
+        
+        # Assertions
+        self.assertEqual(response.status_code, 200)
+        
+        self.author.refresh_from_db()
+        self.assertEqual(self.author.displayName, 'API Joshua')
+        self.assertEqual(self.author.description, 'Bio updated via API')
+        self.assertEqual(self.author.github, 'https://github.com/api-joshua')
+        
+        # Verify that read-only fields like 'id' did not change
+        old_id = self.author.id
+        self.assertEqual(response.data['id'], old_id)
+
+
+# The following test class from Google, Gemini, "Django Github Activity tests", 03-11-2026
+class GitHubTest(TestCase):
+    @patch('requests.get') # Intercept the requests.get call
+    def test_github_sync_creates_entry(self, mock_get):
+        # 1. Define what the 'fake' GitHub API should return
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = [{
+            'id': '12345',
+            'type': 'PushEvent',
+            'repo': {'name': 'test-repo'},
+            'created_at': '2026-03-01T12:00:00Z'
+        }]
+
+        # 2. Run your sync function
+        author = Author.objects.create(username="test", github="https://github.com/test")
+        sync_github_activity(author)
+
+        # 3. Assert that a local entry was actually created
+        self.assertEqual(Entry.objects.filter(github_id='12345').count(), 1)
 
 ###########################
 # POSTING USER STORY TEST #

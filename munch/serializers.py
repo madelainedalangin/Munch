@@ -8,7 +8,7 @@ class AuthorSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Author
-        fields = ['type', 'id', 'host', 'displayName', 'github', 'profileImage', 'web']
+        fields = ['type', 'id', 'host', 'displayName', 'github', 'profileImage', 'web', 'description']
 
         # clear validators so it doesn't complain when receiving follow requests
         extra_kwargs = {

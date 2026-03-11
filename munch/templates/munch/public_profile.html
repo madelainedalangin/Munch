@@ -110,6 +110,11 @@
                                 {% else %}
                                     <p>{{ entry.content|linebreaks }}</p>
                                 {% endif %}
+                                {% if entry.github_id %}
+                                    <p style="color: #666; font-style: italic; font-size: 0.9em;">
+                                        Source: GitHub Activity
+                                    </p>
+                                {% endif %}
                             <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
                         </div>
                     </a>
@@ -119,6 +124,7 @@
             {% endfor %}
         </div>
 
+        <!--
         <div id="github-app" class="github-section">
             <h3 class="section-title">GitHub Stream</h3>
             <div v-if="loading">Loading activity...</div>
@@ -131,6 +137,7 @@
             
             <div v-if="!loading && events.length === 0">No recent GitHub activity.</div>
         </div>
+        --> 
     </div>
 
     <script>
