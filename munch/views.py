@@ -615,6 +615,41 @@ def follow(request, target_serial):
 # Image Entries API
 
 # Likes API
+
+#-helper function for entry visibility
+def check_entry_visibility(request, entry):
+    if entry.visibility == 'PRIVATE':
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+    
+        follows_author = Follow.objects.filter(
+            actor=request.user,
+            object=entry.author,
+            status='accepted'
+        ).exists()
+        author_follows_user = Follow.objects.filter(
+            actor=entry.author,
+            object=request.user,
+            status='accepted'
+        ).exists()
+        is_friend = follows_author and author_follows_user
+    
+        if not is_friend and request.user != entry.author:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+    elif entry.visibility == 'UNLISTED':
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+    
+        follows_author = Follow.objects.filter(
+            actor=request.user,
+            object=entry.author,
+            status='accepted'
+        ).exists()
+    
+        if not follows_author and request.user != entry.author:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
 @api_view(["GET"])
 def get_entry_likes(request, author_serial, entry_serial):
     
@@ -623,6 +658,11 @@ def get_entry_likes(request, author_serial, entry_serial):
         author__uuid=author_serial, 
         serial=entry_serial
         )
+    visibility_error = check_entry_visibility(request, entry)
+    
+    if visibility_error:
+        return visibility_error
+    
     entry_likes = Like.objects.filter(object_url=entry.fqid)
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
@@ -650,6 +690,10 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
         author__uuid=author_serial, 
         serial=comment_serial
         )
+    visibility_error = check_entry_visibility(request, comment.entry)
+    
+    if visibility_error:
+        return visibility_error
     
     comment_likes = Like.objects.filter(object_url=comment.fqid)
     page = int(request.GET.get('page', 1))
@@ -712,6 +756,8 @@ def liked(request, author_serial):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # Comments API
+
+    
 @api_view(["GET"])
 def get_entry_comments(request, author_serial, entry_serial):
     entry = get_object_or_404(
@@ -719,6 +765,11 @@ def get_entry_comments(request, author_serial, entry_serial):
         author__uuid=author_serial, 
         serial=entry_serial
         )
+    visibility_error = check_entry_visibility(request, entry)
+    
+    if visibility_error:
+        return visibility_error
+    
     entry_comments = Comment.objects.filter(entry=entry)
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
@@ -771,7 +822,7 @@ def commented(request, author_serial):
         
         comment = Comment.objects.create(
             author=author, 
-            entry_url=local_entry,
+            entry=local_entry,
             comment=comment_text
             )
         serializer = CommentSerializer(comment)
