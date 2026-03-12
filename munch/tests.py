@@ -582,7 +582,66 @@ class GetEntryTest(TestCase):
 ##################################
 # COMMENTS/LIKES USER STORY TEST #
 #################################
+class CommentAPITest(TestCase):
+  def setUp(self):
+    """Create user1, author and stranger"""
+    
+    #pretend user we have logged in as
+    self.user = Author.objects.create_user(
+      username = 'user1test',
+      password='user11234',
+      displayName = 'User 1 Test',
+      is_approved = True,
+    )
+    
+    #An object that is following or friends with the user
+    self.author = Author.objects.create_user(
+      username = 'author1test',
+      password='author11234',
+      displayName = 'Author 1 Test',
+      is_approved = True,
+    )
+    
+    #an object that has no relationship with the user
+    self.stranger = Author.objects.create_user(
+      username = 'stranger1test',
+      password='stranger11234',
+      displayName = 'Stranger 1 Test',
+      is_approved = True,
+    )
+    self.client = Client()
+    self.client.login(username='user1test', password='user11234')
+  
 
+class LikeAPITest(TestCase):
+  def setUp(self):
+    """Create user1, author and stranger"""
+    
+    #pretend user we have logged in as
+    self.user = Author.objects.create_user(
+      username = 'user1test',
+      password='user11234',
+      displayName = 'User 1 Test',
+      is_approved = True,
+    )
+    
+    #An object that is following or friends with the user
+    self.author = Author.objects.create_user(
+      username = 'author1test',
+      password='author11234',
+      displayName = 'Author 1 Test',
+      is_approved = True,
+    )
+    
+    #an object that has no relationship with the user
+    self.stranger = Author.objects.create_user(
+      username = 'stranger1test',
+      password='stranger11234',
+      displayName = 'Stranger 1 Test',
+      is_approved = True,
+    )
+    self.client = Client()
+    self.client.login(username='user1test', password='user11234')
 
 
 ###################################
