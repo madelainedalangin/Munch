@@ -1,8 +1,16 @@
-{% extends "munch/base.html" %} 
-{% block title %}Stream{% endblock title %} 
-{% block content %} 
+{% extends "munch/nav-content.html" %} 
+
+{% block title %}
+Stream
+{% endblock title %} 
+
+{% block content-bar %}
+<strong>Feed</strong>
+{% endblock content-bar %}
+
+{% block content-scrollable %} 
 {% for entry in entries %}
-<div>
+<div class="entry">
   <h2>{{ entry.title }}</h2>
   <p>By {{ entry.author.displayName }}</p>
   <p>{{ entry.content }}</p>
@@ -11,4 +19,4 @@
 {% empty %}
 <p>Nothing yet :3</p>
 {% endfor %} 
-{% endblock content %}
+{% endblock content-scrollable %}
