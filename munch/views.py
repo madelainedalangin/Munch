@@ -629,14 +629,14 @@ def commented(request, author_serial):
 def get_entry_likes(request, author_serial, entry_serial):
     
     entry = get_object_or_404(Entry, author__uuid=author_serial, serial=entry_serial)
-    likes = Like.objects.filter(entry=entry)
+    entry_likes = Like.objects.filter(object_url=entry.fqid)
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
     start_page = (page - 1) * size
     end_page = start_page + size
-    total_likes = likes.count()
-    likes = likes[start_page:end_page]
-    serializer = LikesSerializer(likes, many=True)
+    total_entry_likes = entry_likes.count()
+    entry_likes = entry_likes[start_page:end_page]
+    serializer = LikesSerializer(entry_likes, many=True)
     
     return Response({
         "type": "likes",
@@ -644,13 +644,31 @@ def get_entry_likes(request, author_serial, entry_serial):
         "id": f"{settings.BACKEND_URL}/api/authors/{author_serial}/entries/{entry_serial}/likes/",
         "page_number": page,
         "size": size,
-        "count": total_likes,
+        "count": total_entry_likes,
         "src": serializer.data,
         })
 
 @api_view(["GET"])
 def get_comment_likes(request, author_serial, entry_serial, comment_serial):
-    pass
+    comment = get_object_or_404(Comment, entry__uuid=entry_serial, author__uuid=author_serial, serial=comment_serial)
+    comment_likes = Like.objects.filter(object_url=comment.fqid)
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 5))
+    start_page = (page - 1) * size
+    end_page = start_page + size
+    total_comment_likes = comment_likes.count()
+    comment_likes = comment_likes[start_page:end_page]
+    serializer = LikesSerializer(comment_likes, many=True)
+    
+    return Response({
+        "type": "likes",
+        "web": f"{settings.BACKEND_URL}/authors/{author_serial}/entries/{entry_serial}/comments/{comment_serial}/",
+        "id": f"{settings.BACKEND_URL}/api/authors/{author_serial}/entries/{entry_serial}/comments/{comment_serial}/likes/",
+        "page_number": page,
+        "size": size,
+        "count": total_comment_likes,
+        "src": serializer.data,
+        })
 
 @api_view(["GET"])
 def get_like(request, author_serial, like_serial):
