@@ -1,0 +1,57 @@
+{% extends "munch/base.html" %}
+
+{% block nav %}
+<h1>
+    Munch
+</h1>
+
+<div class="user-block">
+    <div class="user-block__photo">
+        <img>
+    </div>
+    <div class="user-block__details">
+       <strong class="user-block__display-name"></strong>
+       <h3 class="user-block__username"></h3>
+    </div>
+</div>
+
+<hr>
+
+<ul class="nav-links">
+    <li><a>
+        <img>
+        Home
+    </a></li>
+    <li><a>
+        <img>
+        Explore
+    </a></li>
+    <li><a>
+        <img>
+        Follow Req.
+    </a></li>
+    <li><a>
+        <img>
+        Settings
+    </a></li>
+</ul>
+
+<hr>
+
+<button id="create-post">
+    <img>
+    Post
+</button>
+{% endblock nav %}
+
+{% block content %}
+<div class="content-bar__wrapper">
+    {% block content-bar %}
+    {% endblock content-bar %}
+</div>
+
+<div class="scrollable">
+    {% block content-scrollable %}
+    {% endblock content-scrollable %}
+</div>
+{% endblock content %}
