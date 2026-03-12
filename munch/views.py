@@ -245,6 +245,45 @@ def display_entry_by_serial(request, author_id, entry_serial):
 
     return render(request, "munch/entry_detail.html", {"entry": entry})
 
+
+#-helper function for entry visibility
+def check_entry_visibility(request, entry):
+    
+    if entry.visibility == "DELETED":
+        return Response(status=status.HTTP_410_GONE)
+    
+    if entry.visibility == 'PRIVATE':
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+    
+        follows_author = Follow.objects.filter(
+            actor=request.user,
+            object=entry.author,
+            status='accepted'
+        ).exists()
+        author_follows_user = Follow.objects.filter(
+            actor=entry.author,
+            object=request.user,
+            status='accepted'
+        ).exists()
+        is_friend = follows_author and author_follows_user
+    
+        if not is_friend and request.user != entry.author:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+    elif entry.visibility == 'UNLISTED':
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+    
+        follows_author = Follow.objects.filter(
+            actor=request.user,
+            object=entry.author,
+            status='accepted'
+        ).exists()
+    
+        if not follows_author and request.user != entry.author:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
 # (this function may be used in the future)
 # def display_entry_by_FQID(request, entry_FQID):
 #     entry = get_object_or_404(Entry, fqid=entry_FQID)
@@ -615,40 +654,6 @@ def follow(request, target_serial):
 # Image Entries API
 
 # Likes API
-
-#-helper function for entry visibility
-def check_entry_visibility(request, entry):
-    if entry.visibility == 'PRIVATE':
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-    
-        follows_author = Follow.objects.filter(
-            actor=request.user,
-            object=entry.author,
-            status='accepted'
-        ).exists()
-        author_follows_user = Follow.objects.filter(
-            actor=entry.author,
-            object=request.user,
-            status='accepted'
-        ).exists()
-        is_friend = follows_author and author_follows_user
-    
-        if not is_friend and request.user != entry.author:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
-    elif entry.visibility == 'UNLISTED':
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-    
-        follows_author = Follow.objects.filter(
-            actor=request.user,
-            object=entry.author,
-            status='accepted'
-        ).exists()
-    
-        if not follows_author and request.user != entry.author:
-            return Response(status=status.HTTP_403_FORBIDDEN)
 
 @api_view(["GET"])
 def get_entry_likes(request, author_serial, entry_serial):
