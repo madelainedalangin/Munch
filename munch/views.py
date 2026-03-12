@@ -621,23 +621,42 @@ def get_entry_comments(request, author_serial, entry_serial):
 
 # Commented API
 @api_view(["GET", "POST"])
-def commented():
+def commented(request, author_serial):
     pass
 
 # Likes API
 @api_view(["GET"])
-def get_entry_likes():
+def get_entry_likes(request, author_serial, entry_serial):
+    
+    entry = get_object_or_404(Entry, author__uuid=author_serial, serial=entry_serial)
+    likes = Like.objects.filter(entry=entry)
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 5))
+    start_page = (page - 1) * size
+    end_page = start_page + size
+    total_likes = likes.count()
+    likes = likes[start_page:end_page]
+    serializer = LikesSerializer(likes, many=True)
+    
+    return Response({
+        "type": "likes",
+        "web": f"{settings.BACKEND_URL}/authors/{author_serial}/entries/{entry_serial}/",
+        "id": f"{settings.BACKEND_URL}/api/authors/{author_serial}/entries/{entry_serial}/likes/",
+        "page_number": page,
+        "size": size,
+        "count": total_likes,
+        "src": serializer.data,
+        })
+
+@api_view(["GET"])
+def get_comment_likes(request, author_serial, entry_serial, comment_serial):
     pass
 
 @api_view(["GET"])
-def get_comment_likes():
-    pass
-
-@api_view(["GET"])
-def get_like():
+def get_like(request, author_serial, like_serial):
     pass
 
 # Liked API
 @api_view(["GET", "POST"])
-def liked():
+def liked(request, author_serial):
     pass
