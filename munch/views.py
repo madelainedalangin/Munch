@@ -614,21 +614,15 @@ def follow(request, target_serial):
 
 # Image Entries API
 
-# Comments API
-@api_view(["GET"])
-def get_entry_comments(request, author_serial, entry_serial):
-    pass
-
-# Commented API
-@api_view(["GET", "POST"])
-def commented(request, author_serial):
-    pass
-
 # Likes API
 @api_view(["GET"])
 def get_entry_likes(request, author_serial, entry_serial):
     
-    entry = get_object_or_404(Entry, author__uuid=author_serial, serial=entry_serial)
+    entry = get_object_or_404(
+        Entry, 
+        author__uuid=author_serial, 
+        serial=entry_serial
+        )
     entry_likes = Like.objects.filter(object_url=entry.fqid)
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
@@ -650,7 +644,13 @@ def get_entry_likes(request, author_serial, entry_serial):
 
 @api_view(["GET"])
 def get_comment_likes(request, author_serial, entry_serial, comment_serial):
-    comment = get_object_or_404(Comment, entry__uuid=entry_serial, author__uuid=author_serial, serial=comment_serial)
+    comment = get_object_or_404(
+        Comment, 
+        entry__uuid=entry_serial, 
+        author__uuid=author_serial, 
+        serial=comment_serial
+        )
+    
     comment_likes = Like.objects.filter(object_url=comment.fqid)
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
@@ -660,10 +660,14 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
     comment_likes = comment_likes[start_page:end_page]
     serializer = LikesSerializer(comment_likes, many=True)
     
+    author_str = f"authors/{author_serial}"
+    entries_str = f"entries/{entry_serial}"
+    comments_str = f"comments/{comment_serial}"
+    
     return Response({
         "type": "likes",
-        "web": f"{settings.BACKEND_URL}/authors/{author_serial}/entries/{entry_serial}/comments/{comment_serial}/",
-        "id": f"{settings.BACKEND_URL}/api/authors/{author_serial}/entries/{entry_serial}/comments/{comment_serial}/likes/",
+        "web": f"{settings.BACKEND_URL}/{author_str}/{entries_str}/{comments_str}/",
+        "id": f"{settings.BACKEND_URL}/api/authors/{author_str}/{entries_str}/{comments_str}/likes/",
         "page_number": page,
         "size": size,
         "count": total_comment_likes,
@@ -672,9 +676,103 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
 
 @api_view(["GET"])
 def get_like(request, author_serial, like_serial):
-    pass
+    like = get_object_or_404(Like, author__uuid=author_serial, serial=like_serial)
+    serializer = LikeSerializer(like)
+    return Response(serializer.data)
 
 # Liked API
 @api_view(["GET", "POST"])
 def liked(request, author_serial):
-    pass
+    
+    author = get_object_or_404(Author, uuid=author_serial)
+    
+    if request.method == "GET":
+        author_likes = Like.objects.filter(author=author)
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 5))
+        start_page = (page - 1) * size
+        end_page = start_page + size
+        total_author_likes = author_likes.count()
+        author_likes = author_likes[start_page:end_page]
+        serializer = LikeSerializer(author_likes, many=True)
+        return Response({
+            "type": "likes",
+            "id": f"{settings.BACKEND_URL}/api/authors/{author_serial}/liked/",
+            "page_number": page,
+            "size": size,
+            "count": total_author_likes,
+            "src": serializer.data,
+        })
+    elif request.method == "POST":
+        object_url = request.data.get("object")
+        if not object_url:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        like = Like.objects.create(author=author, object_url=object_url)
+        serializer = LikeSerializer(like)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# Comments API
+@api_view(["GET"])
+def get_entry_comments(request, author_serial, entry_serial):
+    entry = get_object_or_404(
+        Entry, 
+        author__uuid=author_serial, 
+        serial=entry_serial
+        )
+    entry_comments = Comment.objects.filter(entry=entry)
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 5))
+    start = (page - 1) * size
+    end = start + size
+    total_entry_comments = entry_comments.count()
+    entry_comments = entry_comments[start:end]
+    serializer = CommentsSerializer(entry_comments, many=True)
+    return Response({
+        "type": "comments",
+        "web": f"{settings.BACKEND_URL}/authors/{author_serial}/entries/{entry_serial}/",
+        "id": f"{settings.BACKEND_URL}/api/authors/{author_serial}/entries/{entry_serial}/comments/",
+        "page_number": page,
+        "size": size,
+        "count": total_entry_comments,
+        "src": serializer.data,
+    })
+
+# Commented API
+@api_view(["GET", "POST"])
+def commented(request, author_serial):
+    author = get_object_or_404(Author, uuid=author_serial)
+    
+    if request.method == "GET":
+        author_comments = Comment.objects.filter(author=author)
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 5))
+        start_page = (page - 1) * size
+        end_page = start_page + size
+        total = author_comments.count()
+        author_comments = author_comments[start_page:end_page]
+        serializer = CommentSerializer(author_comments, many=True)
+        return Response({
+            "type": "comments",
+            "id": f"{settings.BACKEND_URL}/api/authors/{author_serial}/commented/",
+            "page_number": page,
+            "size": size,
+            "count": total,
+            "src": serializer.data,
+        })
+        
+    elif request.method == "POST":
+        entry_url = request.data.get("entry")
+        comment_text = request.data.get("comment")
+        
+        if not entry_url or not comment_text:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+        local_entry = Entry.objects.filter(fqid=entry_url).first()
+        
+        comment = Comment.objects.create(
+            author=author, 
+            entry_url=local_entry,
+            comment=comment_text
+            )
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
