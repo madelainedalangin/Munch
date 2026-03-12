@@ -757,6 +757,14 @@ def liked(request, author_serial):
 
 # Comments API
 
+@api_view(["GET"])
+def get_comment(request, author_serial, comment_serial):
+    comment = get_object_or_404(Comment, author__uuid=author_serial, serial=comment_serial)
+    visibility_error = check_entry_visibility(request, comment.entry)
+    if visibility_error:
+        return visibility_error
+    serializer = CommentSerializer(comment)
+    return Response(serializer.data)
     
 @api_view(["GET"])
 def get_entry_comments(request, author_serial, entry_serial):
