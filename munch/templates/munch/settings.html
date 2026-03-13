@@ -1,0 +1,25 @@
+{% extends "munch/nav-content.html" %} 
+{% load static %}
+
+{% block links %}
+{{ block.super }}
+<!-- <link rel="stylesheet" href="{% static 'munch/css/settings.css' %}"> -->
+{% endblock links %} 
+
+{% block title %}
+Settings
+{% endblock title %}
+
+{% block content-bar %}
+<strong>Settings</strong>
+{% endblock content-bar %}
+
+{% block content-scrollable %}
+<h3>Log Out</h3>
+<form action="{% url 'munch:logout' %}" method="post" style="margin: 0;">
+    {% csrf_token %}
+    <button type="submit" style="background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-family: sans-serif; font-weight: bold;">
+        Logout
+    </button>
+</form>
+{% endblock content-scrollable %} 

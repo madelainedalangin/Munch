@@ -469,6 +469,10 @@ def stream_api(request):
         })
     return Response(entries_list)
 
+@login_required
+def settings(request):
+    return render(request, 'munch/settings.html')
+
 # Authors API
 
 @api_view(['GET'])
