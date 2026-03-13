@@ -688,6 +688,35 @@ def get_entry_likes(request, author_serial, entry_serial):
         })
 
 @api_view(["GET"])
+def get_entry_likes_by_fqid(request, entry_fqid):
+    #TODO : clarification on URL pattern
+    entry = get_object_or_404(Entry, fqid=entry_fqid)
+    
+    visibility_error = check_entry_visibility(request, entry)
+    
+    if visibility_error:
+        return visibility_error
+    
+    entry_likes = Like.objects.filter(object_url=entry.fqid)
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 5))
+    start_page = (page - 1) * size
+    end_page = start_page + size
+    total_entry_likes = entry_likes.count()
+    entry_likes = entry_likes[start_page:end_page]
+    serializer = LikesSerializer(entry_likes, many=True)
+    
+    return Response({
+        "type": "likes",
+        "web": f"{settings.BACKEND_URL}/authors/{entry.author.uuid}/entries/{entry.serial}/",
+        "id": f"{entry_fqid}/likes/",
+        "page_number": page,
+        "size": size,
+        "count": total_entry_likes,
+        "src": serializer.data,
+        })
+
+@api_view(["GET"])
 def get_comment_likes(request, author_serial, entry_serial, comment_serial):
     comment = get_object_or_404(
         Comment, 
@@ -724,8 +753,24 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
         })
 
 @api_view(["GET"])
-def get_like(request, author_serial, like_serial):
+def get_like_by_serial(request, author_serial, like_serial):
     like = get_object_or_404(Like, author__uuid=author_serial, serial=like_serial)
+    serializer = LikeSerializer(like)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def get_like_by_fqid(request, like_fqid):
+    like = get_object_or_404(Like, fqid=like_fqid)
+    
+    if "entries" in like.object_url:
+        entry = get_object_or_404(Entry, fqid=like.object_url)
+        visibility_error = check_entry_visibility(request, entry)
+    else:
+        comment = get_object_or_404(Comment, fqid=like.object_url)
+        visibility_error = check_entry_visibility(request, comment.entry)
+    if visibility_error:
+        return visibility_error
+    
     serializer = LikeSerializer(like)
     return Response(serializer.data)
 
@@ -733,7 +778,11 @@ def get_like(request, author_serial, like_serial):
 @api_view(["GET", "POST"])
 def liked(request, author_serial):
     
-    author = get_object_or_404(Author, uuid=author_serial)
+    id_type = "FQID" if (author_serial.find("http://") != -1) else "serial"
+    if id_type == "serial":
+        author = get_object_or_404(Author, uuid=author_serial)
+    else:
+        author = get_object_or_404(Author, id=author_serial)
     
     if request.method == "GET":
         author_likes = Like.objects.filter(author=author)
@@ -763,8 +812,17 @@ def liked(request, author_serial):
 # Comments API
 
 @api_view(["GET"])
-def get_comment(request, author_serial, comment_serial):
+def get_comment_by_serial(request, author_serial, comment_serial):
     comment = get_object_or_404(Comment, author__uuid=author_serial, serial=comment_serial)
+    visibility_error = check_entry_visibility(request, comment.entry)
+    if visibility_error:
+        return visibility_error
+    serializer = CommentSerializer(comment)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def get_comment_by_fqid(request, comment_fqid):
+    comment = get_object_or_404(Comment, fqid=comment_fqid)
     visibility_error = check_entry_visibility(request, comment.entry)
     if visibility_error:
         return visibility_error
@@ -772,7 +830,7 @@ def get_comment(request, author_serial, comment_serial):
     return Response(serializer.data)
     
 @api_view(["GET"])
-def get_entry_comments(request, author_serial, entry_serial):
+def get_entry_comments_by_serial(request, author_serial, entry_serial):
     entry = get_object_or_404(
         Entry, 
         author__uuid=author_serial, 
@@ -800,11 +858,44 @@ def get_entry_comments(request, author_serial, entry_serial):
         "count": total_entry_comments,
         "src": serializer.data,
     })
+    
+@api_view(["GET"])
+def get_entry_comments_by_fqid(request, entry_fqid):
+    #TODO : clarification on URL pattern
+    entry = get_object_or_404(Entry, fqid=entry_fqid)
+    
+    visibility_error = check_entry_visibility(request, entry)
+    
+    if visibility_error:
+        return visibility_error
+    
+    entry_comments = Comment.objects.filter(entry=entry)
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 5))
+    start_page = (page - 1) * size
+    end_page = start_page + size
+    total_entry_comments = entry_comments.count()
+    entry_comments = entry_comments[start_page:end_page]
+    serializer = CommentsSerializer(entry_comments, many=True)
+    
+    return Response({
+        "type": "comments",
+        "web": f"{settings.BACKEND_URL}/authors/{entry.author.uuid}/entries/{entry.serial}/",
+        "id": f"{entry_fqid}/comments/",
+        "page_number": page,
+        "size": size,
+        "count": total_entry_comments,
+        "src": serializer.data,
+        })
 
 # Commented API
 @api_view(["GET", "POST"])
 def commented(request, author_serial):
-    author = get_object_or_404(Author, uuid=author_serial)
+    id_type = "FQID" if (author_serial.find("http://") != -1) else "serial"
+    if id_type == "serial":
+        author = get_object_or_404(Author, uuid=author_serial)
+    else:
+        author = get_object_or_404(Author, id=author_serial)
     
     if request.method == "GET":
         author_comments = Comment.objects.filter(author=author)

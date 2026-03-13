@@ -61,23 +61,30 @@ urlpatterns = [
 
     # # Comments API
     # path('api/authors/{AUTHOR_SERIAL}/inbox', views.comment, name='comment'),
-    path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/', views.get_entry_comments, name='get_entry_comments'),
-    path('api/authors/<str:author_serial>/commented/<str:comment_serial>/', views.get_comment, name='get_comment'),
+    path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/', views.get_entry_comments_by_serial, name='get_entry_comments_by_serial'),
+    
+    path('api/commented/<path:comment_fqid>/', views.get_comment_by_fqid, name='get_comment_by_fqid'),
+
+# Commented API
 
     # # Commented API
     path('api/authors/<str:author_serial>/commented/', views.commented, name='commented'),
     # path('api/authors/{AUTHOR_FQID}/commented', views., name=''),
-    # path('api/authors/{AUTHOR_SERIAL}/commented/{COMMENT_SERIAL}', views., name=''),
+    path('api/authors/<str:author_serial>/commented/<str:comment_serial>/', views.get_comment_by_serial, name='get_comment_by_serial'),
     # path('api/commented/{COMMENT_FQID}', views., name=''),
 
     # # Likes API
     path('api/authors/<str:author_serial>/entries/<str:entry_serial>/likes/', views.get_entry_likes, name='get_entry_likes'),
+    
     path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/<str:comment_serial>/likes/', views.get_comment_likes, name='get_comment_likes'),
-    path('api/authors/<str:author_serial>/liked/<str:like_serial>/', views.get_like, name='get_like'),
+    
+    
+    path('api/liked/<path:like_fqid>/', views.get_like_by_fqid, name='get_like_by_fqid'),
 
     # # Liked API
     path('api/authors/<str:author_serial>/liked/', views.liked, name='liked'),
-    # path('api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}', views., name=''),
+    
+    path('api/authors/<str:author_serial>/liked/<str:like_serial>/', views.get_like_by_serial, name='get_like_by_serial'),
     # path('api/authors/{AUTHOR_FQID}/liked', views., name=''),
     # path('api/liked/{LIKE_FQID}', views., name=''),
 
