@@ -1,4 +1,4 @@
-{% extends "munch/base.html" %}
+{% extends "munch/nav-content.html" %}
 
 {% block title %}Followers{% endblock title %}
 
@@ -36,14 +36,19 @@
 </script>
 {% endblock scripts %}
 
-{% block content %}
-<h2>Followers</h2>
-    <ul id="follower_list">
-        {% for follower in followers %}
-            <li id="follower-{{ follower.id }}">
-                <a href="{{ follower.web }}">{{ follower.displayName }}</a>
-                <button id="unfollow-{{ follower.id }}" class="unfollow" data-follower-id="{{ follower.id }}">remove</a>
-            </li>
-        {% endfor %}
-    </ul>
-{% endblock content %}
+{% block content-bar %}
+<strong>Followers</strong>
+{% endblock content-bar %}
+
+{% block content-scrollable %}
+<ul id="follower_list">
+    {% for follower in followers %}
+        <li id="follower-{{ follower.id }}">
+            <a href="{{ follower.web }}">{{ follower.displayName }}</a>
+            <button id="unfollow-{{ follower.id }}" class="unfollow" data-follower-id="{{ follower.id }}">remove</a>
+        </li>
+    {% empty %}
+        <p>No followers yet...</p>
+    {% endfor %}
+</ul>
+{% endblock content-scrollable %}
