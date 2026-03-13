@@ -1,0 +1,65 @@
+{% extends "munch/base.html" %}
+{% load static %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'munch/css/base.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/nav_sidebar.css' %}">
+{% endblock links %}
+
+{% block nav %}
+<h1 class="logo">
+    Munch
+</h1>
+
+<div class="user-block">
+    <a href="{{ user.web }}">
+        <div class="user-block__photo">
+            <img>
+        </div>
+        <div class="user-block__details">
+           <strong class="user-block__display-name">{{ user.displayName }}</strong>
+           <h3 class="user-block__username">@{{ user.username }}</h3>
+        </div>
+    </a>
+</div>
+
+<hr>
+
+<ul class="nav-links">
+    <li><a>
+        <img src="{% static 'munch/icons/home.svg' %}">
+        Home
+    </a></li>
+    <li><a>
+        <img src="{% static 'munch/icons/language.svg' %}">
+        Explore
+    </a></li>
+    <li><a href="{{ user.web }}/follow_requests/">
+        <img src="{% static 'munch/icons/group.svg' %}">
+        Follow Req.
+    </a></li>
+    <li><a>
+        <img src="{% static 'munch/icons/settings.svg' %}">
+        Settings
+    </a></li>
+</ul>
+
+<hr>
+
+<button id="create-post">
+    <img src="{% static 'munch/icons/edit_square.svg' %}">
+    Post
+</button>
+{% endblock nav %}
+
+{% block content %}
+<div class="content-bar__wrapper">
+    {% block content-bar %}
+    {% endblock content-bar %}
+</div>
+
+<div class="scrollable">
+    {% block content-scrollable %}
+    {% endblock content-scrollable %}
+</div>
+{% endblock content %}
