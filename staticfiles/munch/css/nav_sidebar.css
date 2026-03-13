@@ -1,0 +1,24 @@
+body {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas: "header main";
+    column-gap: 1.5rem;
+
+    margin: 4rem 10rem;
+}
+
+header {
+    grid-area: header;
+}
+
+main {
+    grid-area: main;
+    border: 1px solid var(--light-grey-100);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.nav-links {
+    list-style-type: none;
+    padding: 0rem;
+}

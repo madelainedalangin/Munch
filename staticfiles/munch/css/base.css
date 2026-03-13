@@ -1,0 +1,40 @@
+/* Munch base styles */
+
+/* FONT FACES */
+@font-face {
+    font-family: 'Open Sans';
+    src: url('../fonts/OpenSans-VariableFont_wdth\,wght.ttf') format('ttf');
+    font-weight: 300 800;
+}
+
+/* VARIABLE DEFINITIONS */
+:root {
+    --black: #222222;
+    --light-grey-100: #CACACA;
+    --white: whitesmoke;
+
+    --font-family-primary: 
+        'Open Sans',
+        'Helvetica',
+        Arial,
+        sans-serif;
+
+    --font-weight-regular: 400;
+    --font-weight-bold: 700;
+    --font-weight-extra-bold: 800;
+}
+
+body {
+    width: 100;
+
+    font-family: var(--font-family-primary);
+    font-weight: var(--font-weight-regular);
+    color: var(--black);
+    background: var(--white);
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--light-grey-100);
+}
+
