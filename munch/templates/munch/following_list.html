@@ -1,4 +1,4 @@
-{% extends "munch/base.html" %}
+{% extends "munch/nav-content.html" %}
 
 {% block title %}Following{% endblock title %}
 
@@ -38,14 +38,19 @@
 </script>
 {% endblock scripts %}
 
-{% block content %}
-<h2>Following</h2>
+{% block content-bar %}
+<strong>Following</strong>
+{% endblock content-bar %}
+
+{% block content-scrollable %}
 <ul id="following_list">
     {% for followee in following %}
     <li id="followee-{{ followee.id }}">
         <a href="{{ followee.web }}">{{ followee.displayName }}</a>
         <button id="unfollow-{{ followee.id }}" class="unfollow" data-followee-id="{{ followee.id }}">unfollow</button>
     </li>
+    {% empty %}
+    <p>No follows yet...</p>
     {% endfor %}
 </ul>
-{% endblock content %}
+{% endblock content-scrollable %}
