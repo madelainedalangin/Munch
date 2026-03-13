@@ -1,7 +1,13 @@
 {% extends "munch/base.html" %}
+{% load static %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'munch/css/base.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/nav_sidebar.css' %}">
+{% endblock links %}
 
 {% block nav %}
-<h1>
+<h1 class="logo">
     Munch
 </h1>
 
@@ -21,19 +27,19 @@
 
 <ul class="nav-links">
     <li><a>
-        <img>
+        <img src="{% static 'munch/icons/home.svg' %}">
         Home
     </a></li>
     <li><a>
-        <img>
+        <img src="{% static 'munch/icons/language.svg' %}">
         Explore
     </a></li>
     <li><a href="{{ user.web }}/follow_requests/">
-        <img>
+        <img src="{% static 'munch/icons/group.svg' %}">
         Follow Req.
     </a></li>
     <li><a>
-        <img>
+        <img src="{% static 'munch/icons/settings.svg' %}">
         Settings
     </a></li>
 </ul>
@@ -41,7 +47,7 @@
 <hr>
 
 <button id="create-post">
-    <img>
+    <img src="{% static 'munch/icons/edit_square.svg' %}">
     Post
 </button>
 {% endblock nav %}
