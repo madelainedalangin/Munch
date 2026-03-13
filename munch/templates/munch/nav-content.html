@@ -44,12 +44,14 @@
     </a></li>
 </ul>
 
+{% if request.user.is_authenticated %}
 <hr>
 
-<button id="create-post">
+<a id="create-entry" href="{% url 'munch:create_entry_UI' user.uuid %}">
     <img src="{% static 'munch/icons/edit_square.svg' %}">
     Post
-</button>
+</a>
+{% endif %}
 {% endblock nav %}
 
 {% block content %}
