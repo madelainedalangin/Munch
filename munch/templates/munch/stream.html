@@ -10,12 +10,12 @@ Stream
 
 {% block content-scrollable %} 
 {% for entry in entries %}
-<div class="entry">
+<article class="entry">
   <h2>{{ entry.title }}</h2>
   <p>By {{ entry.author.displayName }}</p>
   <p>{{ entry.content }}</p>
   <small>{{ entry.published }}</small>
-</div>
+</article>
 {% empty %}
 <p>Nothing yet :3</p>
 {% endfor %} 
