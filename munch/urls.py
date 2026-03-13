@@ -21,6 +21,8 @@ urlpatterns = [
 
     path('stream/', views.stream, name='stream'),
     path('api/stream/', views.stream_api, name='stream_api'),
+
+    path('settings/', views.settings, name='settings'),
     
     # path('', views.IndexView.as_view(), name='index'),
 
