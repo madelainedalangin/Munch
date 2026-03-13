@@ -643,7 +643,6 @@ class LikeAPITest(TestCase):
     self.client = Client()
     self.client.login(username='user1test', password='user11234')
 
-
 ###################################
 # NODE MANAGEMENT USER STORY TEST #
 ##################################
