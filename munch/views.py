@@ -87,7 +87,7 @@ def public_profile(request, author_uuid):
 @login_required
 def login_success_redirect(request):
     """
-    Redirects the user to their specific public profile after login.
+    Redirects the user to the stream after login.
     
     If user is not approved by admin, log them out and send them back to login
     """
@@ -97,7 +97,7 @@ def login_success_redirect(request):
         from django.contrib import messages
         messages.error(request, "Account pending for approval by admin.")
         return redirect('munch:login')
-    return redirect('munch:public_profile', author_uuid=request.user.uuid)
+    return redirect('munch:stream')
 
 # The following function from Google, Gemini, "Django Login Function", 03-01-2026
 def logout_user(request):
