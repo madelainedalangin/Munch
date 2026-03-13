@@ -22,3 +22,8 @@ main {
     list-style-type: none;
     padding: 0rem;
 }
+
+.content-bar__wrapper {
+    padding: 1rem 1.5rem;
+    border-bottom: var(--border-default);
+}
