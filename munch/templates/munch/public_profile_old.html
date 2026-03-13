@@ -1,0 +1,194 @@
+<!-- The following HTML and CSS from Google, Gemini, "Django Author Identity", 02-28-2026 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ author.displayName }}'s Profile</title>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .profile-container { 
+            max-width: 800px;
+            margin: auto;
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 20px;
+            margin-bottom: 20px;}
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+        }
+        
+        .section-title {
+            border-left: 5px solid #007bff;
+            padding-left: 10px;
+            margin-top: 40px;
+        }
+        
+        /* Story 5 Styles (Entries) */
+        .entry-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px #eee;
+        }
+        
+        /* Story 4 Styles (GitHub) */
+        .github-section {
+            background: #f4f4f4;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .event-card {
+            border-left: 4px solid #333;
+            padding: 10px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 3px;
+        }
+        #create_button{
+            color: gray;
+            text-decoration: underline;
+        }
+        .entry-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        
+        {% if request.user.is_authenticated and request.user.uuid == author.uuid %}
+            <div style="background: #fff3cd; padding: 15px; margin-bottom: 20px; border: 1px solid #ffeeba; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+                <span>
+                    You are viewing your profile. 
+                    <a href="{% url 'munch:edit_profile' %}" style="margin-left: 10px; font-weight: bold; color: #856404;">Edit Settings</a>
+                </span>
+                
+                <form action="{% url 'munch:logout' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-family: sans-serif; font-weight: bold;">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        <div class="profile-header">
+            <img class="profile-pic" src="{{ author.profileImage|default:'https://via.placeholder.com/150' }}" alt="Profile Picture">
+            <div>
+                <h1>{{ author.displayName }}</h1>
+                <p class="bio">{{ author.description|default:"No description provided." }}</p>
+                <p><strong>FQID:</strong> <small>{{ author.id }}</small></p>
+                <p><strong>GitHub:</strong> <a href="{{ author.github }}">{{ author.github|default:"Not linked" }}</a></p>
+            </div>
+        </div>
+
+        <div class="entries-section">
+            <h3 class="section-title">Public Entries</h3>
+            {% if request.user.is_authenticated and request.user.uuid == author.uuid %}
+                <a href="{% url 'munch:create_entry_UI' author.uuid %}" class="btn" id="create_button">+ Create Entry</a>
+            {% endif %}
+            {% for entry in entries %}
+                {% if entry.visibility != "DELETED" %}
+                    <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
+                        <div class="entry-card">
+                            <h4>{{ entry.title }}</h4>
+                                {% if entry.contentType == 'text/markdown' %}
+                                    <div>{{ entry.markdownContent|safe }}</div>
+                                {% else %}
+                                    <p>{{ entry.content|linebreaks }}</p>
+                                {% endif %}
+                                {% if entry.github_id %}
+                                    <p style="color: #666; font-style: italic; font-size: 0.9em;">
+                                        Source: GitHub Activity
+                                    </p>
+                                {% endif %}
+                            <small style="color: #666;">Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
+                        </div>
+                    </a>
+                {% endif%}
+            {% empty %}
+                <p>No public entries available yet.</p>
+            {% endfor %}
+        </div>
+
+        <!--
+        <div id="github-app" class="github-section">
+            <h3 class="section-title">GitHub Stream</h3>
+            <div v-if="loading">Loading activity...</div>
+            <div v-if="error" style="color: red;">[[ error ]]</div>
+            
+            <div v-for="event in events" :key="event.id" class="event-card">
+                <strong>[[ event.type ]]</strong> in <i>[[ event.repo.name ]]</i>
+                <br><small>[[ formatDate(event.created_at) ]]</small>
+            </div>
+            
+            <div v-if="!loading && events.length === 0">No recent GitHub activity.</div>
+        </div>
+        --> 
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            delimiters: ['[[', ']]'], 
+            data() {
+                return {
+                    events: [],
+                    loading: true,
+                    error: null
+                }
+            },
+            mounted() {
+                this.fetchGitHubActivity();
+            },
+            methods: {
+                fetchGitHubActivity() {
+                    const githubUrl = "{{ author.github }}";
+                    if (!githubUrl || githubUrl === "None" || githubUrl === "") {
+                        this.loading = false;
+                        return;
+                    }
+
+                    try {
+                        const parts = githubUrl.replace(/\/$/, "").split('/');
+                        const username = parts[parts.length - 1];
+
+                        fetch(`https://api.github.com/users/${username}/events/public`)
+                            .then(response => {
+                                if (!response.ok) throw new Error("GitHub profile not found or API limit hit.");
+                                return response.json();
+                            })
+                            .then(data => {
+                                this.events = data.slice(0, 5);
+                                this.loading = false;
+                            })
+                            .catch(err => {
+                                this.error = err.message;
+                                this.loading = false;
+                            });
+                    } catch (e) {
+                        this.error = "Invalid GitHub URL format.";
+                        this.loading = false;
+                    }
+                },
+                formatDate(dateStr) {
+                    return new Date(dateStr).toLocaleString();
+                }
+            }
+        }).mount('#github-app');
+    </script>
+</body>
+</html>
