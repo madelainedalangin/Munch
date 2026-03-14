@@ -27,8 +27,6 @@
 }
 
 body {
-    width: 100;
-
     font-family: var(--font-family-primary);
     font-weight: var(--font-weight-regular);
     color: var(--black);
