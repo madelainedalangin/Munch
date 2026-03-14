@@ -601,7 +601,7 @@ class StreamAPITest(TestCase):
           content='top secret info click here',
           contentType='text/plain',
           visibility='PRIVATE',
-          description='test friend sees private entry'
+          description='test entry. friend sees private entry'
       )
       response = self.client.get('/munch/api/stream/')
       self.assertEqual(response.status_code, 200)
@@ -629,8 +629,8 @@ class GetEntryTest(TestCase):
       )
       self.unlisted_entry = Entry.objects.create(
         author=self.author,
-        title='What Im currently working on: pikachu crochet',
-        content='shy person shares artwork',
+        title='What Im currently baking: macarons and pain au chocolat :3',
+        content='french pastry baking experiment',
         contentType='text/plain',
         visibility='UNLISTED',
         description='test unlisted entry direct access'
@@ -638,7 +638,7 @@ class GetEntryTest(TestCase):
       self.deleted_entry = Entry.objects.create(
         author=self.author,
         title='Deleted Entry',
-        content='u cant see this even with ur third eye',
+        content='u cant see this, even with ur third eye',
         contentType='text/plain',
         visibility='DELETED',
         description='test deleted entry'
@@ -708,18 +708,18 @@ class CommentAPITest(TestCase):
     Follow.objects.create(actor=self.author, object=self.friend, status='accepted')
 
     self.public_entry = Entry.objects.create(
-      author=self.author, title='Public Entry',
-      content='lol delete this are u crazy', visibility='PUBLIC'
+      author=self.author, title='I cant stop eating carbs',
+      content='carbs n protein yummy', visibility='PUBLIC'
     )
     self.private_entry = Entry.objects.create(
-      author=self.author, title='Private Entry',
-      content='u are wild for this but i accept u for who u are...maybe', visibility='PRIVATE'
+      author=self.author, title='Found morels in my backyard!',
+      content='cant wait to cook these omg im a lucky human indeed', visibility='PRIVATE'
     )
 
     self.comment = Comment.objects.create(
       author=self.friend,
       entry=self.public_entry,
-      comment='Im down to go snowboarding!'
+      comment='Pizza and garlic bread omnomnoms'
     )
 
   def test_get_entry_comments_public(self):
@@ -750,11 +750,11 @@ class CommentAPITest(TestCase):
         f'/munch/api/authors/{self.friend.uuid}/commented/',
         {
           'entry': self.public_entry.fqid,
-          'comment': 'Great post!'
+          'comment': 'hecc yea! WE LOVE CARBS!'
         }
     )
     self.assertEqual(response.status_code, 201)
-    self.assertTrue(Comment.objects.filter(comment='Great post!').exists())
+    self.assertTrue(Comment.objects.filter(comment='hecc yea! WE LOVE CARBS!').exists())
 
   def test_get_comment(self):
     self.client.login(username='RealFriend', password='imyouroppfr')
@@ -762,7 +762,7 @@ class CommentAPITest(TestCase):
       f'/munch/api/authors/{self.friend.uuid}/commented/{self.comment.serial}/'
     )
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(response.data['comment'], 'Im down to go snowboarding!')
+    self.assertEqual(response.data['comment'], 'Pizza and garlic bread omnomnoms')
 
   def test_get_entry_comments_not_authenticated(self):
     response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/')
