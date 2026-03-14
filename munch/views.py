@@ -827,7 +827,7 @@ def get_like_by_fqid(request, like_fqid):
 
     Returns:
         Response: A single like object. Returns 403 if unauthorized,
-                  410 if the liked entry is deleted, 404 if not found.
+                410 if the liked entry is deleted, 404 if not found.
     """
     like = get_object_or_404(Like, fqid=like_fqid)
     
