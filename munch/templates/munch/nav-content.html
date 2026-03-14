@@ -11,17 +11,17 @@
     Munch
 </h1>
 
-<div class="user-block">
-    <a href="{{ user.web }}">
-        <div class="user-block__photo">
-            <img>
+<a href="{{ user.web }}">
+    <div class="user-block">
+        <div class="user-block__avatar">
+            <img src="{{ author.profileImage|default:'https://via.placeholder.com/150' }}">
         </div>
         <div class="user-block__details">
            <strong class="user-block__display-name">{{ user.displayName }}</strong>
            <h3 class="user-block__username">@{{ user.username }}</h3>
         </div>
-    </a>
-</div>
+    </div>
+</a>
 
 <hr>
 
