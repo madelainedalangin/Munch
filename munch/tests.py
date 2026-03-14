@@ -8,6 +8,7 @@ from django.urls import reverse
 from unittest.mock import patch
 from munch.utils import sync_github_activity
 from rest_framework.test import APIClient
+import unittest
 
 # Create your tests here.
 
@@ -559,13 +560,112 @@ class StreamAPITest(TestCase):
     # Published time should still be the original time
     self.assertIn(original_time.strftime('%Y-%m-%d'), entries[0]['published'])
 
-##############################
-# VISIBILITY USER STORY TEST #
-#############################
+  ####################################################
+  # VISIBILITY USER STORY TEST THAT RELATES TO STREAM#
+  ####################################################
+  def test_follower_sees_unlisted_entry(self):
+    """Follower should see unlisted entries from someone they follow"""
+    Follow.objects.create(
+        actor=self.user,
+        object=self.author,
+        status='accepted'
+    )
+    Entry.objects.create(
+        author=self.author,
+        title='A message to all of you my awesome followers',
+        content='only my followers can see this so listen up! yall are amazing',
+        contentType='text/plain',
+        visibility='UNLISTED',
+        description='test follower sees unlisted'
+    )
+    response = self.client.get('/munch/api/stream/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(len(response.json()), 1)
+    self.assertEqual(response.json()[0]['title'], 'A message to all of you my awesome followers')
 
+  def test_friend_sees_private_entry(self):
+      """Friend should see friends-only entries from their friend"""
+      Follow.objects.create(
+          actor=self.user,
+          object=self.author,
+          status='accepted'
+      )
+      Follow.objects.create(
+          actor=self.author,
+          object=self.user,
+          status='accepted'
+      )
+      Entry.objects.create(
+          author=self.author,
+          title='Private Post by Friend TEST',
+          content='top secret info click here',
+          contentType='text/plain',
+          visibility='PRIVATE',
+          description='test friend sees private entry'
+      )
+      response = self.client.get('/munch/api/stream/')
+      self.assertEqual(response.status_code, 200)
+      self.assertEqual(len(response.json()), 1)
+      self.assertEqual(response.json()[0]['title'], 'Private Post by Friend TEST')
+
+###############################     
+# VISIBILITY USER STORY TESTS #
+###############################
 class GetEntryTest(TestCase):
-  pass
 
+  def setUp(self):
+      self.client = Client()
+      self.author = Author.objects.create_user(
+        username='entry_author',
+        password='LETMEINPLEASExoxo',
+        displayName='Entry Author',
+        is_approved=True
+      )
+      self.stranger = Author.objects.create_user(
+        username='entrystrangerDANGER',
+        password='IamNicePerson1',
+        displayName='Entry Stranger Danger',
+        is_approved=True
+      )
+      self.unlisted_entry = Entry.objects.create(
+        author=self.author,
+        title='What Im currently working on: pikachu crochet',
+        content='shy person shares artwork',
+        contentType='text/plain',
+        visibility='UNLISTED',
+        description='test unlisted entry direct access'
+      )
+      self.deleted_entry = Entry.objects.create(
+        author=self.author,
+        title='Deleted Entry',
+        content='u cant see this even with ur third eye',
+        contentType='text/plain',
+        visibility='DELETED',
+        description='test deleted entry'
+      )
+
+  def test_unlisted_entry_visibility(self):
+    
+    self.client.login(username='entrystrangerDANGER', password='IamNicePerson1')
+    response = self.client.get(
+        f'/munch/api/authors/{self.author.uuid}/entries/{self.unlisted_entry.serial}/'
+    )
+    self.assertEqual(response.status_code, 200)
+
+  @unittest.skip("admin logic not yet implemented")
+  def test_deleted_entry_visbility_seen_by_admin(self):
+  
+    admin = Author.objects.create_superuser(
+        username='thanos',
+        password='igotdapower1111',
+        displayName='Admin aka Thanos',
+        is_approved=True
+    )
+    self.client.login(username='thanos', password='igotdapower1111')
+    response = self.client.get(
+        f'/munch/authors/{self.author.uuid}/entries/{self.deleted_entry.serial}/'
+    )
+    self.assertEqual(response.status_code, 200)
 
 ###########################
 # SHARING USER STORY TEST #
