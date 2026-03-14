@@ -107,7 +107,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return {
             "type": "likes",
             "id": f"{obj.fqid}/likes",
-            "web": obj.entry.web,
+            "web": f"{settings.BACKEND_URL}/authors/{obj.entry.author.uuid}/entries/{obj.entry.serial}/",
             "page_number": 1,
             "size": likes.count(),
             "count": likes.count(),
