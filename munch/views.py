@@ -918,7 +918,7 @@ def get_comment_by_serial(request, author_serial, comment_serial):
 
     Returns:
         Response: A single comment object. Returns 403 if unauthorized,
-                  410 if parent entry is deleted, 404 if not found.
+                410 if parent entry is deleted, 404 if not found.
     """
 
     comment = get_object_or_404(Comment, author__uuid=author_serial, serial=comment_serial)
@@ -1028,9 +1028,9 @@ def commented(request, author_serial):
 
     Returns:
         Response: comments object containing type, web, id,
-                  page_number, size, count, and src (list of comment objects).
-                  Returns 403 if unauthorized, 410 if entry is deleted, 404 if not found.
-                  All comment objects are paginated as well.
+                page_number, size, count, and src (list of comment objects).
+                Returns 403 if unauthorized, 410 if entry is deleted, 404 if not found.
+                All comment objects are paginated as well.
     """
     
     id_type = "FQID" if (author_serial.find("http://") != -1) else "serial"
