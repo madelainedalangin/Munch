@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
-from .models import Author, Entry, Follow
+from .models import Author, Entry, Comment, Like, Follow
+from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 import uuid
@@ -323,7 +324,6 @@ class StreamAPITest(TestCase):
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()), 0)
-    pass
     
   #AUthentication
     #unaunthenticated user cannot access stream 
@@ -583,65 +583,223 @@ class GetEntryTest(TestCase):
 # COMMENTS/LIKES USER STORY TEST #
 #################################
 class CommentAPITest(TestCase):
-  def setUp(self):
-    """Create user1, author and stranger"""
-    
-    #pretend user we have logged in as
-    self.user = Author.objects.create_user(
-      username = 'user1test',
-      password='user11234',
-      displayName = 'User 1 Test',
-      is_approved = True,
-    )
-    
-    #An object that is following or friends with the user
-    self.author = Author.objects.create_user(
-      username = 'author1test',
-      password='author11234',
-      displayName = 'Author 1 Test',
-      is_approved = True,
-    )
-    
-    #an object that has no relationship with the user
-    self.stranger = Author.objects.create_user(
-      username = 'stranger1test',
-      password='stranger11234',
-      displayName = 'Stranger 1 Test',
-      is_approved = True,
-    )
-    self.client = Client()
-    self.client.login(username='user1test', password='user11234')
-  
 
-class LikeAPITest(TestCase):
   def setUp(self):
-    """Create user1, author and stranger"""
-    
-    #pretend user we have logged in as
-    self.user = Author.objects.create_user(
-      username = 'user1test',
-      password='user11234',
-      displayName = 'User 1 Test',
-      is_approved = True,
-    )
-    
-    #An object that is following or friends with the user
+    self.client = APIClient()
+
     self.author = Author.objects.create_user(
-      username = 'author1test',
-      password='author11234',
-      displayName = 'Author 1 Test',
-      is_approved = True,
+      username='author', password='notOscarWilde',
+      displayName='Author', host=f"{settings.BACKEND_URL}/api/",
+      is_approved=True
     )
-    
-    #an object that has no relationship with the user
+    self.friend = Author.objects.create_user(
+      username='RealFriend', password='imyouroppfr',
+      displayName='RealFriend', host=f"{settings.BACKEND_URL}/api/",
+      is_approved=True
+    )
     self.stranger = Author.objects.create_user(
-      username = 'stranger1test',
-      password='stranger11234',
-      displayName = 'Stranger 1 Test',
-      is_approved = True,
+      username='stranger', password='justalurkerlol',
+      displayName='Stranger', host=f"{settings.BACKEND_URL}/api/",
+      is_approved=True
     )
-    self.client = Client()
-    self.client.login(username='user1test', password='user11234')
+
+    # Make author and friend mutual followers (friends)
+    Follow.objects.create(actor=self.friend, object=self.author, status='accepted')
+    Follow.objects.create(actor=self.author, object=self.friend, status='accepted')
+
+    self.public_entry = Entry.objects.create(
+      author=self.author, title='Public Entry',
+      content='lol delete this are u crazy', visibility='PUBLIC'
+    )
+    self.private_entry = Entry.objects.create(
+      author=self.author, title='Private Entry',
+      content='u are wild for this but i accept u for who u are...maybe', visibility='PRIVATE'
+    )
+
+    self.comment = Comment.objects.create(
+      author=self.friend,
+      entry=self.public_entry,
+      comment='Im down to go snowboarding!'
+    )
+
+  def test_get_entry_comments_public(self):
+    response = self.client.get(
+      f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/comments/'
+    )
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.data['type'], 'comments')
+    self.assertEqual(response.data['count'], 1)
+
+  def test_get_entry_comments_private_as_stranger(self):
+    self.client.login(username='stranger', password='justalurkerlol')
+    response = self.client.get(
+      f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
+    )
+    self.assertEqual(response.status_code, 403)
+  
+  def test_get_entry_comments_private_as_friend(self):
+    self.client.login(username='RealFriend', password='imyouroppfr')
+    response = self.client.get(
+        f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
+    )
+    self.assertEqual(response.status_code, 200)
+
+  def test_post_comment(self):
+    self.client.login(username='RealFriend', password='imyouroppfr')
+    response = self.client.post(
+        f'/munch/api/authors/{self.friend.uuid}/commented/',
+        {
+          'entry': self.public_entry.fqid,
+          'comment': 'Great post!'
+        }
+    )
+    self.assertEqual(response.status_code, 201)
+    self.assertTrue(Comment.objects.filter(comment='Great post!').exists())
+
+  def test_get_comment(self):
+    self.client.login(username='RealFriend', password='imyouroppfr')
+    response = self.client.get(
+      f'/munch/api/authors/{self.friend.uuid}/commented/{self.comment.serial}/'
+    )
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.data['comment'], 'Im down to go snowboarding!')
+
+  def test_get_entry_comments_not_authenticated(self):
+    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/')
+    self.assertEqual(response.status_code, 403)
+
+  def test_get_comments_on_deleted_entry(self):
+    deleted_entry = Entry.objects.create(
+      author=self.author, title='Deleted Entry',
+      content='gone', visibility='DELETED'
+    )
+    response = self.client.get(
+      f'/munch/api/authors/{self.author.uuid}/entries/{deleted_entry.serial}/comments/'
+    )
+    self.assertEqual(response.status_code, 410)
+
+  def test_post_comment_on_deleted_entry(self):
+      deleted_entry = Entry.objects.create(
+        author=self.author, title='Deleted Entry',
+        content='gone', visibility='DELETED'
+      )
+      self.client.login(username='RealFriend', password='imyouroppfr')
+      response = self.client.post(
+          f'/munch/api/authors/{self.friend.uuid}/commented/',
+          {
+            'entry': deleted_entry.fqid,
+            'comment': 'hello? is it me youre looking for?? - Lionel Richie'
+          }
+      )
+      self.assertEqual(response.status_code, 410)
+class LikeAPITest(TestCase):
+
+  def setUp(self):
+    self.client = APIClient()
+
+    self.author = Author.objects.create_user(
+      username='JaneAusten', password='notJaneAusten',
+      displayName='Emma', host=f"{settings.BACKEND_URL}/api/",
+      is_approved=True
+    )
+    self.friend = Author.objects.create_user(
+      username='Kerroppi', password='hellokittypochacco',
+      displayName='Kekekerroppi', host=f"{settings.BACKEND_URL}/api/",
+      is_approved=True
+    )
+    self.stranger = Author.objects.create_user(
+      username='AnonymousNotHacker', password='strangerdangeruhOH',
+      displayName='NotAHacker', host=f"{settings.BACKEND_URL}/api/",
+      is_approved=True
+    )
+
+    Follow.objects.create(actor=self.friend, object=self.author, status='accepted')
+    Follow.objects.create(actor=self.author, object=self.friend, status='accepted')
+
+    self.public_entry = Entry.objects.create(
+      author=self.author, title='Public Entry',
+      content='Agatha Christie u are so cool', visibility='PUBLIC'
+    )
+    self.private_entry = Entry.objects.create(
+      author=self.author, title='Private Entry',
+      content='Sanrio > Disney', visibility='PRIVATE'
+    )
+
+    self.comment = Comment.objects.create(
+      author=self.friend,
+      entry=self.public_entry,
+      comment='what the hecc is going on?!'
+    )
+
+    self.like = Like.objects.create(
+      author=self.friend,
+      object_url=self.public_entry.fqid
+    )
+
+  def test_get_entry_likes_public(self):
+    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/likes/')
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.data['type'], 'likes')
+    self.assertEqual(response.data['count'], 1)
+
+  def test_get_entry_likes_private_as_stranger(self):
+    self.client.force_login(self.stranger)
+    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
+    self.assertEqual(response.status_code, 403)
+
+  def test_get_entry_likes_private_as_friend(self):
+    self.client.login(username='Kerroppi', password='hellokittypochacco')
+    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
+    self.assertEqual(response.status_code, 200)
+
+  def test_like_entry(self):
+    self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
+    response = self.client.post(f'/munch/api/authors/{self.stranger.uuid}/liked/', {'object': self.public_entry.fqid})
+    self.assertEqual(response.status_code, 201)
+    self.assertTrue(Like.objects.filter(author=self.stranger, object_url=self.public_entry.fqid).exists())
+
+  def test_like_comment(self):
+    self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
+    response = self.client.post(
+      f'/munch/api/authors/{self.stranger.uuid}/liked/',
+      {'object': self.comment.fqid}
+    )
+    self.assertEqual(response.status_code, 201)
+    self.assertTrue(Like.objects.filter(author=self.stranger, object_url=self.comment.fqid).exists())
+
+  def test_get_comment_likes(self):
+    Like.objects.create(author=self.stranger, object_url=self.comment.fqid)
+    response = self.client.get(
+      f'/munch/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{self.comment.serial}/likes/'
+    )
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.data['count'], 1)
+
+  def test_get_like(self):
+    response = self.client.get(
+      f'/munch/api/authors/{self.friend.uuid}/liked/{self.like.serial}/'
+    )
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(response.data['object'], self.public_entry.fqid)
+
+
+  def test_get_entry_likes_unauthenticated(self):
+    response = self.client.get(
+      f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/'
+    )
+    self.assertEqual(response.status_code, 403)
+
+  def test_like_spam(self):
+      self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
+      self.client.post(
+        f'/munch/api/authors/{self.stranger.uuid}/liked/',
+        {'object': self.public_entry.fqid}
+      )
+      response = self.client.post(
+        f'/munch/api/authors/{self.stranger.uuid}/liked/',
+        {'object': self.public_entry.fqid}
+      )
+      self.assertEqual(response.status_code, 400)
 
 ###################################
 # NODE MANAGEMENT USER STORY TEST #
