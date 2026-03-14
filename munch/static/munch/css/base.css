@@ -27,12 +27,16 @@
 }
 
 body {
-    width: 100;
-
     font-family: var(--font-family-primary);
     font-weight: var(--font-weight-regular);
     color: var(--black);
     background: var(--white);
+}
+
+/* GLOBAL DEFAULTS */
+
+h1, h2, h3, h4, h5 {
+    margin: 0 0;
 }
 
 hr {
