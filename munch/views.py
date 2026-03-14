@@ -249,6 +249,10 @@ def display_entry_by_serial(request, author_id, entry_serial):
 
 #-helper function for entry visibility
 def check_entry_visibility(request, entry):
+    """
+    Helper function that checks for entries and comments visibility settings.
+    - Created to be used in Comments and Likes API
+    """
     
     if entry.visibility == "DELETED":
         return Response(status=status.HTTP_410_GONE)
