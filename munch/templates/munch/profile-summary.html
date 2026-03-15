@@ -1,0 +1,11 @@
+<a href="{{ author.web }}">
+    <div class="user-block">
+        <div class="user-block__avatar">
+            <img src="{{ author.profileImage|default:'https://via.placeholder.com/150' }}">
+        </div>
+        <div class="user-block__details">
+           <strong class="user-block__display-name">{{ author.displayName }}</strong>
+           <h3 class="user-block__username">@{{ author.username }}</h3>
+        </div>
+    </div>
+</a>

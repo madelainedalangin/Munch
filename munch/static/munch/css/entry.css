@@ -1,0 +1,48 @@
+/* ENTRY CARD */
+
+.entry-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1.5rem;
+}
+
+.entry-card__headline, .entry-card__actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.entry-card__stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.entry-card__stat {
+    display: flex;
+    align-items: center;
+}
+
+/* DROPDOWN */
+
+.dropdown {
+    display: inline-block;
+    position: relative;
+}
+
+.dropdown:hover .dropdown__content {
+    display: grid;
+}
+
+.dropdown__content {
+    display: none;
+    position: absolute;
+    overflow: auto;
+    right: 0;
+    background-color: var(--white);
+    border: var(--border-default);
+}
+
+.dropdown__content button {
+    border: none;
+}

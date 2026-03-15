@@ -69,22 +69,7 @@
 <div class="item-list">
     {% for entry in entries %}
         {% if entry.visibility != "DELETED" %}
-            <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
-                <div class="entry-card">
-                    <h4>{{ entry.title }}</h4>
-                        {% if entry.contentType == 'text/markdown' %}
-                            <div>{{ entry.markdownContent|safe }}</div>
-                        {% else %}
-                            <p>{{ entry.content|linebreaks }}</p>
-                        {% endif %}
-                        {% if entry.github_id %}
-                            <p style="color: #666; font-style: italic; font-size: 0.9em;">
-                                Source: GitHub Activity
-                            </p>
-                        {% endif %}
-                    <small>Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
-                </div>
-            </a>
+            {% include "munch/entry.html" with entry=entry request=request %}
         {% endif %}
     {% empty %}
         <p>No entries yet...</p>
