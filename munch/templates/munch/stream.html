@@ -9,9 +9,11 @@ Stream
 {% endblock content-bar %}
 
 {% block content-scrollable %} 
-{% for entry in entries %}
-{% include "munch/entry.html" with entry=entry only %}
-{% empty %}
-<p>Nothing yet :3</p>
-{% endfor %} 
+<div class="item-list">
+    {% for entry in entries %}
+    {% include "munch/entry.html" with entry=entry only %}
+    {% empty %}
+    <p>Nothing yet :3</p>
+    {% endfor %} 
+</div>
 {% endblock content-scrollable %}
