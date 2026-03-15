@@ -57,9 +57,11 @@ urlpatterns = [
     # path('api/entries/<str:entry_FQID>', views.manage_entry_by_FQID, name='manage_entry_by_FQID'),
     # path('api/authors/<str:author_id>/entries/', views.create_entry, name='create-entry'),
 
-    # # Image Entries API
-    # path('api/authors/<str:author_serial>/entries/<str:entry_serial>/image', views.get_image_by_serial, name='get_image_by_serial'),
-    # path('api/entries/<str:entry_FQID>/image', views.get_image_by_FQID, name='get_image_by_FQID'),
+    # Image Entries API
+    path('api/authors/<str:author_serial>/entries/<str:entry_serial>/image/', views.get_image_by_serial, name='get_image_by_serial'),
+    path('api/entries/<path:entry_fqid>/image/', views.get_image_by_fqid, name='get_image_by_fqid'),
+    
+
 
     # # Comments API
     # path('api/authors/{AUTHOR_SERIAL}/inbox', views.comment, name='comment'),

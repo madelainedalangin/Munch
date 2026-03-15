@@ -20,6 +20,7 @@ import re
 
 from .utils import sync_github_activity
 from django.db import IntegrityError #for liked function
+import base64 #for image_entry api
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
 @login_required
@@ -661,6 +662,64 @@ def follow(request, target_serial):
 # Entries API
 
 # Image Entries API
+@api_view(['GET'])
+def get_image_by_serial(request, author_serial, entry_serial):
+    #Entry model contentType is plain CharField
+    #lookup entry by serial
+    #check if contentType starts with image/ if not return 404
+    #decode base64 content field
+    #return HTTPResponse with content type
+    entry = get_object_or_404(Entry, author__uuid=author_serial, serial=entry_serial)
+    if not entry.contentType.startswith("image/"):
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    #people shouldnt be able to access the private image entries without
+    #any permission
+    visibility_error = check_entry_visibility(request, entry)
+    if visibility_error:
+        return visibility_error
+    
+    #Source: https://docs.python.org/3/library/base64.html
+    #Date Accessed: Saturday, March 14, 2026
+    #entry.content is an ASCII str, and it returns the decoded
+    #i require to decode entry.content using base64.b64decode()
+    #also mentioned in the project spec
+    image_data = base64.b64decode(entry.content)
+    
+    #before split: reinhardt_image/png;base64
+    #after split: reinhardt_image/png
+    entry_content_type = entry.contentType.split(";")[0]
+    return HttpResponse(image_data, content_type=entry_content_type)
+
+@api_view(['GET'])
+def get_image_by_fqid(request, entry_fqid):
+    """similar to serial version except we are using entry fqid"""
+    #Entry model contentType is plain CharField
+    #lookup entry by serial
+    #check if contentType starts with image/ if not return 404
+    #decode base64 content field
+    #return HTTPResponse with content type
+    entry = get_object_or_404(Entry, fqid=entry_fqid)
+    if not entry.contentType.startswith("image/"):
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    #people shouldnt be able to access the private image entries without
+    #any permission
+    visibility_error = check_entry_visibility(request, entry)
+    if visibility_error:
+        return visibility_error
+    
+    #Source: https://docs.python.org/3/library/base64.html
+    #Date Accessed: Saturday, March 14, 2026
+    #entry.content is an ASCII str, and it returns the decoded
+    #i require to decode entry.content using base64.b64decode()
+    #also mentioned in the project spec
+    image_data = base64.b64decode(entry.content)
+    
+    #before split: reinhardt_image/png;base64
+    #after split: reinhardt_image/png
+    entry_content_type = entry.contentType.split(";")[0]
+    return HttpResponse(image_data, content_type=entry_content_type)
 
 # Likes API
 
