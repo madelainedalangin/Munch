@@ -33,24 +33,10 @@ main {
     border-radius: 10px;
 }
 
-.content-list__headline {
-    border-bottom: var(--border-default);
-}
-
 .profile-card__avatar__wrapper img {
     width: 150px;
     height: 150px;
     border-radius: 50%;
     object-fit: cover;
     background: #eee;
-}
-
-.content-list__headline {
-    padding: 1rem 1.5rem;
-}
-
-.entry-link {
-    text-decoration: none;
-    color: inherit;
-    display: block;
 }
