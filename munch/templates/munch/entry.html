@@ -8,14 +8,17 @@
         <div class="dropdown">
             <button class="dropdown__toggle">...</button>  
             <div class="dropdown__content">
-                <button class="edit_entry">Edit</button>
-                <button class="delete_entry">Delete</button>
+                <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
+                <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
+                    {% csrf_token %}
+                    <button id="delete_button" type="submit" onclick="window.location.href='/munch/authors/{{ entry.author.uuid }}/'">Delete</button>
+                </form>
             </div>  
         </div>
         {% endif %}
     </div>
 
-    <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
+    <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-card__main-link">
         <h3>{{ entry.title }}</h3>
     </a>
 

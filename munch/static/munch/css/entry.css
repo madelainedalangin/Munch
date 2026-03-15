@@ -1,6 +1,7 @@
 /* ENTRY CARD */
 
 .entry-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     padding: 1rem;
@@ -21,6 +22,19 @@
 .entry-card__stat {
     display: flex;
     align-items: center;
+}
+
+.entry-card__main-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.entry-card a:not(.entry-card__main-link),
+.entry-card button {
+    position: relative;
+    z-index: 2;
 }
 
 /* DROPDOWN */

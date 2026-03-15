@@ -54,3 +54,8 @@ main {
 .item-list > *:not(:last-child) {
     border-bottom: var(--border-default);
 }
+
+.content-list__headline {
+    border-bottom: var(--border-default);
+    padding: 1rem 1.5rem;
+}

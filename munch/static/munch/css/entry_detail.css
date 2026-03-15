@@ -1,0 +1,7 @@
+.entry-card {
+    border-bottom: var(--border-default);
+}
+
+.entry-card__main-link::after {
+    display: none;
+}
