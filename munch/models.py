@@ -51,11 +51,13 @@ class Entry(models.Model):
 
     serial = models.UUIDField(default=uuid.uuid4)
     fqid = models.URLField(blank=True, unique=True)
+    url = models.URLField(blank=True, unique=True)
 
     def save(self, *args, **kwargs):
         if not self.fqid:
             base_host = self.author.host if self.author.host.endswith('/') else f"{self.author.host}/"
-            self.fqid = f"{base_host}munch/api/authors/{self.author.uuid}/entries/{self.serial}"
+            self.fqid = f"{base_host}authors/{self.author.uuid}/entries/{self.serial}"
+            self.url = f"{base_host[:-4]}authors/{self.author.uuid}/entries/{self.serial}"
         if self.contentType == "text/markdown":
             self.markdownContent = markdown.markdown(self.content)
         return super().save(*args, **kwargs)
