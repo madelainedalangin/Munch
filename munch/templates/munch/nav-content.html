@@ -4,6 +4,7 @@
 {% block links %}
 <link rel="stylesheet" href="{% static 'munch/css/base.css' %}">
 <link rel="stylesheet" href="{% static 'munch/css/nav_sidebar.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/entry.css' %}">
 {% endblock links %}
 
 {% block nav %}
@@ -11,17 +12,7 @@
     Munch
 </h1>
 
-<a href="{{ user.web }}">
-    <div class="user-block">
-        <div class="user-block__avatar">
-            <img src="{{ author.profileImage|default:'https://via.placeholder.com/150' }}">
-        </div>
-        <div class="user-block__details">
-           <strong class="user-block__display-name">{{ user.displayName }}</strong>
-           <h3 class="user-block__username">@{{ user.username }}</h3>
-        </div>
-    </div>
-</a>
+{% include "munch/profile-summary.html" with author=user request=request only %}
 
 <hr>
 

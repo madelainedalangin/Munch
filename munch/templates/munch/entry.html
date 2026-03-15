@@ -1,0 +1,64 @@
+{% load static %}
+
+<article class="entry-card">
+    <div class="entry-card__headline">
+        {% include "munch/profile-summary.html" with author=entry.author only %}
+
+        {% if request.user and request.user.fqid == entry.author.fqid %} <!-- only show dropdown if entry belongs to user -->
+        <div class="dropdown">
+            <button class="dropdown__toggle">...</button>  
+            <div class="dropdown__content">
+                <button class="edit_entry">Edit</button>
+                <button class="delete_entry">Delete</button>
+            </div>  
+        </div>
+        {% endif %}
+    </div>
+
+    <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-link">
+        <h3>{{ entry.title }}</h3>
+    </a>
+
+    <strong>{{ entry.description }}</strong>
+
+    {% if entry.contentType == 'text/markdown' %}
+        <div>{{ entry.markdownContent|safe }}</div>
+    {% else %}
+        <p>{{ entry.content|linebreaks }}</p>
+    {% endif %}
+
+    {% if entry.github_id %}
+        <p style="color: #666; font-style: italic; font-size: 0.9em;">
+            Source: GitHub Activity
+        </p>
+    {% endif %}
+
+    <small>Published: {{ entry.published|date:"F j, Y, g:i a" }}</small>
+
+    <div class="entry-card__actions">
+        <div class="entry-card__stats">
+            <div class="entry-card__stat">
+                <button class="like-button">
+                    <img src="{% static 'munch/icons/favorite.svg' %}" alt="like">
+                </button>
+                <p class="likes-count">0</p>
+            </div>
+
+            <div class="entry-card__stat">
+                <button class="comment-button">
+                    <img src="{% static 'munch/icons/chat_bubble.svg' %}" alt="comment">
+                </button>
+                <p class="comments-count">0</p>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <button class="dropdown__toggle">
+                <img src="{% static 'munch/icons/upload.svg' %}">
+            </button>
+            <div class="dropdown__content">
+                <p>{{ entry.web }}</p>
+            </div>
+        </div>
+    </div>
+</article>
