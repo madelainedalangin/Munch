@@ -56,9 +56,19 @@
         </div>
 
         <div class="dropdown">
-            <button class="dropdown__toggle">
+            <button class="dropdown__toggle" onclick="copyToClipboard()">
                 <img src="{% static 'munch/icons/upload.svg' %}">
             </button>
+            <!-- copyToClipboard function from Google, Gemini, "Django Shareable Link", 03-15-26 -->
+            <span id="share-url" style = "display: none">{{ request.build_absolute_uri }}</span>
+            <script>
+                function copyToClipboard() {
+                    const url = document.getElementById('share-url').innerText;
+                    navigator.clipboard.writeText(url).then(() => {
+                        alert("Link copied to clipboard!");
+                    });
+                }
+            </script>
             <div class="dropdown__content">
                 <p>{{ entry.web }}</p>
             </div>
