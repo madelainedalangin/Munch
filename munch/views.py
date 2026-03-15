@@ -227,6 +227,10 @@ def display_entry_by_serial(request, author_id, entry_serial):
             return HttpResponse(status=410)
         return render(request, "munch/entry_detail.html", {"entry": entry})
 
+    # If a user is logged in and has the link to a PUBLIC or UNLISTED post, let them see it.
+    if entry.visibility in ['PUBLIC', 'UNLISTED']:
+        return render(request, "munch/entry_detail.html", {"entry": entry})
+
     follows_author = Follow.objects.filter(
         actor=request.user,
         object=author,
@@ -246,6 +250,17 @@ def display_entry_by_serial(request, author_id, entry_serial):
         return HttpResponse(status=403)
 
     return render(request, "munch/entry_detail.html", {"entry": entry})
+
+# The following function from Google, Gemini, "Django Shareable Link", 03-15-26
+@login_required
+def public_browse(request):
+    """The new Global Discovery stream"""
+    # Fetch all PUBLIC entries from everyone
+    entries = Entry.objects.filter(visibility='PUBLIC').exclude(visibility='DELETED').order_by('-published')
+    return render(request, 'munch/stream.html', {
+        'entries': entries,
+        'global_view': True  
+    })
 
 
 #-helper function for entry visibility
