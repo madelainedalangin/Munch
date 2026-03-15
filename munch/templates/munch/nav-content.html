@@ -15,7 +15,7 @@
 
 {% include "munch/profile-summary.html" with author=user request=request only %}
 
-<hr>
+<div><hr></div>
 
 <menu class="nav-links">
     <li><a href="{% url 'munch:stream' %}">
@@ -33,9 +33,9 @@
 </menu>
 
 {% if request.user.is_authenticated %}
-<hr>
+<div><hr></div>
 
-<a id="create-entry" href="{% url 'munch:create_entry_UI' user.uuid %}">
+<a id="create-entry" class="nav-link" href="{% url 'munch:create_entry_UI' user.uuid %}">
     <img src="{% static 'munch/icons/edit_square.svg' %}">
     Post
 </a>
