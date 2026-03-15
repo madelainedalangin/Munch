@@ -36,10 +36,16 @@ class SignupForm(UserCreationForm):
     
 class EntryForm(forms.ModelForm):
     VISIBILITY_CHOICES = [('PUBLIC', 'Public'),('PRIVATE', 'Private'),('UNLISTED', 'Unlisted'),]
-    CONTENT_TYPE_CHOICES = [('text/plain', 'Plain Text'),('text/markdown', 'Markdown')]
+    CONTENT_TYPE_CHOICES = [
+        ('text/plain', 'Plain Text'),
+        ('text/markdown', 'Markdown'),
+        ('image/png;base64', 'PNG Image'),
+        ('image/jpeg;base64', 'JPEG Image'),
+    ]
 
     visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES)
     contentType = forms.ChoiceField(choices=CONTENT_TYPE_CHOICES)
+    image = forms.ImageField(required=False, help_text='Upload an image (PNG or JPEG) :)')
 
     class Meta:
         model = Entry
