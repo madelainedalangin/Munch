@@ -66,7 +66,9 @@ class GetEntryTest(TestCase):
       description='Test deleted entry visibility'
     )
 
-  # Visibility tests as a "public" user
+  # Standard user visibility tests
+
+  # Public entries testing
   def test_public_direct_entry_visibility(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
@@ -74,22 +76,26 @@ class GetEntryTest(TestCase):
     )
     self.assertEqual(response.status_code, 200)
 
-  def test_private_entry_direct_visibility_when_not_friends(self):
+  def test_public_stream_entry_visibility(self):
+    self.client.login(username='author2', password='IamNicePerson1')
+    response = self.client.get(
+        f'/munch/api/stream/'
+    )
+    self.assertEqual(response.status_code, 200)
+    # Check that the public entry is in the stream results
+    entry_fqids = [entry['id'] for entry in response.json()['src']]
+    self.assertIn(str(self.public_entry.fqid), entry_fqids)
+
+
+  # Private entries testing
+  def test_private_direct_entry_visibility_when_not_friends(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
         f'/munch/api/authors/{self.author1.uuid}/entries/{self.private_entry.serial}/'
     )
     self.assertEqual(response.status_code, 403)
-  
-  def test_unlisted_entry_direct_visibility(self):
-    self.client.login(username='author2', password='IamNicePerson1')
-    response = self.client.get(
-        f'/munch/api/authors/{self.author1.uuid}/entries/{self.unlisted_entry.serial}/'
-    )
-    self.assertEqual(response.status_code, 200)
 
-  # Visibility tests as a "friend" user
-  def test_private_entry_direct_visibility_when_friends(self):
+  def test_private_direct_entry_visibility_when_friends(self):
     self.client.login(username='author2', password='IamNicePerson1')
     # Author 2 sends a request to Author 1, is considered a follower but not friend
     Follow.objects.create(
@@ -108,13 +114,82 @@ class GetEntryTest(TestCase):
     )
     self.assertEqual(response.status_code, 200)
 
+  def test_private_stream_entry_visibility_when_not_friends(self):
+    self.client.login(username='author2', password='IamNicePerson1')
+    response = self.client.get(
+        f'/munch/api/stream/'
+    )
+    self.assertEqual(response.status_code, 200)
+    # Check that the private entry is not in the stream results
+    entry_fqids = [entry['id'] for entry in response.json()['src']]
+    self.assertNotIn(str(self.private_entry.fqid), entry_fqids)
+
+  def test_private_stream_entry_visibility_when_friends(self):
+    self.client.login(username='author2', password='IamNicePerson1')
+    # Author 2 sends a request to Author 1, is considered a follower but not friend
+    Follow.objects.create(
+      actor=self.author2,
+      object=self.author1,
+      status='accepted'
+    )
+    # Author 1 follows back Author 2, making them friends
+    Follow.objects.create(
+      actor=self.author1,
+      object=self.author2,
+      status='accepted'
+    )
+    response = self.client.get(
+        f'/munch/api/stream/'
+    )
+    self.assertEqual(response.status_code, 200)
+    # Check that the private entry is in the stream results
+    entry_fqids = [entry['id'] for entry in response.json()['src']]
+    self.assertIn(str(self.private_entry.fqid), entry_fqids)
+
+
+  # Unlisted entries testing
+  def test_unlisted_direct_entry_visibility(self):
+    self.client.login(username='author2', password='IamNicePerson1')
+    response = self.client.get(
+        f'/munch/api/authors/{self.author1.uuid}/entries/{self.unlisted_entry.serial}/'
+    )
+    self.assertEqual(response.status_code, 200)
+
+  def test_unlisted_stream_entry_visibility_when_not_following(self):
+    self.client.login(username='author2', password='IamNicePerson1')
+    response = self.client.get(
+        f'/munch/api/stream/'
+    )
+    self.assertEqual(response.status_code, 200)
+    # Check that the unlisted entry is not in the stream results
+    entry_fqids = [entry['id'] for entry in response.json()['src']]
+    self.assertNotIn(str(self.unlisted_entry.fqid), entry_fqids)
+
+  def test_unlisted_stream_entry_visibility_when_following(self):
+    self.client.login(username='author2', password='IamNicePerson1')
+    # Author 2 sends a request to Author 1, is considered a follower but not friend
+    Follow.objects.create(
+      actor=self.author2,
+      object=self.author1,
+      status='accepted'
+    )
+    response = self.client.get(
+        f'/munch/api/stream/'
+    )
+    self.assertEqual(response.status_code, 200)
+    # Check that the unlisted entry is in the stream results
+    entry_fqids = [entry['id'] for entry in response.json()['src']]
+    self.assertIn(str(self.unlisted_entry.fqid), entry_fqids)
+
+
   # Visibility tests as a non-superuser / non-admin user
-  def test_deleted_direct_entry_visbility_when_not_admin(self):
+  def test_deleted_direct_entry_visibility_when_not_admin(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
         f'/munch/api/authors/{self.author1.uuid}/entries/{self.deleted_entry.serial}/'
     )
     self.assertEqual(response.status_code, 410)
+
 
   # Visibility tests as a superuser / admin user
   def test_deleted_direct_entry_visbility_when_admin(self):
