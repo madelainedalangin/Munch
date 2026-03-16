@@ -59,7 +59,7 @@
                 <button class="comment-button">
                     <img src="{% static 'munch/icons/chat_bubble.svg' %}" alt="comment">
                 </button>
-                <p class="comments-count">0</p>
+                <p class="comments-count">{{ entry.comment_set.count }}</p>
             </div>
 
             <script>
