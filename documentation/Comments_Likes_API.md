@@ -1,10 +1,6 @@
 # Comments and Likes API Documentation
 
----
-
 ## Comments API
-
----
 
 ### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/
 
@@ -259,11 +255,8 @@ Content-Type: application/json
 **Additional Notes**
 - After a comment is created, it is automatically forwarded to the entry author's inbox.
 
----
 
 ## Likes API
-
----
 
 ### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/likes/
 
