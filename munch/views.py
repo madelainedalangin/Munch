@@ -366,17 +366,63 @@ def manage_entry_by_FQID(request, entry_FQID):
 
 @api_view(['GET','POST'])
 def create_entry(request, author_id):
+    """
+    GET api/authors/{AUTHOR_SERIAL}/entries/
+    """
+    
     if request.method == "GET":
-        # TODO - Not authenticated: only public entries.
-        # TODO - Authenticated locally as author: all entries.
-        # TODO - Authenticated locally as follower of author: public + unlisted entries.
-        # TODO - Authenticated locally as friend of author: all entries.
-        # TODO - Authenticated as remote node: This probably should not happen. Remember, the way remote node becomes aware of local entries is by local node pushing those entries to inbox, not by remote node pulling.
+        author = get_object_or_404(Author, uuid=author_id)
+        entries = Entry.objects.filter(
+            author=author
+            ).exclude(
+                visibility="DELETED"
+                ).order_by(
+                    "-published"
+                    )
+        #only public entries can be seen if they are unauthenticated users
+        if not request.user.is_authenticated:
+            entries = entries.filter(visibility="PUBLIC")
+            
+        elif request.user != author:
+            follows_author = Follow.objects.filter(
+                actor=request.user, 
+                object=author,
+                status="accepted",
+                ).exists()
+            
+            author_follows_user = Follow.objects.filter(
+                actor=author,
+                object=request.user,
+                status="accepted",
+            ).exists()
+            
+            both_friends = follows_author and author_follows_user
+            
+            if not both_friends:
+                if follows_author:
+                    #entries in public and unlisted setting can be seen by followers
+                    entries = entries.filter(visibility__in=["PUBLIC", "UNLISTED"])
+                else:
+                    #strangers can only see public
+                    entries = entries.filter(visibility="PUBLIC")
 
-        # obtain the 5 most recent entries and return it
-        entries = Entry.objects.filter(author__uuid=author_id).order_by('-published')[:5]
+        
+        #also include pagination
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 5))
+        start = (page - 1) * size
+        end = start + size
+        total = entries.count()
+        entries = entries[start:end]
         serializer = EntrySerializer(entries, many=True)
-        return Response(serializer.data)
+        
+        return Response({
+                        "type": "entries",
+                        "page_number": page,
+                        "size": size,
+                        "count": total,
+                        "src": serializer.data
+                        })
     
     elif request.method == "POST":
 
@@ -391,8 +437,6 @@ def create_entry(request, author_id):
                 {"detail": "Only the author can create entries here."},
                 status=status.HTTP_403_FORBIDDEN
             )
-
-        
 
         serializer = EntrySerializer(data=request.data)
         if serializer.is_valid():
