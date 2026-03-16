@@ -705,12 +705,13 @@ def manage_following(request, author_serial, target_FQID):
 
     elif request.method == 'PUT':
 
-        # to be used for future milestones maybe
-        # capture group 1: 0+ chars as few as possible until 
+        # capture group 1: 0+ chars as few as possible until serial
         # capture group 2: 1+ chars until /
         regex_match = re.search(r'^(.*?api\/authors\/)([^/]+)', target_FQID)
         target_service = regex_match.group(1)
         target_serial = regex_match.group(2)
+
+        isLocalAuthor = (target_service == f"{settings.BACKEND_URL}/munch/api/authors/")
 
         # create follow object if none exists yet
         if follow_entry == None:
@@ -721,20 +722,24 @@ def manage_following(request, author_serial, target_FQID):
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
 
-            follow_entry = Follow(
+            follow_entry = Follow.objects.create(
                 actor=actor_author,
                 object=target_author,
                 status='requesting'
             )
-        
-        # serialize follow request and post to target inbox
-        serializer = FollowRequestSerializer(follow_entry)
-        response = requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
 
-        if response.status_code == 201:
-            return Response(response.json())
+        serializer = FollowRequestSerializer(follow_entry)
+
+        if isLocalAuthor:
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            response = requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
+
+            if response.status_code == 201:
+                return Response(response.json(), status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
 # Followers API
 
