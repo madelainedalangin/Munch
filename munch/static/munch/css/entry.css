@@ -8,9 +8,17 @@
     gap: 1.5rem;
 }
 
-.entry-card__headline, .entry-card__actions {
+.entry-card__headline {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.entry-card__actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .entry-card__stats {
@@ -22,6 +30,7 @@
 .entry-card__stat {
     display: flex;
     align-items: center;
+    gap: 4px;
 }
 
 .entry-card__main-link::after {
@@ -35,6 +44,15 @@
 .entry-card button {
     position: relative;
     z-index: 2;
+}
+
+/* LIKE AND COMMENT BUTTONS */
+
+.likes-count,
+.comments-count {
+    font-size: 13px;
+    color: #9e9e9e;
+    margin: 0;
 }
 
 /* DROPDOWN */
@@ -59,4 +77,37 @@
 
 .dropdown__content button {
     border: none;
+}
+
+.like-button,
+.comment-button,
+.dropdown__toggle {
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+.like-button img,
+.comment-button img,
+.dropdown__toggle img {
+    border: none !important;
+    outline: none !important;
+    background: none !important;
+    display: block;
+    width: 25px !important;
+    height: 25px !important;
+}
+
+.likes-count,
+.comments-count {
+    font-size: 18px;
+    color: #767676;
+    margin: 0;
 }
