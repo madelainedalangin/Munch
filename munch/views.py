@@ -648,10 +648,18 @@ def get_following(request, author_serial):
 @login_required
 @api_view(['GET', 'DELETE', 'PUT'])
 def manage_following(request, author_serial, target_FQID):
-    follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
+    # check if target_FQID is a full URL or just a UUID
+    if target_FQID.startswith('http'):
+        follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
+    else:
+        follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__uuid=target_FQID).first()
 
     if request.method == 'GET':
-        follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID, status='accepted').first()
+        if target_FQID.startswith('http'):
+            follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
+        else:
+            follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__uuid=target_FQID).first()
+        
         if follow_entry == None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
@@ -667,20 +675,30 @@ def manage_following(request, author_serial, target_FQID):
 
     elif request.method == 'PUT':
 
-        # to be used for future milestones maybe
-        # capture group 1: 0+ chars as few as possible until 
-        # capture group 2: 1+ chars until /
-        regex_match = re.search(r'^(.*?api\/authors\/)([^/]+)', target_FQID)
-        target_service = regex_match.group(1)
-        target_serial = regex_match.group(2)
+        if target_FQID.startswith('http'):
+            # remote follow — extract service and serial from FQID
+            regex_match = re.search(r'^(.*?api\/authors\/)([^/]+)', target_FQID)
+            target_service = regex_match.group(1)
+            target_serial = regex_match.group(2)
+        else:
+            # local follow — target_FQID is just a UUID
+            target_serial = target_FQID
+            target_service = f"{settings.BACKEND_URL}/munch/api/authors/"
 
         # create follow object if none exists yet
         if follow_entry == None:
-
-            target_author = Author.objects.get(id=target_FQID)
-            if target_author == None:
-                # TODO request user data from other nodes in future milestones
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            # try lookup by FQID first, then by UUID
+            target_author = Author.objects.filter(id=target_FQID).first() or Author.objects.filter(uuid=target_FQID).first()
+            
+        if follow_entry == None:
+            target_author = Author.objects.filter(id=target_FQID).first() or Author.objects.filter(uuid=target_FQID).first()
+            print(f"target_FQID: {target_FQID}")
+            print(f"target_author: {target_author}")
+            actor_fqid = f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}"
+            print(f"actor_fqid: {actor_fqid}")
+            actor_author = Author.objects.get(id=actor_fqid)
+            print(f"actor_author: {actor_author}")
+            
             actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
 
             follow_entry = Follow(
@@ -693,7 +711,7 @@ def manage_following(request, author_serial, target_FQID):
         serializer = FollowRequestSerializer(follow_entry)
         response = requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
 
-        if response.status_code == 201:
+        if response.status_code in [200, 201]:
             return Response(response.json())
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -753,8 +771,12 @@ def get_follow_requests(request, author_serial):
 def follow(request, target_serial):
     serializer = FollowRequestSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            # follow request already exists - return 200 instead of error
+            return Response({"detail": "Follow request already exists."}, status=status.HTTP_200_OK)
     return Response(status=400, data=serializer.errors)
 
 # Entries API
