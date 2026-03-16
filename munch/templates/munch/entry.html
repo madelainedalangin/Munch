@@ -28,7 +28,7 @@
         <div>{{ entry.markdownContent|safe }}</div>
     <!--image handling-->
     {% elif entry.contentType == 'image/png;base64' or entry.contentType == 'image/jpeg;base64' %}
-        <img src="data:{{ entry.contentType }};base64, {{ entry.content }}" alt = "{{ entry.title }}" style="max-width: 100%;"> 
+        <img src="data:{{ entry.contentType }};base64,{{ entry.content }}" alt = "{{ entry.title }}" style="max-width: 100%;"> 
     {% else %}
         <p>{{ entry.content|linebreaks }}</p>
     {% endif %}
