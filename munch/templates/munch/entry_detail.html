@@ -1,6 +1,6 @@
 {% extends "munch/nav-content.html" %}
 {% load static %}
-]<script src="{% static 'munch/js/comment.js' %}"></script>
+
 
 {% block links %}
 {{ block.super }}
@@ -10,6 +10,11 @@
 {% block title %}
     {{ entry.author.displayName }} - "{{ entry.title }}"
 {% endblock title %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="{% static 'munch/js/comment.js' %}"></script>
+{% endblock scripts %}
 
 {% block content-bar %}
     <strong>Post</strong>
@@ -42,6 +47,15 @@
         {% empty %}
             <p>No comments</p>
         {% endfor %}
+    </div>
+    <div class="pagination">
+    {% if page > 1 %}
+        <a href="?page={{ page|add:'-1' }}">Previous</a>
+    {% endif %}
+    <span>Page {{ page }} of {{ total_pages }} ({{ total_comments }} comments)</span>
+    {% if page < total_pages %}
+        <a href="?page={{ page|add:'1' }}">Next</a>
+    {% endif %}
     </div>
     <div class="comment-form">
         <form method="post" action="{% url 'munch:post_comment' entry.author.uuid entry.serial %}">
