@@ -44,8 +44,6 @@ def public_profile(request, author_uuid):
     try:
         sync_github_activity(author)
     except Exception as e:
-        # We wrap this in try/except so if GitHub is down, 
-        # the profile page still loads.
         print(f"GitHub sync failed: {e}")
 
     entries = Entry.objects.filter(author=author)
@@ -78,12 +76,16 @@ def public_profile(request, author_uuid):
         entries = entries.exclude(visibility='DELETED').filter(visibility_filter)
 
     entries = entries.order_by('-published')
-    
-    # For now, only pass the author. 
-    # add 'posts' for user story 5 when implemented
+    #This is to have the followers and following count to show on public profile
+    #Previously the 0s were hardcoded in the js file but not anymore
+    following_count = Follow.objects.filter(actor=author, status='accepted').count()
+    followers_count = Follow.objects.filter(object=author, status='accepted').count()
+
     context = {
         'author': author,
         'entries': entries,
+        'following_count': following_count,
+        'followers_count': followers_count,
     }
     return render(request, 'munch/public_profile.html', context)
 
@@ -180,6 +182,12 @@ def edit_entry(request, author_id, entry_serial):
     '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     
+    # TODO - cancel button
+    # TODO - if the filled form is invalid, redirct user back to entry details and show error
+
+    if request.user.uuid != entry.author.uuid:
+        return HttpResponse({"detail": "Only the author can update this entry."}, status=status.HTTP_403_FORBIDDEN)
+
     if request.method == "POST":
         form = EntryForm(request.POST, request.FILES, instance=entry)
         if form.is_valid():
@@ -234,26 +242,45 @@ def display_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     author = get_object_or_404(Author, uuid=author_id)
     
-    comments = Comment.objects.filter(entry=entry).order_by("-published")
+    # pagination for comments
+    page = int(request.GET.get('page', 1))
+    size = 5
+    start = (page - 1) * size
+    end = start + size
+    all_comments = Comment.objects.filter(entry=entry).order_by("-published")
+    total_comments = all_comments.count()
+    comments = all_comments[start:end]
+    total_pages = (total_comments + size - 1) // size
 
-    #superuser bypass
+    comments = list(all_comments[start:end])
+    for comment in comments:
+        comment.like_count = Like.objects.filter(object_url=comment.fqid).count()
+        comment.user_liked = Like.objects.filter(
+            author=request.user,
+            object_url=comment.fqid
+        ).exists() if request.user.is_authenticated else False
+        #print(f"comment: {comment.serial}, like_count: {comment.like_count}")
+
+    context = {
+        "entry": entry,
+        "comments": comments,
+        "page": page,
+        "total_pages": total_pages,
+        "total_comments": total_comments,
+    }
+
+    # superuser bypass
     if request.user.is_superuser:
-            return render(
-                request, 
-                "munch/entry_detail.html", 
-                {
-                    "entry": entry, 
-                    "comments": comments
-                })
+        return render(request, "munch/entry_detail.html", context)
 
     if request.user == author:
         if entry.visibility == 'DELETED':
             return HttpResponse(status=410)
-        return render(request, "munch/entry_detail.html", {"entry": entry, "comments": comments})
+        return render(request, "munch/entry_detail.html", context)
 
     # If a user is logged in and has the link to a PUBLIC or UNLISTED post, let them see it.
     if entry.visibility in ['PUBLIC', 'UNLISTED']:
-        return render(request, "munch/entry_detail.html", {"entry": entry, "comments": comments})
+        return render(request, "munch/entry_detail.html", context)
 
     follows_author = Follow.objects.filter(
         actor=request.user,
@@ -273,7 +300,7 @@ def display_entry_by_serial(request, author_id, entry_serial):
     elif entry.visibility == 'PRIVATE' and (not is_friend):
         return HttpResponse(status=403)
 
-    return render(request, "munch/entry_detail.html", {"entry": entry, "comments": comments})
+    return render(request, "munch/entry_detail.html", context)
 
 # The following function from Google, Gemini, "Django Shareable Link", 03-15-26
 @login_required
@@ -341,26 +368,26 @@ def manage_entry_by_serial(request, author_id, entry_serial):
         return Response(serializer.data)
     
     elif request.method == 'PUT':
+        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
                 {"detail": "Only the author can update this entry."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         serializer = EntrySerializer(entry, data=request.data)
         if serializer.is_valid():
-            serializer.save(author=entry.author)
-            return Response(serializer.data)
+            serializer.save(author=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
+        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
                 {"detail": "Only the author can update this entry."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         
         if entry.visibility == "DELETED":
             return Response({"detail": "Entry already deleted."},status=status.HTTP_204_NO_CONTENT)
@@ -378,7 +405,7 @@ def manage_entry_by_FQID(request, entry_FQID):
         return visibility_error
     
     serializer = EntrySerializer(entry)
-    return Response(serializer.data)
+    return Response(serializer.data,status=status.HTTP_200_OK)
 
 @api_view(['GET','POST'])
 def create_entry(request, author_id):
@@ -438,7 +465,7 @@ def create_entry(request, author_id):
                         "size": size,
                         "count": total,
                         "src": serializer.data
-                        })
+                        }, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
 
@@ -649,8 +676,12 @@ def get_following(request, author_serial):
     # get authors that are in a follower_relations relation with the specified actor
     following = Author.objects.filter(follower_relations__actor=author)
 
-    serializer = AuthorSerializer(following, many=True)
-    return Response(serializer.data)
+    if following:
+        serializer = AuthorSerializer(following, many=True)
+        return Response(serializer.data)
+    
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
     
 @login_required
 @api_view(['GET', 'DELETE', 'PUT'])
@@ -777,7 +808,7 @@ def get_image_by_serial(request, author_serial, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_serial, serial=entry_serial)
     if not entry.contentType.startswith("image/"):
         return Response(status=status.HTTP_404_NOT_FOUND)
-    
+
     #people shouldnt be able to access the private image entries without
     #any permission
     visibility_error = check_entry_visibility(request, entry)

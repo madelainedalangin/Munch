@@ -1,4 +1,10 @@
-{% extends "munch/nav-content.html" %} 
+{% extends "munch/nav-content.html" %}
+{% load static %}
+
+{% block links %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'munch/css/entry.css' %}">
+{% endblock links %}
 
 {% block title %}
 Stream
