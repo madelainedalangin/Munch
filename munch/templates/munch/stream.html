@@ -15,7 +15,7 @@ Stream
 {% block content-scrollable %} 
 <div class="item-list">
     {% for entry in entries %}
-    {% include "munch/entry.html" with entry=entry only %}
+    {% include "munch/entry.html" with entry=entry %}
     {% empty %}
     <p>Nothing yet :3</p>
     {% endfor %} 

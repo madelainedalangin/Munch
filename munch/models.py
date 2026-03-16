@@ -96,7 +96,7 @@ class Like(models.Model):
         ]   
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/liked/{self.serial}"
+            self.fqid = f"{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/liked/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Follow(models.Model):
