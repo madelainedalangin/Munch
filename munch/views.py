@@ -392,7 +392,7 @@ def create_entry(request, author_id):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # TODO - implement ability to post images 
+        
 
         serializer = EntrySerializer(data=request.data)
         if serializer.is_valid():
