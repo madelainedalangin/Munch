@@ -45,7 +45,7 @@
     <div class="comment-form">
         <form method="post" action="{% url 'munch:post_comment' entry.author.uuid entry.serial %}">
             {% csrf_token %}
-            <textarea name="comment" placeholder="Write a comment..." rows="3"></textarea>
+            <textarea name="comment" placeholder="Write a comment..." rows="3"></textarea><br>
             <button type="submit">Comment</button>
         </form>
     </div>
