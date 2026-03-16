@@ -63,7 +63,7 @@
     
         <div class="profile-card__stats">
             <span><a href="{% url 'munch:list_following' author.uuid %}">
-                <strong>{{ following count }}</strong> Following
+                <strong>{{ following_count }}</strong> Following
             </a></span>
             <span><a href="{% url 'munch:list_followers' author.uuid %}">
                 <strong>{{ followers_count }}</strong> Follower{{ followers_count|pluralize }}</a>

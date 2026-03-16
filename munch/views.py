@@ -44,8 +44,6 @@ def public_profile(request, author_uuid):
     try:
         sync_github_activity(author)
     except Exception as e:
-        # We wrap this in try/except so if GitHub is down, 
-        # the profile page still loads.
         print(f"GitHub sync failed: {e}")
 
     entries = Entry.objects.filter(author=author)
@@ -78,12 +76,16 @@ def public_profile(request, author_uuid):
         entries = entries.exclude(visibility='DELETED').filter(visibility_filter)
 
     entries = entries.order_by('-published')
-    
-    # For now, only pass the author. 
-    # add 'posts' for user story 5 when implemented
+    #This is to have the followers and following count to show on public profile
+    #Previously the 0s were hardcoded in the js file but not anymore
+    following_count = Follow.objects.filter(actor=author, status='accepted').count()
+    followers_count = Follow.objects.filter(object=author, status='accepted').count()
+
     context = {
         'author': author,
         'entries': entries,
+        'following_count': following_count,
+        'followers_count': followers_count,
     }
     return render(request, 'munch/public_profile.html', context)
 
