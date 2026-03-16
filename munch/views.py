@@ -771,6 +771,10 @@ def get_entry_likes(request, author_serial, entry_serial):
     if visibility_error:
         return visibility_error
     
+    user_liked = False
+    if request.user.is_authenticated:
+        user_liked = Like.objects.filter(author__uuid=request.user.uuid,object_url=entry.fqid).exists()
+
     entry_likes = Like.objects.filter(object_url=entry.fqid)
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
@@ -788,6 +792,7 @@ def get_entry_likes(request, author_serial, entry_serial):
         "size": size,
         "count": total_entry_likes,
         "src": serializer.data,
+        "user_liked": user_liked,
         })
 
 @api_view(["GET"])
@@ -922,7 +927,7 @@ def get_like_by_fqid(request, like_fqid):
     return Response(serializer.data)
 
 # Liked API
-@api_view(["GET", "POST"])
+@api_view(["GET", "POST", "DELETE"])
 def liked(request, author_serial):
     """
     This function handles entries and comments that have been liked.
@@ -941,6 +946,8 @@ def liked(request, author_serial):
         POST - Response: the created like object with status 201.
                         Returns 400 if object field is missing or already liked.
                         Returns 404 if author not found.
+        *DELETE - Response: delete the like object with status 204.
+                        Return 404 if like object not found
     """
     
     id_type = "FQID" if (author_serial.find("http://") != -1) else "serial"
@@ -976,6 +983,13 @@ def liked(request, author_serial):
             return Response({"detail": "Already liked."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LikeSerializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # DELETE request was added on top of user stories for better user experience
+    elif request.method == "DELETE":
+        object_url = request.data.get("object")
+        like = get_object_or_404(Like, author=author, object_url=object_url)
+        like.delete()
+        return Response({"detail": "Like successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 # Comments API
 
