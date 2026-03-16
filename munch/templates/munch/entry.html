@@ -9,14 +9,14 @@
     <div class="entry-card__headline">
         {% include "munch/profile-summary.html" with author=entry.author only %}
 
-        {% if request.user and request.user.fqid == entry.author.fqid %} <!-- only show dropdown if entry belongs to user -->
+        {% if request.user and request.user.fqid == entry.author.fqid %}
         <div class="dropdown">
             <button class="dropdown__toggle">...</button>  
             <div class="dropdown__content">
                 <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
                 <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
                     {% csrf_token %}
-                    <button id="delete_button" type="submit" onclick="window.location.href='/munch/authors/{{ entry.author.uuid }}/'">Delete</button>
+                    <button id="delete_button" type="submit">Delete</button>
                 </form>
             </div>  
         </div>
@@ -28,12 +28,11 @@
     </a>
 
     <strong>{{ entry.description }}</strong>
-   <!--<p>DEBUG: contentType = "{{ entry.contentType }}"</p>-->
+
     {% if entry.contentType == 'text/markdown' %}
         <div>{{ entry.markdownContent|safe }}</div>
-    <!--image handling-->
     {% elif entry.contentType == 'image/png;base64' or entry.contentType == 'image/jpeg;base64' %}
-    <img src="data:{{ entry.contentType }},{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
+        <img src="data:{{ entry.contentType }},{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
     {% else %}
         <p>{{ entry.content|linebreaks }}</p>
     {% endif %}
@@ -50,14 +49,14 @@
         <div class="entry-card__stats">
             <div class="entry-card__stat">
                 <button class="like-button">
-                    <img class="like-icon" src="{% static 'munch/icons/favorite.svg' %}" alt="like">
+                    <img class="like-icon" src="{% static 'munch/icons/like_no_fill.png' %}" alt="like" style="width: 16px; height: 16px;">
                 </button>
                 <p class="likes-count">0</p>
             </div>
 
             <div class="entry-card__stat">
                 <button class="comment-button">
-                    <img src="{% static 'munch/icons/chat_bubble.svg' %}" alt="comment">
+                    <img src="{% static 'munch/icons/comment_for_entry.png' %}" alt="comment" style="width: 16px; height: 16px;">
                 </button>
                 <!--
                 Source: https://stackoverflow.com/questions/11800016/adding-the-number-of-comments-to-a-queryset-in-django
@@ -75,7 +74,6 @@
                         const cookies = document.cookie.split(';');
                         for (let i = 0; i < cookies.length; i++) {
                             const cookie = cookies[i].trim();
-                            // Does this cookie string begin with the name we want?
                             if (cookie.substring(0, name.length + 1) === (name + '=')) {
                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                                 break;
@@ -83,113 +81,88 @@
                         }
                     }
                     return cookieValue;
-                    // function is needed for csrf authentication 
                 }
 
-                // function to refresh ui state whenever user presses like
-                function refreshLike(entry,img){
+                function refreshLike(entry, img) {
                     const authorSerial = entry.dataset.authorSerial;
                     const entrySerial = entry.dataset.entrySerial;
-                    const like_count = entry.querySelector(".likes-count")
+                    const like_count = entry.querySelector(".likes-count");
 
                     fetch(`/munch/api/authors/${authorSerial}/entries/${entrySerial}/likes/`)
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error(`HTTP ${response.status}`);
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                like_count.textContent = data.count;
-                                if (data.user_liked === true){
-                                    entry.dataset.liked = "true";
-                                    img.src = "{% static 'munch/icons/like.svg' %}";
-                                } else {
-                                    entry.dataset.liked = "false";
-                                    img.src = "{% static 'munch/icons/favorite.svg' %}";
-                                }
-                            })
-
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            like_count.textContent = data.count;
+                            if (data.user_liked === true) {
+                                entry.dataset.liked = "true";
+                                img.src = "{% static 'munch/icons/like_fill.png' %}";
+                            } else {
+                                entry.dataset.liked = "false";
+                                img.src = "{% static 'munch/icons/like_no_fill.png' %}";
+                            }
+                        });
                 }
 
                 window.addEventListener("load", function () {
-                    const entries = document.querySelectorAll(".entry-card")
+                    const entries = document.querySelectorAll(".entry-card");
                     const csrftoken = getCookie('csrftoken');
 
-                    // runs through each entry and sets function for the like button
-                    entries.forEach(entry =>{
+                    entries.forEach(entry => {
                         const like_button = entry.querySelector(".like-button");
                         const img = entry.querySelector(".like-icon");
-                        
-                        const authorSerial = entry.dataset.authorSerial;
-                        const entrySerial = entry.dataset.entrySerial;
                         const entryFqid = entry.dataset.entryFqid;
                         const currentAuthorSerial = entry.dataset.currentAuthorSerial;
 
-                        // update the Like UI
-                        refreshLike(entry,img)
+                        refreshLike(entry, img);
 
-                        // add a listener to button to update UI and API 
                         like_button.addEventListener("click", function () {
-                            const data = {
-                                    object: entryFqid
-                            }
+                            const data = { object: entryFqid };
 
-                            // icon switch code inspired from https://stackoverflow.com/questions/12225843/toggle-image-src-attribute-using-javascript
                             if (entry.dataset.liked === "false") {
-                                // liking the entry, will create a like object linked with the author and entry 
-                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`,{
-                                    method: 'POST', 
+                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`, {
+                                    method: 'POST',
                                     headers: {
-                                        'Content-Type': 'application/json', 
+                                        'Content-Type': 'application/json',
                                         "X-CSRFToken": csrftoken,
                                     },
                                     credentials: "same-origin",
                                     body: JSON.stringify(data),
                                 })
                                 .then(response => response.json())
-                                .then(responseData => {
-                                    img.src = "{% static 'munch/icons/like.svg' %}";
-                                })
-                                .then(() => {
-                                    refreshLike(entry, img);
-                                });
-                                
+                                .then(() => refreshLike(entry, img));
+
                             } else if (entry.dataset.liked === "true") {
-                                // unliking an entry deletes the like object from the database
-                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`,{
-                                    method: 'DELETE', 
+                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`, {
+                                    method: 'DELETE',
                                     headers: {
-                                        'Content-Type': 'application/json', 
+                                        'Content-Type': 'application/json',
                                         "X-CSRFToken": csrftoken,
                                     },
                                     body: JSON.stringify(data),
                                 })
                                 .then(response => {
-                                    if(!response.ok){
+                                    if (!response.ok) {
                                         throw new Error(`HTTP ${response.status}`);
                                     }
-                                    img.src = "{% static 'munch/icons/favorite.svg' %}";
                                 })
-                                .then(() => {
-                                    refreshLike(entry, img);
-                                })
+                                .then(() => refreshLike(entry, img));
                             }
-                            
-
-
-                        })
-                    })
+                        });
+                    });
                 });
             </script>
         </div>
 
         <div class="dropdown">
             <button class="dropdown__toggle" onclick="copyToClipboard()">
-                <img src="{% static 'munch/icons/upload.svg' %}">
+                <img src="{% static 'munch/icons/copy_link.png' %}">
             </button>
             <!-- copyToClipboard function from Google, Gemini, "Django Shareable Link", 03-15-26 -->
-            <span id="share-url" style = "display: none">{{ request.build_absolute_uri }}</span>
+            <span id="share-url" style="display: none">{{ request.build_absolute_uri }}</span>
             <script>
                 function copyToClipboard() {
                     const url = document.getElementById('share-url').innerText;

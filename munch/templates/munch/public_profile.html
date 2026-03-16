@@ -22,12 +22,12 @@
 {% block content-scrollable %} 
 <section class="profile-card">
     <div class="profile-card__banner__wrapper">
-        <img src="https://via.placeholder.com/15">
+        <img src="{% static 'munch/icons/default_banner.png' %}">
     </div>
 
     <div class="profile-card__headline">
         <div class="profile-card__avatar__wrapper">
-            <img src="{{ author.profileImage|default:'https://via.placeholder.com/150' }}">
+            <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
         </div>
 
         <div class="profile-card__actions">
