@@ -474,6 +474,13 @@ def stream_api(request):
         homepage.
     """
     entries = get_stream_entries(request.user)
+    #pagination
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 10))
+    start = (page - 1) * size
+    end = start + size
+    total = entries.count()
+    entries = entries[start:end] 
     entries_list = []
     
     for entry in entries:
@@ -495,7 +502,13 @@ def stream_api(request):
             "published": entry.published.isoformat(),
             "visibility": entry.visibility,
         })
-    return Response(entries_list)
+    return Response({
+                    "type": "entries",
+                    "page_number": page,
+                    "size": size,
+                    "count": total,
+                    "src": entries_list
+                    })
 
 @login_required
 def settings_page(request): #renamed to settings_page its overwriting our import settings from django
