@@ -5,6 +5,7 @@
 {% block links %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'munch/css/entry_detail.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/entry.css' %}">
 {% endblock links %}
 
 {% block title %}
@@ -27,41 +28,81 @@
         <strong>Comments</strong>
     </div>
 
+    <div class="comment-form">
+        <form method="post" action="{% url 'munch:post_comment' entry.author.uuid entry.serial %}">
+            {% csrf_token %}
+            <div class="comment-form__row">
+                <textarea name="comment" placeholder="Write a comment..." rows="1"></textarea>
+                <button type="submit">Comment</button>
+            </div>
+        </form>
+    </div>
+
     <div class="item-list">
         {% for comment in comments %}
             <div class="comment-card">
-                <strong>{{ comment.author.displayName}}</strong>
+                <div class="comment-card__header">
+                    <img src="{% if comment.author.profileImage %}{{ comment.author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}"
+                        class="comment-avatar"
+                        alt="{{ comment.author.displayName }}">
+                    <strong>{{ comment.author.displayName }}</strong>
+                </div>
                 <p>{{ comment.comment }}</p>
-                <!--
-                F full month
-                j day without the 0
-                Y 4 digit year
-                g 12 hr format without leading 0
-                i minutes with leading 0
-                a am/pm
-                Source: https://docs.djangoproject.com/en/6.0/ref/templates/builtins/#date
-                Date Added: Sunday, March 15, 2026
-                -->
-                <small>{{ comment.published|date:"F j, Y, g:i a" }}</small>
+                <div class="comment-card__footer">
+                    <div class="comment-like">
+                        <button class="comment-like-btn"
+                            data-comment-fqid="{{ comment.fqid }}"
+                            data-user-serial="{{ request.user.uuid }}"
+                            data-liked="{{ comment.user_liked|yesno:'true,false' }}">
+                            <img src="{% if comment.user_liked %}{% static 'munch/icons/like_fill.png' %}{% else %}{% static 'munch/icons/like_no_fill.png' %}{% endif %}"
+                                class="comment-like-icon"
+                                alt="like"
+                                style="width: 16px; height: 16px">
+                        </button>
+                        <span class="comment-like-count">{{ comment.like_count }}</span>
+                    </div>
+                    <!--
+                    F full month
+                    j day without the 0
+                    Y 4 digit year
+                    g 12 hr format without leading 0
+                    i minutes with leading 0
+                    a am/pm
+                    Source: https://docs.djangoproject.com/en/6.0/ref/templates/builtins/#date
+                    Date Added: Sunday, March 15, 2026
+                    -->
+                    <small>{{ comment.published|date:"F j, Y, g:i a" }}</small>
+                </div>
             </div>
         {% empty %}
             <p>No comments</p>
         {% endfor %}
     </div>
+
     <div class="pagination">
-    {% if page > 1 %}
-        <a href="?page={{ page|add:'-1' }}">Previous</a>
-    {% endif %}
-    <span>Page {{ page }} of {{ total_pages }} ({{ total_comments }} comments)</span>
-    {% if page < total_pages %}
-        <a href="?page={{ page|add:'1' }}">Next</a>
-    {% endif %}
+        {% if page > 1 %}
+            <a href="?page={{ page|add:'-1' }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page }} of {{ total_pages }} ({{ total_comments }} comments)</span>
+        {% if page < total_pages %}
+            <a href="?page={{ page|add:'1' }}">Next</a>
+        {% endif %}
     </div>
-    <div class="comment-form">
-        <form method="post" action="{% url 'munch:post_comment' entry.author.uuid entry.serial %}">
-            {% csrf_token %}
-            <textarea name="comment" placeholder="Write a comment..." rows="3"></textarea><br>
-            <button type="submit">Comment</button>
-        </form>
-    </div>
+
 {% endblock content-scrollable %}
+
+<!--
+anonymous.jpg icon and default banner was found in
+Source: https://www.quartz-digital.co.uk/social-media-marketing/
+Date Accessed: Monday, March 16, 2026
+
+heart icons
+Source: https://www.flaticon.com/free-icon/heart_1077035 (not filled)
+Source: https://www.flaticon.com/free-icon/heart_833472 (filled)
+Date Accessed: Monday, March 16, 2026
+
+Link copy icon
+Source: https://www.flaticon.com/free-icon/link_13099138
+Date Accessed: Monday, March 16, 2026
+
+-->
