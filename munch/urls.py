@@ -68,6 +68,7 @@ urlpatterns = [
     # # Comments API
     # path('api/authors/{AUTHOR_SERIAL}/inbox', views.comment, name='comment'),
     path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/', views.get_entry_comments_by_serial, name='get_entry_comments_by_serial'),
+    path('authors/<str:author_id>/entries/<str:entry_serial>/comment/', views.post_comment, name='post_comment'),
     
     path('api/commented/<path:comment_fqid>/', views.get_comment_by_fqid, name='get_comment_by_fqid'),
     

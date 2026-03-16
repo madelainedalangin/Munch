@@ -234,11 +234,11 @@ def display_entry_by_serial(request, author_id, entry_serial):
     if request.user == author:
         if entry.visibility == 'DELETED':
             return HttpResponse(status=410)
-        return render(request, "munch/entry_detail.html", {"entry": entry})
+        return render(request, "munch/entry_detail.html", {"entry": entry, "comments": comments})
 
     # If a user is logged in and has the link to a PUBLIC or UNLISTED post, let them see it.
     if entry.visibility in ['PUBLIC', 'UNLISTED']:
-        return render(request, "munch/entry_detail.html", {"entry": entry})
+        return render(request, "munch/entry_detail.html", {"entry": entry, "comments": comments})
 
     follows_author = Follow.objects.filter(
         actor=request.user,
@@ -1314,3 +1314,29 @@ def commented(request, author_serial):
             print(f"Failed to forward to inbox: {e}")
             
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@login_required
+def post_comment(request, author_id, entry_serial):
+    """
+    Purpose: Allows a logged in user to post a comment on an entry via the UI
+    """
+    entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+    
+    if request.method == "POST":
+        comment_text = request.POST.get("comment")
+        if comment_text:
+            comment = Comment.objects.create(
+                author=request.user,
+                entry=entry,
+                comment=comment_text,
+                contentType="text/plain"
+            )
+            # Forward comment to entry author's inbox
+            serializer = CommentSerializer(comment)
+            inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
+            try:
+                requests.post(inbox_url, json=serializer.data)
+            except Exception as e:
+                print(f"Failed to forward to inbox: {e}")
+    
+    return redirect('munch:display_entry_by_serial', author_id=author_id, entry_serial=entry_serial)
