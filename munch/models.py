@@ -39,7 +39,7 @@ class Author(AbstractUser):
 
 class Entry(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    published = models.DateTimeField(default=datetime.now)
+    published = models.DateTimeField(default=timezone.now)
     visibility = models.CharField(max_length=200)
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=200)
