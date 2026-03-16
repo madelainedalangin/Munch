@@ -6,6 +6,11 @@
 <link rel="stylesheet" href="{% static 'munch/css/profile_page.css' %}">
 {% endblock links %} 
 
+{% block scripts %}
+{{ block.super }}
+<script defer src="{% static 'munch/js/follow.js' %}"></script>
+{% endblock scripts %}
+
 {% block title %}
 {{ author.displayName }}
 {% endblock title %} 
@@ -26,10 +31,11 @@
         </div>
 
         <div class="profile-card__actions">
-            {% if request.user.is_authenticated and request.user.uuid == author.uuid %}
+            {% if request.user.is_authenticated and request.user.id == author.id %}
                 <a id="edit_profile" href="{% url 'munch:edit_profile' %}">Edit Profile</a>
             {% elif request.user.is_authenticated %}
-                <button id="follow">Follow</button>
+                {% csrf_token %}
+                <button id="follow" data-author-fqid="{{ author.id }}" data-user-fqid="{{ user.id }}">Follow</button>
             {% endif %}
         </div>
     </div>
