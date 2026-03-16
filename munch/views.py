@@ -299,36 +299,27 @@ def check_entry_visibility(request, entry):
     if entry.visibility == "DELETED":
         return Response(status=status.HTTP_410_GONE)
     
+    follows_author = Follow.objects.filter(
+        actor=request.user,
+        object=entry.author,
+        status='accepted'
+    ).exists()
+    author_follows_user = Follow.objects.filter(
+        actor=entry.author,
+        object=request.user,
+        status='accepted'
+    ).exists()
+    is_friend = follows_author and author_follows_user
+    
     if entry.visibility == 'PRIVATE':
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_403_FORBIDDEN)
-    
-        follows_author = Follow.objects.filter(
-            actor=request.user,
-            object=entry.author,
-            status='accepted'
-        ).exists()
-        author_follows_user = Follow.objects.filter(
-            actor=entry.author,
-            object=request.user,
-            status='accepted'
-        ).exists()
-        is_friend = follows_author and author_follows_user
     
         if not is_friend and request.user != entry.author:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
     elif entry.visibility == 'UNLISTED':
         if not request.user.is_authenticated:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-    
-        follows_author = Follow.objects.filter(
-            actor=request.user,
-            object=entry.author,
-            status='accepted'
-        ).exists()
-    
-        if not follows_author and request.user != entry.author:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
 # (this function may be used in the future)
