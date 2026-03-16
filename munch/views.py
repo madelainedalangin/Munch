@@ -228,6 +228,8 @@ def display_entry_by_serial(request, author_id, entry_serial):
     '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     author = get_object_or_404(Author, uuid=author_id)
+    
+    comments = Comment.objects.filter(entry=entry).order_by("-published")
 
     if request.user == author:
         if entry.visibility == 'DELETED':
@@ -256,7 +258,7 @@ def display_entry_by_serial(request, author_id, entry_serial):
     elif entry.visibility == 'PRIVATE' and (not is_friend):
         return HttpResponse(status=403)
 
-    return render(request, "munch/entry_detail.html", {"entry": entry})
+    return render(request, "munch/entry_detail.html", {"entry": entry, "comments": comments})
 
 # The following function from Google, Gemini, "Django Shareable Link", 03-15-26
 @login_required
