@@ -1,7 +1,47 @@
-<h2> {{ title }} </h2>
+{% extends "munch/nav-content.html" %}
+{% load static %}
+
+{% block links %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'munch/css/create_entry.css' %}">
+{% endblock links %}
+
+{% block content-scrollable %}
+<h2>{{ title }}</h2>
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit"> {{ button_title }}</button>
+    <button type="submit">{{ button_title }}</button>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.querySelector('input[type="file"]');
+    if (!fileInput) return;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'file-input-wrapper';
+
+    const label = document.createElement('span');
+    label.className = 'file-input-label';
+    label.textContent = 'No file selected';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'file-input-btn';
+    button.textContent = 'Browse';
+    button.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', () => {
+        label.textContent = fileInput.files[0] ? fileInput.files[0].name : 'No file selected';
+    });
+
+    fileInput.style.display = 'none';
+    fileInput.parentNode.insertBefore(wrapper, fileInput);
+    wrapper.appendChild(fileInput);
+    wrapper.appendChild(label);
+    wrapper.appendChild(button);
+});
+</script>
+{% endblock content-scrollable %}
