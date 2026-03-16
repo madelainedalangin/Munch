@@ -50,7 +50,7 @@ def public_profile(request, author_uuid):
 
     entries = Entry.objects.filter(author=author)
 
-    if request.user.is_authenticated and request.use.is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         entries = entries.order_by("-published")
     elif request.user.is_authenticated and request.user == author:
         entries = entries.exclude(visibility='DELETED').order_by("-published")
@@ -293,7 +293,7 @@ def check_entry_visibility(request, entry):
     Helper function that checks for entries visibility settings.
     - Created to be used in Comments and Likes API
     """
-    if request.user.is_authenticated and request.user_is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         return None
     
     if entry.visibility == "DELETED":
