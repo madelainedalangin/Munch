@@ -70,6 +70,9 @@ urlpatterns = [
     path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/', views.get_entry_comments_by_serial, name='get_entry_comments_by_serial'),
     
     path('api/commented/<path:comment_fqid>/', views.get_comment_by_fqid, name='get_comment_by_fqid'),
+    
+    # FQID-based comments
+    path('api/entries/<str:entry_fqid>/comments/', views.get_entry_comments_by_fqid, name='get_entry_comments_by_fqid'),
 
 # Commented API
 
@@ -86,6 +89,8 @@ urlpatterns = [
     
     
     path('api/liked/<path:like_fqid>/', views.get_like_by_fqid, name='get_like_by_fqid'),
+    
+    path('api/entries/<str:entry_fqid>/likes/', views.get_entry_likes_by_fqid, name='get_entry_likes_by_fqid'),
 
     # # Liked API
     path('api/authors/<str:author_serial>/liked/', views.liked, name='liked'),

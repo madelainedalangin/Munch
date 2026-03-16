@@ -855,7 +855,16 @@ def get_entry_likes(request, author_serial, entry_serial):
 
 @api_view(["GET"])
 def get_entry_likes_by_fqid(request, entry_fqid):
-    #TODO : clarification on URL pattern
+    # Source: https://stackoverflow.com/questions/71771838/python-urllib-url-quote-unquote-issue
+    # Date Accessed: March 15, 2026
+
+    #fqid is percent enncoded URL
+    #unquote converts it back to http
+    #without it, django gonna look for an entry with a %-encoded url and that doesnt
+    #match anything in our db
+    from urllib.parse import unquote
+    entry_fqid = unquote(entry_fqid)
+    
     entry = get_object_or_404(Entry, fqid=entry_fqid)
     
     visibility_error = check_entry_visibility(request, entry)
@@ -1146,7 +1155,15 @@ def get_entry_comments_by_serial(request, author_serial, entry_serial):
     
 @api_view(["GET"])
 def get_entry_comments_by_fqid(request, entry_fqid):
-    #TODO : clarification on URL pattern
+    # Source: https://stackoverflow.com/questions/71771838/python-urllib-url-quote-unquote-issue
+    # Date Accessed: March 15, 2026
+    #fqid is percent enncoded URL
+    #unquote converts it back to http
+    #without it, django gonna look for an entry with a %-encoded url and that doesnt
+    #match anything in our db
+    from urllib.parse import unquote
+    entry_fqid = unquote(entry_fqid)
+    
     entry = get_object_or_404(Entry, fqid=entry_fqid)
     
     visibility_error = check_entry_visibility(request, entry)
