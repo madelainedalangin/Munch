@@ -90,20 +90,95 @@ class ManageFollowingTestCase(APITestCase):
             is_approved=True
         )
 
-        cls.eddie = Author.objects.create_user(
-            username='eddie',
-            password='123',
-            displayName='Eddie',
-            is_approved=True
-        )
-
-        cls.url = reverse('munch:get_following', kwargs={'author_serial': cls.alice.uuid})
+        cls.url = reverse('munch:manage_following', kwargs={'author_serial': cls.alice.uuid, 'target_FQID': cls.bob.id})
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
+        response = self.client.put(self.url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+    def test_post(self):
+        self.client.login(username='alice', password='123')
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_get_no_follow(self):
+        self.client.login(username='alice', password='123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_pending(self):
+        self.client.login(username='alice', password='123')
+
+        Follow.objects.create(
+            actor=self.alice,
+            object=self.bob,
+            status='pending'
+        )
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_accepted(self):
+        self.client.login(username='alice', password='123')
+
+        Follow.objects.create(
+            actor=self.alice,
+            object=self.bob,
+            status='accepted'
+        )
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_accepted(self):
+        self.client.login(username='alice', password='123')
+
+        Follow.objects.create(
+            actor=self.alice,
+            object=self.bob,
+            status='accepted'
+        )
+
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_no_follow(self):
+        self.client.login(username='alice', password='123')
+
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
+    def test_put_create_new(self):
+        self.client.login(username='alice', password='123')
+
+        response = self.client.put(self.url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        follow_alice_bob = Follow(
+            actor=self.alice,
+            object=self.bob,
+            status='accepted'
+        )
+
+        self.assertEqual(response.data, FollowRequestSerializer(follow_alice_bob).data)
+
+    def test_put_existing(self):
+        self.client.login(username='alice', password='123')
+
+        Follow.objects.create(
+            actor=self.alice,
+            object=self.bob,
+            status='accepted'
+        )
+
+        response = self.client.put(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class ManageFollowerTestCase(APITestCase):
 
@@ -132,7 +207,7 @@ class ManageFollowerTestCase(APITestCase):
             is_approved=True
         )
 
-        cls.url = reverse('munch:get_following', kwargs={'author_serial': cls.alice.uuid})
+        cls.url = reverse('munch:manage_follower', kwargs={'author_serial': cls.alice.uuid})
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
@@ -165,7 +240,7 @@ class GetFollowRequestsTestCase(APITestCase):
             is_approved=True
         )
 
-        cls.url = reverse('munch:get_following', kwargs={'author_serial': cls.alice.uuid})
+        cls.url = reverse('munch:get_follow_requests', kwargs={'author_serial': cls.alice.uuid})
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
