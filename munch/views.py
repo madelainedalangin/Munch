@@ -475,6 +475,16 @@ def get_stream_entries(user):
     Arguments: author/user object of whoever is currently logged in
     Return: a QuerySet of entry objects
     """
+
+    # Superuser bypass to view all public and deleted entries
+    if user.is_superuser:
+        entries = Entry.objects.filter(
+            Q(visibility = 'PUBLIC') | 
+            Q(visibility = 'DELETED') |
+            Q(author = user)
+        ).order_by('-published')
+        
+        return entries
     
     #Gimme a list of author IDs the user currently logged in is following
     user_follows = Follow.objects.filter(actor=user, status='accepted')
