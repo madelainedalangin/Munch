@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('munch', '0006_merge_20260311_1631'),
+        ('munch', '0005_entry_markdowncontent'),
     ]
 
     operations = [

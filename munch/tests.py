@@ -411,7 +411,7 @@ class StreamAPITest(TestCase):
     """Tests for when no entries exists"""
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 0)
+    self.assertEqual(len(response.json()['src']), 0)
       
   #stream reruns empty list when only deleted entries exist
   def test_deleted_entries(self):
@@ -427,7 +427,7 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 0)
+    self.assertEqual(len(response.json()['src']), 0)
     
   #AUthentication
     #unaunthenticated user cannot access stream 
@@ -450,8 +450,8 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 1)
-    self.assertEqual(response.json()[0]['title'], 'Public PSA TEST')
+    self.assertEqual(len(response.json()['src']), 1)
+    self.assertEqual(response.json()['src'][0]['title'], 'Public PSA TEST')
     
   #public entry from stranger shows
   def test_public_entry_stranger(self):
@@ -466,8 +466,8 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 1)
-    self.assertEqual(response.json()[0]['title'], 'Public PSA Test by Stranger')
+    self.assertEqual(len(response.json()['src']), 1)
+    self.assertEqual(response.json()['src'][0]['title'], 'Public PSA Test by Stranger')
   
   #public entries (multiple) can shows
   def test_many_public_entries(self):
@@ -497,7 +497,7 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 3)
+    self.assertEqual(len(response.json()['src']), 3)
     
   #Friends only entries visible to friends ONLY
   def test_private_entry(self):
@@ -512,7 +512,7 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 0)
+    self.assertEqual(len(response.json()['src']), 0)
   
   def test_one_way_private_entry(self):
     """
@@ -535,7 +535,7 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 0)
+    self.assertEqual(len(response.json()['src']), 0)
     
   def test_own_entry_public(self):
     """tests user's own entries visibility is shown to them"""
@@ -549,8 +549,8 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 1)
-    self.assertEqual(response.json()[0]['title'], 'My Public Post For Me')
+    self.assertEqual(len(response.json()['src']), 1)
+    self.assertEqual(response.json()['src'][0]['title'], 'My Public Post For Me')
 
   def test_own_private_entry(self):
     """User's own friends-only entry should appear in stream"""
@@ -564,8 +564,8 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 1)
-    self.assertEqual(response.json()[0]['title'], 'My Private Post')
+    self.assertEqual(len(response.json()['src']), 1)
+    self.assertEqual(response.json()['src'][0]['title'], 'My Private Post')
 
   def test_own_entry_unlisted(self):
     """Tests User's own unlisted entry appear on their stream"""
@@ -579,8 +579,8 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 1)
-    self.assertEqual(response.json()[0]['title'], 'My Unlisted Post for meself')
+    self.assertEqual(len(response.json()['src']), 1)
+    self.assertEqual(response.json()['src'][0]['title'], 'My Unlisted Post for meself')
 
   # Deleted entries
   def test_own_entry_deleted(self):
@@ -595,7 +595,7 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 0)
+    self.assertEqual(len(response.json()['src']), 0)
 
   def test_author_entry_deleted(self):
       """Other author's deleted entry should not show at all"""
@@ -609,7 +609,7 @@ class StreamAPITest(TestCase):
       )
       response = self.client.get('/munch/api/stream/')
       self.assertEqual(response.status_code, 200)
-      self.assertEqual(len(response.json()), 0)
+      self.assertEqual(len(response.json()['src']), 0)
 
   def test_entry_sort(self):
     """Tests that Entries are sorted from newest"""
@@ -633,7 +633,7 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    entries = response.json()
+    entries = response.json()['src']
     self.assertEqual(len(entries), 2)
     self.assertEqual(entries[0]['title'], 'New Post')
     self.assertEqual(entries[1]['title'], 'Old Post')
@@ -657,7 +657,7 @@ class StreamAPITest(TestCase):
 
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    entries = response.json()
+    entries = response.json()['src']
     self.assertEqual(len(entries), 1)
     self.assertEqual(entries[0]['title'], 'Edited Title')
     # Published time should still be the original time
@@ -683,8 +683,8 @@ class StreamAPITest(TestCase):
     )
     response = self.client.get('/munch/api/stream/')
     self.assertEqual(response.status_code, 200)
-    self.assertEqual(len(response.json()), 1)
-    self.assertEqual(response.json()[0]['title'], 'A message to all of you my awesome followers')
+    self.assertEqual(len(response.json()['src']), 1)
+    self.assertEqual(response.json()['src'][0]['title'], 'A message to all of you my awesome followers')
 
   def test_friend_sees_private_entry(self):
       """Friend should see friends-only entries from their friend"""
@@ -708,8 +708,8 @@ class StreamAPITest(TestCase):
       )
       response = self.client.get('/munch/api/stream/')
       self.assertEqual(response.status_code, 200)
-      self.assertEqual(len(response.json()), 1)
-      self.assertEqual(response.json()[0]['title'], 'Private Post by Friend TEST')
+      self.assertEqual(len(response.json()['src']), 1)
+      self.assertEqual(response.json()['src'][0]['title'], 'Private Post by Friend TEST')
 
 ###############################     
 # VISIBILITY USER STORY TESTS #
