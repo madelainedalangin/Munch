@@ -1,4 +1,4 @@
-"use static"
+"use strict"
 
 async function initializeFollowBtnState(btn_follow) {
     try {

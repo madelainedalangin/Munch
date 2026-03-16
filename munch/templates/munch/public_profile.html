@@ -21,10 +21,6 @@
 
 {% block content-scrollable %} 
 <section class="profile-card">
-    <div class="profile-card__banner__wrapper">
-        <img src="{% static 'munch/icons/default_banner.png' %}">
-    </div>
-
     <div class="profile-card__headline">
         <div class="profile-card__avatar__wrapper">
             <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
@@ -35,11 +31,7 @@
                 <a id="edit_profile" href="{% url 'munch:edit_profile' %}">Edit Profile</a>
             {% elif request.user.is_authenticated %}
                 {% csrf_token %}
-                <button id="follow" 
-                    data-author-fqid="{{ author.id }}"
-                    data-author-uuid="{{ author.uuid }}"
-                    data-user-uuid="{{ request.user.uuid }}"
-                    data-state="none">Follow</button>
+                <button id="follow" data-author-fqid="{{ author.id }}" data-user-fqid="{{ user.id }}">Follow</button>
             {% endif %}
         </div>
     </div>
@@ -56,17 +48,20 @@
         <div class="profile-card__description">
             <p class="profile__description">{{ author.description }}</p>
         </div>
-    
+        {% if author.github %}
         <div class="profile-card__links">
-            <p><strong>GitHub:</strong> <a href="{{ author.github }}">{{ author.github|default:"Not linked" }}</a></p>
+            <a href="{{ author.github }}" target="_blank">
+                <img src="{% static 'munch/icons/github.png' %}" style="width: 20px; height: 20px; vertical-align: middle">
+                {{ author.github|cut:"https://github.com/"|cut:"http://github.com/" }}
+            </a>
         </div>
-    
+        {% endif %}
         <div class="profile-card__stats">
             <span><a href="{% url 'munch:list_following' author.uuid %}">
-                <strong>0</strong> Following
+                <strong>{{ following_count }}</strong> Following
             </a></span>
             <span><a href="{% url 'munch:list_followers' author.uuid %}">
-                <strong>0</strong> Followers</a>
+                <strong>{{ followers_count }}</strong> Follower{{ followers_count|pluralize }}</a>
             </span>
         </div>
     </div>
