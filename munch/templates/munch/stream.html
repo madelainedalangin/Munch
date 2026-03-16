@@ -1,0 +1,29 @@
+{% extends "munch/nav-content.html" %}
+{% load static %}
+
+{% block links %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'munch/css/entry.css' %}">
+{% endblock links %}
+
+{% block title %}
+Stream
+{% endblock title %} 
+
+{% block content-bar %}
+<strong>Feed</strong>
+<nav style="font-size: 0.8em; display: flex; gap: 15px;">
+        <a href="{% url 'munch:stream' %}">Following</a>
+        <a href="{% url 'munch:public_browse' %}">Global</a>
+</nav>
+{% endblock content-bar %}
+
+{% block content-scrollable %} 
+<div class="item-list">
+    {% for entry in entries %}
+    {% include "munch/entry.html" with entry=entry %}
+    {% empty %}
+    <p>Nothing yet :3</p>
+    {% endfor %} 
+</div>
+{% endblock content-scrollable %}

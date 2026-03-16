@@ -1,0 +1,55 @@
+{% extends "munch/base.html" %}
+{% load static %}
+
+{% block links %}
+<link rel="stylesheet" href="{% static 'munch/css/base.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/nav_sidebar.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/entry.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/profile_summary.css' %}">
+{% endblock links %}
+
+{% block nav %}
+<h1 class="logo">
+    Munch
+</h1>
+
+{% include "munch/profile-summary.html" with author=user request=request only %}
+
+<div><hr></div>
+
+<menu class="nav-links">
+    <li><a href="{% url 'munch:stream' %}">
+        <img src="{% static 'munch/icons/home.svg' %}">
+        Feed
+    </a></li>
+    <li><a href="{{ user.web }}/follow_requests/">
+        <img src="{% static 'munch/icons/group.svg' %}">
+        Follow Req.
+    </a></li>
+    <li><a href="{% url 'munch:settings' %}">
+        <img src="{% static 'munch/icons/settings.svg' %}">
+        Settings
+    </a></li>
+</menu>
+
+{% if request.user.is_authenticated %}
+<div><hr></div>
+
+<a id="create-entry" class="nav-link" href="{% url 'munch:create_entry_UI' user.uuid %}">
+    <img src="{% static 'munch/icons/edit_square.svg' %}">
+    Post
+</a>
+{% endif %}
+{% endblock nav %}
+
+{% block content %}
+<div class="content-bar__wrapper">
+    {% block content-bar %}
+    {% endblock content-bar %}
+</div>
+
+<div class="scrollable">
+    {% block content-scrollable %}
+    {% endblock content-scrollable %}
+</div>
+{% endblock content %}

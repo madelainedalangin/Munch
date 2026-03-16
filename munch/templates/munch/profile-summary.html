@@ -1,0 +1,18 @@
+{% load static %}
+<a href="{{ author.web }}">
+    <div class="user-block">
+        <div class="user-block__avatar">
+            <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
+        </div>
+        <div class="user-block__details">
+           <p class="user-block__display-name">{{ author.displayName }}</p>
+           <p class="user-block__username">@{{ author.username }}</p>
+        </div>
+    </div>
+</a>
+
+<!--
+anonymous.jpg icon was found in
+Source: https://www.quartz-digital.co.uk/social-media-marketing/
+Date Accessed: Monday, March 16, 2026
+-->

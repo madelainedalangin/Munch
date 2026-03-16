@@ -1,0 +1,83 @@
+{% extends "munch/nav-content.html" %} 
+{% load static %} 
+
+{% block links %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'munch/css/profile_page.css' %}">
+{% endblock links %} 
+
+{% block scripts %}
+{{ block.super }}
+<script defer src="{% static 'munch/js/follow.js' %}"></script>
+{% endblock scripts %}
+
+{% block title %}
+{{ author.displayName }}
+{% endblock title %} 
+
+{% block content-bar %}
+<strong>Back</strong>
+{% endblock content-bar %}
+
+{% block content-scrollable %} 
+<section class="profile-card">
+    <div class="profile-card__headline">
+        <div class="profile-card__avatar__wrapper">
+            <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
+        </div>
+
+        <div class="profile-card__actions">
+            {% if request.user.is_authenticated and request.user.id == author.id %}
+                <a id="edit_profile" href="{% url 'munch:edit_profile' %}">Edit Profile</a>
+            {% elif request.user.is_authenticated %}
+                {% csrf_token %}
+                <button id="follow" data-author-fqid="{{ author.id }}" data-user-fqid="{{ user.id }}">Follow</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="profile-card__body">
+        <div class="profile-card__identity">
+            <h2 class="profile__display-name">{{ author.displayName }}</h2>
+            <p class="profile__handle">@{{ author.username }}</p>
+
+            <!--Author FQID (full API URL) is included for frontend JS also to pass the test we have-->
+            <p class="profile__fqid" style="display:none;">{{ author.id }}</p>
+        </div>
+    
+        <div class="profile-card__description">
+            <p class="profile__description">{{ author.description }}</p>
+        </div>
+        {% if author.github %}
+        <div class="profile-card__links">
+            <a href="{{ author.github }}" target="_blank">
+                <img src="{% static 'munch/icons/github.png' %}" style="width: 20px; height: 20px; vertical-align: middle">
+                {{ author.github|cut:"https://github.com/"|cut:"http://github.com/" }}
+            </a>
+        </div>
+        {% endif %}
+        <div class="profile-card__stats">
+            <span><a href="{% url 'munch:list_following' author.uuid %}">
+                <strong>{{ following_count }}</strong> Following
+            </a></span>
+            <span><a href="{% url 'munch:list_followers' author.uuid %}">
+                <strong>{{ followers_count }}</strong> Follower{{ followers_count|pluralize }}</a>
+            </span>
+        </div>
+    </div>
+</section>
+
+<div class="content-list__headline">
+    <strong>Posts</strong>
+</div>
+
+<div class="item-list">
+    {% for entry in entries %}
+        {% if entry.visibility != "DELETED" %}
+            {% include "munch/entry.html" with entry=entry request=request %}
+        {% endif %}
+    {% empty %}
+        <p>No entries yet...</p>
+    {% endfor %}
+</div>
+{% endblock content-scrollable %}
