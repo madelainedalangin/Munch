@@ -181,6 +181,9 @@ def edit_entry(request, author_id, entry_serial):
     # TODO - cancel button
     # TODO - if the filled form is invalid, redirct user back to entry details and show error
 
+    if request.user.uuid != entry.author.uuid:
+        return HttpResponse({"detail": "Only the author can update this entry."}, status=status.HTTP_403_FORBIDDEN)
+
     if request.method == "POST":
         form = EntryForm(request.POST, instance=entry)
         if form.is_valid():
@@ -474,6 +477,13 @@ def stream_api(request):
         homepage.
     """
     entries = get_stream_entries(request.user)
+    #pagination
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 10))
+    start = (page - 1) * size
+    end = start + size
+    total = entries.count()
+    entries = entries[start:end] 
     entries_list = []
     
     for entry in entries:
@@ -495,7 +505,13 @@ def stream_api(request):
             "published": entry.published.isoformat(),
             "visibility": entry.visibility,
         })
-    return Response(entries_list)
+    return Response({
+                    "type": "entries",
+                    "page_number": page,
+                    "size": size,
+                    "count": total,
+                    "src": entries_list
+                    })
 
 @login_required
 def settings_page(request): #renamed to settings_page its overwriting our import settings from django
@@ -694,7 +710,7 @@ def get_image_by_serial(request, author_serial, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_serial, serial=entry_serial)
     if not entry.contentType.startswith("image/"):
         return Response(status=status.HTTP_404_NOT_FOUND)
-    
+
     #people shouldnt be able to access the private image entries without
     #any permission
     visibility_error = check_entry_visibility(request, entry)
@@ -816,6 +832,10 @@ def get_entry_likes(request, author_serial, entry_serial):
     if visibility_error:
         return visibility_error
     
+    user_liked = False
+    if request.user.is_authenticated:
+        user_liked = Like.objects.filter(author__uuid=request.user.uuid,object_url=entry.fqid).exists()
+
     entry_likes = Like.objects.filter(object_url=entry.fqid)
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
@@ -833,6 +853,7 @@ def get_entry_likes(request, author_serial, entry_serial):
         "size": size,
         "count": total_entry_likes,
         "src": serializer.data,
+        "user_liked": user_liked,
         })
 
 @api_view(["GET"])
@@ -967,7 +988,7 @@ def get_like_by_fqid(request, like_fqid):
     return Response(serializer.data)
 
 # Liked API
-@api_view(["GET", "POST"])
+@api_view(["GET", "POST", "DELETE"])
 def liked(request, author_serial):
     """
     This function handles entries and comments that have been liked.
@@ -986,6 +1007,8 @@ def liked(request, author_serial):
         POST - Response: the created like object with status 201.
                         Returns 400 if object field is missing or already liked.
                         Returns 404 if author not found.
+        *DELETE - Response: delete the like object with status 204.
+                        Return 404 if like object not found
     """
     
     id_type = "FQID" if (author_serial.find("http://") != -1) else "serial"
@@ -1021,6 +1044,13 @@ def liked(request, author_serial):
             return Response({"detail": "Already liked."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LikeSerializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # DELETE request was added on top of user stories for better user experience
+    elif request.method == "DELETE":
+        object_url = request.data.get("object")
+        like = get_object_or_404(Like, author=author, object_url=object_url)
+        like.delete()
+        return Response({"detail": "Like successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
 
 # Comments API
 
