@@ -244,6 +244,15 @@ def display_entry_by_serial(request, author_id, entry_serial):
     comments = all_comments[start:end]
     total_pages = (total_comments + size - 1) // size
 
+    comments = list(all_comments[start:end])
+    for comment in comments:
+        comment.like_count = Like.objects.filter(object_url=comment.fqid).count()
+        comment.user_liked = Like.objects.filter(
+            author=request.user,
+            object_url=comment.fqid
+        ).exists() if request.user.is_authenticated else False
+        #print(f"comment: {comment.serial}, like_count: {comment.like_count}")
+
     context = {
         "entry": entry,
         "comments": comments,
