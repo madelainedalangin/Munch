@@ -778,8 +778,12 @@ def get_follow_requests(request, author_serial):
     # get authors that are requesting to follow given author
     follow_requests = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
 
-    serializer = AuthorSerializer(follow_requests, many=True)
-    return Response(serializer.data)
+    if follow_requests:
+        serializer = AuthorSerializer(follow_requests, many=True)
+        return Response(serializer.data)
+    
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['POST'])
 def follow(request, target_serial):

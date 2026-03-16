@@ -112,13 +112,13 @@ class ManageFollowingTestCase(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_get_pending(self):
+    def test_get_requesting(self):
         self.client.login(username='alice', password='123')
 
         Follow.objects.create(
             actor=self.alice,
             object=self.bob,
-            status='pending'
+            status='requesting'
         )
 
         response = self.client.get(self.url)
@@ -242,6 +242,29 @@ class GetFollowRequestsTestCase(APITestCase):
 
         cls.url = reverse('munch:get_follow_requests', kwargs={'author_serial': cls.alice.uuid})
 
-    def test_unauthenticated(self):
+    def test_no_follow_requests(self):
+        self.client.login(username='alice', password='123')
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_follow_request_list(self):
+
+        Follow.objects.create(
+            actor=self.bob,
+            object=self.alice,
+            status='requesting'
+        )
+
+        Follow.objects.create(
+            actor=self.eddie,
+            object=self.alice,
+            status='requesting'
+        )
+
+        self.client.login(username='alice', password='123')
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        self.assertIn(AuthorSerializer(self.bob).data, response.data)
+        self.assertIn(AuthorSerializer(self.eddie).data, response.data)
