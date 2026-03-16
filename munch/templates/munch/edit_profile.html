@@ -23,8 +23,8 @@
             height: 150px;
             border-radius: 50%;
             object-fit: cover;
-            background: #eee;
-            border: 2px dashed #ccc;
+            background: none;
+            
         }
         .form-card { 
             background: #fdfdfd;
@@ -81,6 +81,7 @@
         }
     </style>
 </head>
+{% load static %}
 <body>
     <div class="profile-container">
         <h2>Settings</h2>
@@ -89,7 +90,9 @@
             {% csrf_token %}
             
             <div class="profile-header">
-                <img class="profile-pic-preview" src="{{ user.profileImage|default:'https://via.placeholder.com/150' }}" id="avatar-preview">
+                <img class="profile-pic-preview" 
+                    src="{% if user.profileImage %}{{ user.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}" 
+                    id="avatar-preview">
                 <div style="flex-grow: 1;">
                     <div class="form-group">
                         <label>Display Name</label>

@@ -44,7 +44,7 @@ main {
     height: 150px;
     border-radius: 50%;
     object-fit: cover;
-    background: #eee;
+    background: none;
 }
 
 #edit_profile {
