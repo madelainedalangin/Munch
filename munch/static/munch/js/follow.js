@@ -1,83 +1,55 @@
-"use strict"
+"use static"
 
-const csrftoken = document.cookie.split('; ')
-    .find(row => row.startsWith('csrftoken='))
-    ?.split('=')[1];
-
-async function initializeFollowButtonState(follow_button) {
+async function initializeFollowBtnState(btn_follow) {
     try {
-        const author_uuid = follow_button.dataset.authorUuid;
-        const user_uuid = follow_button.dataset.userUuid;
+        const author_fqid = btn_follow.dataset.authorFqid;
+        const user_fqid = btn_follow.dataset.userFqid;
 
-        // check accepted follows
-        const response = await fetch(`/munch/api/authors/${user_uuid}/following/${author_uuid}/`);
+        const response = await fetch(`${user_fqid}/following/${author_fqid}`);
 
         if (response.status === 200) {
-            const data = await response.json();
-            console.log('data', JSON.stringify(data));
-            if (data.status === 'accepted') {
-                follow_button.classList.add('following');
-                follow_button.textContent = 'Following';
-                follow_button.dataset.state = 'accepted';
-            } else if (data.status === 'requesting') {
-                follow_button.classList.add('requesting');
-                follow_button.textContent = 'Friend Request Sent';
-                follow_button.dataset.state = 'requesting';
-            }
-        } else {
-            follow_button.textContent = 'Follow';
-            follow_button.dataset.state = 'none';
+            btn_follow.classList.toggle('following');
+            btn_follow.textContent = 'Unfollow';
         }
 
-    } catch (error) {
+    } catch(error) {
         console.log(error);
     }
 }
 
-async function manageAuthorFollow(follow_button, user_uuid, author_uuid, http_method) {
+async function manageAuthorFollow(btn_follow, user_fqid, author_fqid, http_method) {
     try {
-        const url = `/munch/api/authors/${user_uuid}/following/${author_uuid}/`;
-        console.log('manageAuthorFollow URL:', url);
+        const url = `${user_fqid}/following/${author_fqid}`
         const response = await fetch(url, {
             method: http_method,
             headers: {
                 'X-CSRFToken': csrftoken,
             }
         });
-    } catch (error) {
+
+    } catch(error) {
         console.log(error);
+        btn_follow.classList.toggle('following'); // undo toggle
     }
 }
 
-const follow_button = document.querySelector('#follow');
+const btn_follow = document.querySelector('#follow');
 
-if (follow_button) {
-    initializeFollowButtonState(follow_button);
-    follow_button.addEventListener('click', (event) => {
-        console.log('Follow button clicked!');
-        console.log('state:', follow_button.dataset.state);
+if (btn_follow) {
+    initializeFollowBtnState(btn_follow);
+    btn_follow.addEventListener('click', (event) => {
+        const author_fqid = btn_follow.dataset.authorFqid;
+        const user_fqid = btn_follow.dataset.userFqid;
+        const isFollowing = btn_follow.classList.toggle('following');   // returns new state
 
-        const author_uuid = follow_button.dataset.authorUuid;
-        const user_uuid = follow_button.dataset.userUuid;
-        const state = follow_button.dataset.state;
+        if (isFollowing) {
+            btn_follow.textContent = 'Unfollow';
+            manageAuthorFollow(btn_follow, user_fqid, author_fqid, 'PUT');
 
-        if (state === 'none') {
-            follow_button.textContent = 'Friend Request Sent';
-            follow_button.dataset.state = 'requesting';
-            follow_button.classList.add('requesting');
-            manageAuthorFollow(follow_button, user_uuid, author_uuid, 'PUT');
-
-        } else if (state === 'requesting') {
-            follow_button.textContent = 'Follow';
-            follow_button.dataset.state = 'none';
-            follow_button.classList.remove('requesting');
-            manageAuthorFollow(follow_button, user_uuid, author_uuid, 'DELETE');
-
-        } else if (state === 'accepted') {
-            follow_button.textContent = 'Follow';
-            follow_button.dataset.state = 'none';
-            follow_button.classList.remove('following');
-            manageAuthorFollow(follow_button, user_uuid, author_uuid, 'DELETE');
+        } else {
+            btn_follow.textContent = 'Follow';
+            manageAuthorFollow(btn_follow, user_fqid, author_fqid, 'DELETE');
         }
     });
 }
+

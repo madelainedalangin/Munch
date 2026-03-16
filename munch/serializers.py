@@ -21,11 +21,10 @@ class FollowRequestSerializer(serializers.ModelSerializer):
     summary = serializers.SerializerMethodField()
     actor = AuthorSerializer()
     object = AuthorSerializer()
-    status = serializers.CharField(read_only=True)
 
     class Meta:
         model = Follow
-        fields = ['type', 'summary', 'actor', 'object', 'status']
+        fields = ['type', 'summary', 'actor', 'object']
 
     def create(self, validated_data):
         actor_data = validated_data.pop('actor')

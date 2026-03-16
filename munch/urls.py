@@ -36,7 +36,7 @@ urlpatterns = [
 
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
-    path('api/authors/<str:author_serial>/following/<path:target_FQID>/', views.manage_following, name='manage_following'),
+    path('api/authors/<str:author_serial>/following/<path:target_FQID>', views.manage_following, name='manage_following'),
 
     # Followers API
     path('api/authors/<str:author_serial>/followers/<path:target_FQID>', views.manage_follower, name='manage_follower'),

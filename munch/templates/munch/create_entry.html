@@ -1,17 +1,7 @@
-{% extends "munch/nav-content.html" %}
-{% load static %}
-
-{% block links %}
-{{ block.super }}
-<link rel="stylesheet" href="{% static 'munch/css/create_entry.css' %}">
-{% endblock links %}
-
-{% block content-scrollable %}
-<h2>{{ title }}</h2>
+<h2> {{ title }} </h2>
 
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">{{ button_title }}</button>
+    <button type="submit"> {{ button_title }}</button>
 </form>
-{% endblock content-scrollable %}
