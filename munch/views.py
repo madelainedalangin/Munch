@@ -1033,6 +1033,20 @@ def liked(request, author_serial):
         except IntegrityError:
             return Response({"detail": "Already liked."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LikeSerializer(like)
+        try:
+            if "entries" in object_url:
+                entry = Entry.objects.filter(fqid=object_url).first()
+                if entry:
+                    inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
+                    requests.post(inbox_url, json=serializer.data)
+            else:
+                comment = Comment.objects.filter(fqid=object_url).first()
+                if comment:
+                    inbox_url = f"{comment.author.host}authors/{comment.author.uuid}/inbox"
+                    requests.post(inbox_url, json=serializer.data)
+        except Exception as e:
+            print(f"Failed to forward like notification to inbox: {e}")
+            
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # Comments API
@@ -1211,4 +1225,15 @@ def commented(request, author_serial):
             comment=comment_text
             )
         serializer = CommentSerializer(comment)
+        
+        # Forward comment to entry author's inbox
+        # - POST [local] if you post an object of "type":"comment", it will add your comment to the entry whose 
+        #   ID is in the entry field
+            #- Then the node you posted it to is responsible for forwarding it to the correct inbox
+        inbox_url = f"{local_entry.author.host}authors/{local_entry.author.uuid}/inbox"
+        try:
+            requests.post(inbox_url, json=serializer.data)
+        except Exception as e:
+            print(f"Failed to forward to inbox: {e}")
+            
         return Response(serializer.data, status=status.HTTP_201_CREATED)
