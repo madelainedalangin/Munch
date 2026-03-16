@@ -27,9 +27,16 @@ main {
 }
 
 .profile-card__links {
-    padding: 1rem 1rem;
-    border: 1px solid var(--light-grey-100);
-    border-radius: 10px;
+    padding-bottom: 20px;
+}
+
+.profile-card__links a {
+    color: #ff965e;
+}
+
+.profile-card__links a:hover {
+    color: #ff965e;
+    text-decoration: underline;
 }
 
 .profile-card__avatar__wrapper img {

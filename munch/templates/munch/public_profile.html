@@ -48,11 +48,14 @@
         <div class="profile-card__description">
             <p class="profile__description">{{ author.description }}</p>
         </div>
-    
+        {% if author.github %}
         <div class="profile-card__links">
-            <p><strong>GitHub:</strong> <a href="{{ author.github }}">{{ author.github|default:"Not linked" }}</a></p>
+            <a href="{{ author.github }}" target="_blank">
+                <img src="{% static 'munch/icons/github.png' %}" style="width: 20px; height: 20px; vertical-align: middle">
+                {{ author.github|cut:"https://github.com/"|cut:"http://github.com/" }}
+            </a>
         </div>
-    
+        {% endif %}
         <div class="profile-card__stats">
             <span><a href="{% url 'munch:list_following' author.uuid %}">
                 <strong>{{ following_count }}</strong> Following
