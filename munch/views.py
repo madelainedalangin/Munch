@@ -763,6 +763,7 @@ def create_entry_UI(request, author_id):
             if image_file:
                 image_data = image_file.read()
                 entry.content = base64.b64encode(image_data).decode('utf-8')
+                entry.contentType = image_file.content_type + ';base64'
             
             entry.save()
             return redirect('munch:display_entry_by_serial',
