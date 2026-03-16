@@ -1,7 +1,6 @@
 # ENTRIES API
 ## Entry by Author and Serial
 
-
 ### URL Pattern
 ```txt
 GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/
@@ -15,13 +14,13 @@ Required for friends-only entries. Local entries must be authenticated locally a
 
 ### Example
 
-Request
+#### Request example
 
 ```txt
 GET /munch/api/authors/d23d571b-deeb-4f2c-99be-f01bba40434b/entries/eed6485b-293d-4fea-9d04-4c0298057ac6/
 ```
 
-Response
+#### Response example
 
 ```json
 {
@@ -68,6 +67,8 @@ Response
 }  
 ```
 
+---
+
 ### URL Pattern
 ```txt
 PUT /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/
@@ -79,9 +80,11 @@ Updates the entry specified by AUTHOR_SERIAL and ENTRY_SERIAL.
 ### Authentication
 Local entries must be authenticated locally as the author
 
-### Example 
+### User Stories:
 
-Request Body
+##### * "As an author, I want to edit my entries locally, so that I'm not stuck with a typo on a popular entry."
+
+#### Request Body Example
 
 ```json
   {
@@ -106,7 +109,7 @@ Request Body
   }
 ```
 
-Response
+#### Response Example
 
 ```json
  {
@@ -132,6 +135,45 @@ Response
 ```
 Note: that response matches the post request, meaning that the entry was updated with the request body 
 
+### User Stories:
+
+##### * "As an author, other authors cannot modify my entries, so that I don't get impersonated."
+
+#### Request Example (From a user different from the author attempting to modify author's entry)
+```json
+{
+    "type": "entry",
+    "title": "meow commonmark",
+    "id": "http://127.0.0.1:8000/munch/api/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27/entries/c59eb813-7788-4b35-97ff-71e9600f31af",
+    "web": "http://127.0.0.1:8000/munch/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27/entries/c59eb813-7788-4b35-97ff-71e9600f31af",
+    "description": "this is meow with commonmark",
+    "contentType": "text/markdown",
+    "content": "This is a photo of a cat\r\n\r\n![cat photo](https://www.cats.org.uk/media/13139/220325case013.jpg)",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/munch/api/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27",
+        "host": "http://127.0.0.1:8000/munch/api/",
+        "displayName": "x",
+        "github": null,
+        "profileImage": null,
+        "web": "http://127.0.0.1:8000/munch/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27",
+        "description": null
+    },
+    "published": "2026-03-16T01:25:49.444686-06:00",
+    "visibility": "PUBLIC"
+}
+```
+
+#### Response Example
+```json
+HTTP 403 Forbidden
+{
+    "detail": "Only the author can update this entry."
+}
+```
+
+---
+
 ## Entry by FQID
 
 ### URL Pattern
@@ -153,7 +195,7 @@ Request
 GET /munch/api/entries/http://127.0.0.1:8000/munch/api/authors/32066895-122c-4d93-ad89-f754feaa4c66/entries/08884bf9-1c39-4977-b555-622927ced8eb/
 ```
 
-Response
+#### Response Example
 
 ```json
 HTTP 200 OK
@@ -180,6 +222,8 @@ HTTP 200 OK
 }
 ```
 
+---
+
 ## Entry Creation
 ### URL Pattern
 ```
@@ -194,13 +238,13 @@ Public + unlisted entries must be authenticated locally as follower of author
 
 ### Example
 
-Request
+#### Request example
 
 ```text
 GET /munch/api/authors/37a31c59-e1b4-4573-a82f-f7c763602229/entries/
 ```
 
-Response
+#### Response example
 
 ```json
 HTTP 200 OK
@@ -261,10 +305,12 @@ Creates an entry under AUTHOR_SERIAL
 ### Authentication
 Must be authenticated locally as the author
 
+### User Stories:
 
-### Example
+##### * "As an author, I want to make entries, so I can share my thoughts and pictures with other local authors."
+##### * "As an author, I want to make entries, so I can share my thoughts and pictures with other local authors."
 
-Request Body 
+#### Request Body example (content type is plain text)
 
 ```json
 {
@@ -290,7 +336,7 @@ Request Body
 }
 ```
 
-Response
+#### Response example
 
 ```json
 HTTP 201 Created
@@ -317,6 +363,63 @@ HTTP 201 Created
 }
 ```
 
+### User Stories:
+##### * "As an author, entries I make can be in CommonMark, so I can give my entries some basic formatting."
+
+
+#### Request Body example (content type is markdown)
+
+```json
+{
+    "type": "entry",
+    "title": "Markdown",
+    "id": "http://127.0.0.1:8000/munch/api/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923/entries/f1f1f31c-e6ee-4dc6-9590-82aaeb2a5062",
+    "web": "http://127.0.0.1:8000/munch/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923/entries/f1f1f31c-e6ee-4dc6-9590-82aaeb2a5062",
+    "description": "This will be in markdown",
+    "contentType": "text/markdown",
+    "content": "# Entry Title\r\n\r\nThis is a normal paragraph introducing the topic.\r\n\r\n## Important Note\r\n\r\nThis sentence has **bold text** for emphasis.\r\n\r\nThis sentence has *italic text* for lighter emphasis.\r\n\r\nThis sentence has ***bold and italic*** text.\r\n\r\nYou can also include `inline code` for technical terms.\r\n\r\n- First point\r\n- Second point\r\n- Third point\r\n\r\n> This is a blockquote for highlighted commentary or reflection.",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/munch/api/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923",
+        "host": "http://127.0.0.1:8000/munch/api/",
+        "displayName": "x",
+        "github": null,
+        "profileImage": null,
+        "web": "http://127.0.0.1:8000/munch/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923",
+        "description": null
+    },
+    "published": "2026-03-16T00:08:09.343261-06:00",
+    "visibility": "PUBLIC"
+}
+```
+
+#### Response example
+
+```json
+HTTP 201 Created
+{
+    "type": "entry",
+    "title": "Markdown",
+    "id": "http://127.0.0.1:8000/munch/api/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923/entries/f1f1f31c-e6ee-4dc6-9590-82aaeb2a5062",
+    "web": "http://127.0.0.1:8000/munch/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923/entries/f1f1f31c-e6ee-4dc6-9590-82aaeb2a5062",
+    "description": "This will be in markdown",
+    "contentType": "text/markdown",
+    "content": "# Entry Title\r\n\r\nThis is a normal paragraph introducing the topic.\r\n\r\n## Important Note\r\n\r\nThis sentence has **bold text** for emphasis.\r\n\r\nThis sentence has *italic text* for lighter emphasis.\r\n\r\nThis sentence has ***bold and italic*** text.\r\n\r\nYou can also include `inline code` for technical terms.\r\n\r\n- First point\r\n- Second point\r\n- Third point\r\n\r\n> This is a blockquote for highlighted commentary or reflection.",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/munch/api/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923",
+        "host": "http://127.0.0.1:8000/munch/api/",
+        "displayName": "x",
+        "github": null,
+        "profileImage": null,
+        "web": "http://127.0.0.1:8000/munch/authors/19c3fc3c-9d91-4c5b-a2bd-c20c6fe85923",
+        "description": null
+    },
+    "published": "2026-03-16T00:08:09.343261-06:00",
+    "visibility": "PUBLIC"
+}
+```
+
 ## Response Fields
 
 - `type` (string): Always "entry"
@@ -336,6 +439,154 @@ HTTP 201 Created
 - `PRIVATE` entries appear only from mutual follows (friends). 
 - Your own entries always appear except for the deleted ones. 
 - `DELETED` entries never appear. 
+
+---
+
+# Image Entries
+
+## Get Image by Serial
+
+### URL Pattern
+```text
+GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/image/
+```
+
+### Description
+Obtain the selected image entry converted to binary. On success, returns the binary image file. Returns 404 if it is not an image
+
+### User Stories: 
+#### * "As an author, entries I create can be images, so that I can share pictures and drawings."*
+
+#### Request Example
+``` text
+GET /munch/api/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27/entries/03b36db2-983f-4b47-837c-91a7e3f2c88d/image/
+```
+
+#### Response Example (Success)
+```json
+HTTP 200 OK
+Content-Type: image/png
+(binary image data)
+```
+
+---
+
+## Get Image by FQID
+
+### URL Pattern
+```text
+GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/image/
+```
+
+### Description
+Obtain the selected image entry converted to binary. On success, returns the binary image file. Returns 404 if it is not an image
+
+### User Stories: 
+#### * "As an author, entries I create can be images, so that I can share pictures and drawings."*
+
+#### Request Example
+``` text
+GET munch/api/entries/{ENTRY_FQID}/image/
+```
+
+#### Response Example
+```json
+HTTP 200 OK
+Content-Type: image/png
+(binary image data)
+```
+
+#### Response Example (Not Found)
+```json
+HTTP 404 Not Found
+{
+    "detail": "No Entry matches the given query."
+}
+```
+
+
+### User Stories: 
+#### * "As an author, entries I create that are in CommonMark can link to images, so that I can illustrate my entries."*
+
+#### Request Body Example
+```json
+{
+    "type": "entry",
+    "title": "meow commonmark",
+    "id": "http://127.0.0.1:8000/munch/api/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27/entries/7f23dfe1-b148-4f5e-9270-8f297655ed9c",
+    "web": "http://127.0.0.1:8000/munch/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27/entries/7f23dfe1-b148-4f5e-9270-8f297655ed9c",
+    "description": "this is meow with commonmark",
+    "contentType": "text/markdown",
+    "content": "This is a photo of a cat\r\n\r\n![cat photo](https://www.cats.org.uk/media/13139/220325case013.jpg)",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/munch/api/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27",
+        "host": "http://127.0.0.1:8000/munch/api/",
+        "displayName": "x",
+        "github": null,
+        "profileImage": null,
+        "web": "http://127.0.0.1:8000/munch/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27",
+        "description": null
+    },
+    "published": "2026-03-16T01:25:49.444686-06:00",
+    "visibility": "PUBLIC"
+}
+```
+
+#### Response Example (UI will display the image based on the link)
+```json
+HTTP 201 Created
+{
+    "type": "entry",
+    "title": "meow commonmark",
+    "id": "http://127.0.0.1:8000/munch/api/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27/entries/7f23dfe1-b148-4f5e-9270-8f297655ed9c",
+    "web": "http://127.0.0.1:8000/munch/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27/entries/7f23dfe1-b148-4f5e-9270-8f297655ed9c",
+    "description": "this is meow with commonmark",
+    "contentType": "text/markdown",
+    "content": "This is a photo of a cat\r\n\r\n![cat photo](https://www.cats.org.uk/media/13139/220325case013.jpg)",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/munch/api/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27",
+        "host": "http://127.0.0.1:8000/munch/api/",
+        "displayName": "x",
+        "github": null,
+        "profileImage": null,
+        "web": "http://127.0.0.1:8000/munch/authors/a1ca231c-42b4-4ebb-8a9e-a1f86da6ae27",
+        "description": null
+    },
+    "published": "2026-03-16T01:25:49.444686-06:00",
+    "visibility": "PUBLIC"
+}
+```
+
+## Response Fields
+
+This endpoint does not return a JSON entry object on success.
+
+- `Content-Type` (string): The MIME type of the image, such as image/png or image/jpeg
+
+## Visibility Rules
+
+- `PUBLIC` image entries from anyone on the node appear. 
+- `UNLISTED` image entries appear only from authors you follow. 
+- `PRIVATE` image entries appear only from mutual follows (friends). 
+- Your own entries always appear, except for the deleted ones. 
+- `DELETED` image entries never appear. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
