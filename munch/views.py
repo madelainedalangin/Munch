@@ -186,6 +186,13 @@ def edit_entry(request, author_id, entry_serial):
         if form.is_valid():
             updated_entry = form.save(commit=False)
             updated_entry.author = entry.author
+            
+            #image handling
+            image_file = request.FILES.get("image")
+            if image_file:
+                image_data = image_file.read()
+                updated_entry.content = base64.b64encode(image_data).decode("utf-8")
+                
             updated_entry.save()
             return redirect(
                 'munch:display_entry_by_serial',
@@ -467,6 +474,13 @@ def stream_api(request):
         homepage.
     """
     entries = get_stream_entries(request.user)
+    #pagination
+    page = int(request.GET.get('page', 1))
+    size = int(request.GET.get('size', 10))
+    start = (page - 1) * size
+    end = start + size
+    total = entries.count()
+    entries = entries[start:end] 
     entries_list = []
     
     for entry in entries:
@@ -488,7 +502,13 @@ def stream_api(request):
             "published": entry.published.isoformat(),
             "visibility": entry.visibility,
         })
-    return Response(entries_list)
+    return Response({
+                    "type": "entries",
+                    "page_number": page,
+                    "size": size,
+                    "count": total,
+                    "src": entries_list
+                    })
 
 @login_required
 def settings_page(request): #renamed to settings_page its overwriting our import settings from django
@@ -735,6 +755,44 @@ def get_image_by_fqid(request, entry_fqid):
     #after split: reinhardt_image/png
     entry_content_type = entry.contentType.split(";")[0]
     return HttpResponse(image_data, content_type=entry_content_type)
+
+@login_required
+def create_entry_UI(request, author_id):
+    '''
+    Purpose: Creates an entry through a filled out form from the user in the UI 
+
+    If user fills the form correctly, it will save as an entry in the database
+    '''
+    if not request.user.is_authenticated:
+        return redirect('munch:login')
+
+    if request.method == 'POST':
+        form = EntryForm(request.POST, request.FILES) 
+        if form.is_valid():
+            entry = form.save(commit=False)
+            entry.author = request.user
+            
+            image_file = request.FILES.get('image')
+            if image_file:
+                image_data = image_file.read()
+                entry.content = base64.b64encode(image_data).decode('utf-8')
+                entry.contentType = image_file.content_type + ';base64'
+            
+            entry.save()
+            return redirect('munch:display_entry_by_serial',
+                            author_id=entry.author.uuid,
+                            entry_serial=entry.serial)
+    else:
+        form = EntryForm()
+        
+    return render(
+        request, 
+        'munch/create_entry.html', 
+        {
+            'form': form, 
+            'title':"Create Entry", 
+            'button_title':"Create Entry"
+        })
 
 # Likes API
 

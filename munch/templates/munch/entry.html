@@ -28,9 +28,12 @@
     </a>
 
     <strong>{{ entry.description }}</strong>
-
+   <!--<p>DEBUG: contentType = "{{ entry.contentType }}"</p>-->
     {% if entry.contentType == 'text/markdown' %}
         <div>{{ entry.markdownContent|safe }}</div>
+    <!--image handling-->
+    {% elif entry.contentType == 'image/png;base64' or entry.contentType == 'image/jpeg;base64' %}
+    <img src="data:{{ entry.contentType }},{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
     {% else %}
         <p>{{ entry.content|linebreaks }}</p>
     {% endif %}
