@@ -50,8 +50,10 @@ def public_profile(request, author_uuid):
 
     entries = Entry.objects.filter(author=author)
 
-    if request.user.is_authenticated and request.user == author:
-        entries = entries.exclude(visibility='DELETED')
+    if request.user.is_authenticated and request.use.is_superuser:
+        entries = entries.order_by("-published")
+    elif request.user.is_authenticated and request.user == author:
+        entries = entries.exclude(visibility='DELETED').order_by("-published")
     else:
         visibility_filter = Q(visibility='PUBLIC')
 
@@ -234,6 +236,16 @@ def display_entry_by_serial(request, author_id, entry_serial):
     
     comments = Comment.objects.filter(entry=entry).order_by("-published")
 
+    #superuser bypass
+    if request.user.is_superuser:
+            return render(
+                request, 
+                "munch/entry_detail.html", 
+                {
+                    "entry": entry, 
+                    "comments": comments
+                })
+
     if request.user == author:
         if entry.visibility == 'DELETED':
             return HttpResponse(status=410)
@@ -281,6 +293,8 @@ def check_entry_visibility(request, entry):
     Helper function that checks for entries visibility settings.
     - Created to be used in Comments and Likes API
     """
+    if request.user.is_authenticated and request.user_is_superuser:
+        return None
     
     if entry.visibility == "DELETED":
         return Response(status=status.HTTP_410_GONE)
