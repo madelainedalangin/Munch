@@ -178,20 +178,22 @@ def edit_entry(request, author_id, entry_serial):
     '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     
-    # TODO - cancel button
-    # TODO - if the filled form is invalid, redirct user back to entry details and show error
-
     if request.method == "POST":
-        form = EntryForm(request.POST, instance=entry)
+        form = EntryForm(request.POST, request.FILES, instance=entry)
         if form.is_valid():
             updated_entry = form.save(commit=False)
             updated_entry.author = entry.author
             
-            #image handling
+            # image handling
             image_file = request.FILES.get("image")
             if image_file:
+                # new image uploaded — encode and save it
                 image_data = image_file.read()
                 updated_entry.content = base64.b64encode(image_data).decode("utf-8")
+                updated_entry.contentType = image_file.content_type + ';base64'
+            elif entry.contentType.startswith('image/'):
+                # no new image uploaded but entry is an image — keep existing content
+                updated_entry.content = entry.content
                 
             updated_entry.save()
             return redirect(
@@ -201,6 +203,9 @@ def edit_entry(request, author_id, entry_serial):
             )
     else:
         form = EntryForm(instance=entry)
+        # dont show base64 gibberish in the content field for image entries
+        if entry.contentType.startswith('image/'):
+            form.initial['content'] = ''
 
     return render(request, "munch/create_entry.html", {"form": form, "entry": entry, 'title':"Edit Entry", 'button_title':"Edit Entry"})
 
