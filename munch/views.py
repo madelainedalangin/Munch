@@ -50,8 +50,10 @@ def public_profile(request, author_uuid):
 
     entries = Entry.objects.filter(author=author)
 
-    if request.user.is_authenticated and request.user == author:
-        entries = entries.exclude(visibility='DELETED')
+    if request.user.is_authenticated and request.user.is_superuser:
+        entries = entries.order_by("-published")
+    elif request.user.is_authenticated and request.user == author:
+        entries = entries.exclude(visibility='DELETED').order_by("-published")
     else:
         visibility_filter = Q(visibility='PUBLIC')
 
@@ -185,18 +187,24 @@ def edit_entry(request, author_id, entry_serial):
         return HttpResponse({"detail": "Only the author can update this entry."}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == "POST":
-        form = EntryForm(request.POST, instance=entry)
+        form = EntryForm(request.POST, request.FILES, instance=entry)
         if form.is_valid():
             updated_entry = form.save(commit=False)
             updated_entry.author = entry.author
             
-            #image handling
             image_file = request.FILES.get("image")
             if image_file:
+                # new image uploaded
                 image_data = image_file.read()
                 updated_entry.content = base64.b64encode(image_data).decode("utf-8")
-                
+                updated_entry.contentType = image_file.content_type + ';base64'
+            elif entry.contentType.startswith('image/'):
+                # no new image uploaded — restore original content from database
+                updated_entry.content = entry.content
+                updated_entry.contentType = entry.contentType
+            
             updated_entry.save()
+            
             return redirect(
                 'munch:display_entry_by_serial',
                 author_id=entry.author.uuid,
@@ -231,15 +239,46 @@ def display_entry_by_serial(request, author_id, entry_serial):
     '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
     author = get_object_or_404(Author, uuid=author_id)
+    
+    # pagination for comments
+    page = int(request.GET.get('page', 1))
+    size = 5
+    start = (page - 1) * size
+    end = start + size
+    all_comments = Comment.objects.filter(entry=entry).order_by("-published")
+    total_comments = all_comments.count()
+    comments = all_comments[start:end]
+    total_pages = (total_comments + size - 1) // size
+
+    comments = list(all_comments[start:end])
+    for comment in comments:
+        comment.like_count = Like.objects.filter(object_url=comment.fqid).count()
+        comment.user_liked = Like.objects.filter(
+            author=request.user,
+            object_url=comment.fqid
+        ).exists() if request.user.is_authenticated else False
+        #print(f"comment: {comment.serial}, like_count: {comment.like_count}")
+
+    context = {
+        "entry": entry,
+        "comments": comments,
+        "page": page,
+        "total_pages": total_pages,
+        "total_comments": total_comments,
+    }
+
+    # superuser bypass
+    if request.user.is_superuser:
+        return render(request, "munch/entry_detail.html", context)
 
     if request.user == author:
         if entry.visibility == 'DELETED':
             return HttpResponse(status=410)
-        return render(request, "munch/entry_detail.html", {"entry": entry})
+        return render(request, "munch/entry_detail.html", context)
 
     # If a user is logged in and has the link to a PUBLIC or UNLISTED post, let them see it.
     if entry.visibility in ['PUBLIC', 'UNLISTED']:
-        return render(request, "munch/entry_detail.html", {"entry": entry})
+        return render(request, "munch/entry_detail.html", context)
 
     follows_author = Follow.objects.filter(
         actor=request.user,
@@ -259,7 +298,7 @@ def display_entry_by_serial(request, author_id, entry_serial):
     elif entry.visibility == 'PRIVATE' and (not is_friend):
         return HttpResponse(status=403)
 
-    return render(request, "munch/entry_detail.html", {"entry": entry})
+    return render(request, "munch/entry_detail.html", context)
 
 # The following function from Google, Gemini, "Django Shareable Link", 03-15-26
 @login_required
@@ -279,40 +318,33 @@ def check_entry_visibility(request, entry):
     Helper function that checks for entries visibility settings.
     - Created to be used in Comments and Likes API
     """
+    if request.user.is_authenticated and request.user.is_superuser:
+        return None
     
     if entry.visibility == "DELETED":
         return Response(status=status.HTTP_410_GONE)
     
+    follows_author = Follow.objects.filter(
+        actor=request.user,
+        object=entry.author,
+        status='accepted'
+    ).exists()
+    author_follows_user = Follow.objects.filter(
+        actor=entry.author,
+        object=request.user,
+        status='accepted'
+    ).exists()
+    is_friend = follows_author and author_follows_user
+    
     if entry.visibility == 'PRIVATE':
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_403_FORBIDDEN)
-    
-        follows_author = Follow.objects.filter(
-            actor=request.user,
-            object=entry.author,
-            status='accepted'
-        ).exists()
-        author_follows_user = Follow.objects.filter(
-            actor=entry.author,
-            object=request.user,
-            status='accepted'
-        ).exists()
-        is_friend = follows_author and author_follows_user
     
         if not is_friend and request.user != entry.author:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
     elif entry.visibility == 'UNLISTED':
         if not request.user.is_authenticated:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-    
-        follows_author = Follow.objects.filter(
-            actor=request.user,
-            object=entry.author,
-            status='accepted'
-        ).exists()
-    
-        if not follows_author and request.user != entry.author:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
 # (this function may be used in the future)
@@ -326,11 +358,13 @@ def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
 
     if request.method == 'GET':
-
-        # TODO - implement friend authentication if entry is friends only
-
+        visibility_error = check_entry_visibility(request, entry)
+        if visibility_error:
+            return visibility_error
+        
         serializer = EntrySerializer(entry)
         return Response(serializer.data)
+    
     elif request.method == 'PUT':
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
@@ -344,6 +378,7 @@ def manage_entry_by_serial(request, author_id, entry_serial):
             serializer.save(author=entry.author)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     elif request.method == 'DELETE':
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
@@ -351,6 +386,7 @@ def manage_entry_by_serial(request, author_id, entry_serial):
                 status=status.HTTP_403_FORBIDDEN
             )
         entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+        
         if entry.visibility == "DELETED":
             return Response({"detail": "Entry already deleted."},status=status.HTTP_204_NO_CONTENT)
         entry.visibility = "DELETED"
@@ -362,24 +398,72 @@ def manage_entry_by_serial(request, author_id, entry_serial):
 def manage_entry_by_FQID(request, entry_FQID):
     entry = get_object_or_404(Entry, fqid=entry_FQID)
 
-    # TODO - implement friend authentication if entry is friends only
+    visibility_error = check_entry_visibility(request, entry)
+    if visibility_error:
+        return visibility_error
     
     serializer = EntrySerializer(entry)
     return Response(serializer.data)
 
 @api_view(['GET','POST'])
 def create_entry(request, author_id):
+    """
+    GET api/authors/{AUTHOR_SERIAL}/entries/
+    """
+    
     if request.method == "GET":
-        # TODO - Not authenticated: only public entries.
-        # TODO - Authenticated locally as author: all entries.
-        # TODO - Authenticated locally as follower of author: public + unlisted entries.
-        # TODO - Authenticated locally as friend of author: all entries.
-        # TODO - Authenticated as remote node: This probably should not happen. Remember, the way remote node becomes aware of local entries is by local node pushing those entries to inbox, not by remote node pulling.
+        author = get_object_or_404(Author, uuid=author_id)
+        entries = Entry.objects.filter(
+            author=author
+            ).exclude(
+                visibility="DELETED"
+                ).order_by(
+                    "-published"
+                    )
+        #only public entries can be seen if they are unauthenticated users
+        if not request.user.is_authenticated:
+            entries = entries.filter(visibility="PUBLIC")
+            
+        elif request.user != author:
+            follows_author = Follow.objects.filter(
+                actor=request.user, 
+                object=author,
+                status="accepted",
+                ).exists()
+            
+            author_follows_user = Follow.objects.filter(
+                actor=author,
+                object=request.user,
+                status="accepted",
+            ).exists()
+            
+            both_friends = follows_author and author_follows_user
+            
+            if not both_friends:
+                if follows_author:
+                    #entries in public and unlisted setting can be seen by followers
+                    entries = entries.filter(visibility__in=["PUBLIC", "UNLISTED"])
+                else:
+                    #strangers can only see public
+                    entries = entries.filter(visibility="PUBLIC")
 
-        # obtain the 5 most recent entries and return it
-        entries = Entry.objects.filter(author__uuid=author_id).order_by('-published')[:5]
+        
+        #also include pagination
+        page = int(request.GET.get('page', 1))
+        size = int(request.GET.get('size', 5))
+        start = (page - 1) * size
+        end = start + size
+        total = entries.count()
+        entries = entries[start:end]
         serializer = EntrySerializer(entries, many=True)
-        return Response(serializer.data)
+        
+        return Response({
+                        "type": "entries",
+                        "page_number": page,
+                        "size": size,
+                        "count": total,
+                        "src": serializer.data
+                        })
     
     elif request.method == "POST":
 
@@ -394,8 +478,6 @@ def create_entry(request, author_id):
                 {"detail": "Only the author can create entries here."},
                 status=status.HTTP_403_FORBIDDEN
             )
-
-        # TODO - implement ability to post images 
 
         serializer = EntrySerializer(data=request.data)
         if serializer.is_valid():
@@ -418,6 +500,16 @@ def get_stream_entries(user):
     Arguments: author/user object of whoever is currently logged in
     Return: a QuerySet of entry objects
     """
+
+    # Superuser bypass to view all public and deleted entries
+    if user.is_superuser:
+        entries = Entry.objects.filter(
+            Q(visibility = 'PUBLIC') | 
+            Q(visibility = 'DELETED') |
+            Q(author = user)
+        ).order_by('-published')
+        
+        return entries
     
     #Gimme a list of author IDs the user currently logged in is following
     user_follows = Follow.objects.filter(actor=user, status='accepted')
@@ -858,7 +950,16 @@ def get_entry_likes(request, author_serial, entry_serial):
 
 @api_view(["GET"])
 def get_entry_likes_by_fqid(request, entry_fqid):
-    #TODO : clarification on URL pattern
+    # Source: https://stackoverflow.com/questions/71771838/python-urllib-url-quote-unquote-issue
+    # Date Accessed: March 15, 2026
+
+    #fqid is percent enncoded URL
+    #unquote converts it back to http
+    #without it, django gonna look for an entry with a %-encoded url and that doesnt
+    #match anything in our db
+    from urllib.parse import unquote
+    entry_fqid = unquote(entry_fqid)
+    
     entry = get_object_or_404(Entry, fqid=entry_fqid)
     
     visibility_error = check_entry_visibility(request, entry)
@@ -1043,6 +1144,20 @@ def liked(request, author_serial):
         except IntegrityError:
             return Response({"detail": "Already liked."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LikeSerializer(like)
+        try:
+            if "entries" in object_url:
+                entry = Entry.objects.filter(fqid=object_url).first()
+                if entry:
+                    inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
+                    requests.post(inbox_url, json=serializer.data)
+            else:
+                comment = Comment.objects.filter(fqid=object_url).first()
+                if comment:
+                    inbox_url = f"{comment.author.host}authors/{comment.author.uuid}/inbox"
+                    requests.post(inbox_url, json=serializer.data)
+        except Exception as e:
+            print(f"Failed to forward like notification to inbox: {e}")
+            
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     # DELETE request was added on top of user stories for better user experience
@@ -1135,7 +1250,15 @@ def get_entry_comments_by_serial(request, author_serial, entry_serial):
     
 @api_view(["GET"])
 def get_entry_comments_by_fqid(request, entry_fqid):
-    #TODO : clarification on URL pattern
+    # Source: https://stackoverflow.com/questions/71771838/python-urllib-url-quote-unquote-issue
+    # Date Accessed: March 15, 2026
+    #fqid is percent enncoded URL
+    #unquote converts it back to http
+    #without it, django gonna look for an entry with a %-encoded url and that doesnt
+    #match anything in our db
+    from urllib.parse import unquote
+    entry_fqid = unquote(entry_fqid)
+    
     entry = get_object_or_404(Entry, fqid=entry_fqid)
     
     visibility_error = check_entry_visibility(request, entry)
@@ -1228,4 +1351,41 @@ def commented(request, author_serial):
             comment=comment_text
             )
         serializer = CommentSerializer(comment)
+        
+        # Forward comment to entry author's inbox
+        # - POST [local] if you post an object of "type":"comment", it will add your comment to the entry whose 
+        #   ID is in the entry field
+            #- Then the node you posted it to is responsible for forwarding it to the correct inbox
+        inbox_url = f"{local_entry.author.host}authors/{local_entry.author.uuid}/inbox"
+        try:
+            requests.post(inbox_url, json=serializer.data)
+        except Exception as e:
+            print(f"Failed to forward to inbox: {e}")
+            
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@login_required
+def post_comment(request, author_id, entry_serial):
+    """
+    Purpose: Allows a logged in user to post a comment on an entry via the UI
+    """
+    entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+    
+    if request.method == "POST":
+        comment_text = request.POST.get("comment")
+        if comment_text:
+            comment = Comment.objects.create(
+                author=request.user,
+                entry=entry,
+                comment=comment_text,
+                contentType="text/plain"
+            )
+            # Forward comment to entry author's inbox
+            serializer = CommentSerializer(comment)
+            inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
+            try:
+                requests.post(inbox_url, json=serializer.data)
+            except Exception as e:
+                print(f"Failed to forward to inbox: {e}")
+    
+    return redirect('munch:display_entry_by_serial', author_id=author_id, entry_serial=entry_serial)

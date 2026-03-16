@@ -1,4 +1,10 @@
-{% extends "munch/nav-content.html" %} 
+{% extends "munch/nav-content.html" %}
+{% load static %}
+
+{% block links %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'munch/css/entry.css' %}">
+{% endblock links %}
 
 {% block title %}
 Stream
@@ -15,7 +21,7 @@ Stream
 {% block content-scrollable %} 
 <div class="item-list">
     {% for entry in entries %}
-    {% include "munch/entry.html" with entry=entry only %}
+    {% include "munch/entry.html" with entry=entry %}
     {% empty %}
     <p>Nothing yet :3</p>
     {% endfor %} 

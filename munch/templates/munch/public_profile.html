@@ -6,6 +6,11 @@
 <link rel="stylesheet" href="{% static 'munch/css/profile_page.css' %}">
 {% endblock links %} 
 
+{% block scripts %}
+{{ block.super }}
+<script defer src="{% static 'munch/js/follow.js' %}"></script>
+{% endblock scripts %}
+
 {% block title %}
 {{ author.displayName }}
 {% endblock title %} 
@@ -17,19 +22,24 @@
 {% block content-scrollable %} 
 <section class="profile-card">
     <div class="profile-card__banner__wrapper">
-        <img src="https://via.placeholder.com/15">
+        <img src="{% static 'munch/icons/default_banner.png' %}">
     </div>
 
     <div class="profile-card__headline">
         <div class="profile-card__avatar__wrapper">
-            <img src="{{ author.profileImage|default:'https://via.placeholder.com/150' }}">
+            <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
         </div>
 
         <div class="profile-card__actions">
-            {% if request.user.is_authenticated and request.user.uuid == author.uuid %}
+            {% if request.user.is_authenticated and request.user.id == author.id %}
                 <a id="edit_profile" href="{% url 'munch:edit_profile' %}">Edit Profile</a>
             {% elif request.user.is_authenticated %}
-                <button id="follow">Follow</button>
+                {% csrf_token %}
+                <button id="follow" 
+                    data-author-fqid="{{ author.id }}"
+                    data-author-uuid="{{ author.uuid }}"
+                    data-user-uuid="{{ request.user.uuid }}"
+                    data-state="none">Follow</button>
             {% endif %}
         </div>
     </div>

@@ -1,17 +1,22 @@
 {% load static %}
 
-<article class="entry-card">
+<article class="entry-card"
+        data-author-serial="{{ entry.author.uuid }}"
+        data-entry-serial="{{ entry.serial }}"
+        data-current-author-serial="{% if request.user.is_authenticated %}{{ request.user.uuid }}{% endif %}"
+        data-entry-fqid="{{ entry.fqid }}"
+        data-liked="false">
     <div class="entry-card__headline">
         {% include "munch/profile-summary.html" with author=entry.author only %}
 
-        {% if request.user and request.user.fqid == entry.author.fqid %} <!-- only show dropdown if entry belongs to user -->
+        {% if request.user and request.user.fqid == entry.author.fqid %}
         <div class="dropdown">
             <button class="dropdown__toggle">...</button>  
             <div class="dropdown__content">
                 <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
                 <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
                     {% csrf_token %}
-                    <button id="delete_button" type="submit" onclick="window.location.href='/munch/authors/{{ entry.author.uuid }}/'">Delete</button>
+                    <button id="delete_button" type="submit">Delete</button>
                 </form>
             </div>  
         </div>
@@ -23,12 +28,11 @@
     </a>
 
     <strong>{{ entry.description }}</strong>
-   <!--<p>DEBUG: contentType = "{{ entry.contentType }}"</p>-->
+
     {% if entry.contentType == 'text/markdown' %}
         <div>{{ entry.markdownContent|safe }}</div>
-    <!--image handling-->
     {% elif entry.contentType == 'image/png;base64' or entry.contentType == 'image/jpeg;base64' %}
-    <img src="data:{{ entry.contentType }},{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
+        <img src="data:{{ entry.contentType }},{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
     {% else %}
         <p>{{ entry.content|linebreaks }}</p>
     {% endif %}
@@ -45,25 +49,120 @@
         <div class="entry-card__stats">
             <div class="entry-card__stat">
                 <button class="like-button">
-                    <img src="{% static 'munch/icons/favorite.svg' %}" alt="like">
+                    <img class="like-icon" src="{% static 'munch/icons/like_no_fill.png' %}" alt="like" style="width: 16px; height: 16px;">
                 </button>
                 <p class="likes-count">0</p>
             </div>
 
             <div class="entry-card__stat">
                 <button class="comment-button">
-                    <img src="{% static 'munch/icons/chat_bubble.svg' %}" alt="comment">
+                    <img src="{% static 'munch/icons/comment_for_entry.png' %}" alt="comment" style="width: 16px; height: 16px;">
                 </button>
-                <p class="comments-count">0</p>
+                <!--
+                Source: https://stackoverflow.com/questions/11800016/adding-the-number-of-comments-to-a-queryset-in-django
+                Date Accessed: Saturday, March 15, 2026
+                Comment by girasquid is used here
+                -->
+                <p class="comments-count">{{ entry.comment_set.count }}</p>
             </div>
+
+            <script>
+                // cookie function from https://docs.djangoproject.com/en/6.0/howto/csrf/
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+
+                function refreshLike(entry, img) {
+                    const authorSerial = entry.dataset.authorSerial;
+                    const entrySerial = entry.dataset.entrySerial;
+                    const like_count = entry.querySelector(".likes-count");
+
+                    fetch(`/munch/api/authors/${authorSerial}/entries/${entrySerial}/likes/`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            like_count.textContent = data.count;
+                            if (data.user_liked === true) {
+                                entry.dataset.liked = "true";
+                                img.src = "{% static 'munch/icons/like_fill.png' %}";
+                            } else {
+                                entry.dataset.liked = "false";
+                                img.src = "{% static 'munch/icons/like_no_fill.png' %}";
+                            }
+                        });
+                }
+
+                window.addEventListener("load", function () {
+                    const entries = document.querySelectorAll(".entry-card");
+                    const csrftoken = getCookie('csrftoken');
+
+                    entries.forEach(entry => {
+                        const like_button = entry.querySelector(".like-button");
+                        const img = entry.querySelector(".like-icon");
+                        const entryFqid = entry.dataset.entryFqid;
+                        const currentAuthorSerial = entry.dataset.currentAuthorSerial;
+
+                        refreshLike(entry, img);
+
+                        like_button.addEventListener("click", function () {
+                            const data = { object: entryFqid };
+
+                            if (entry.dataset.liked === "false") {
+                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        "X-CSRFToken": csrftoken,
+                                    },
+                                    credentials: "same-origin",
+                                    body: JSON.stringify(data),
+                                })
+                                .then(response => response.json())
+                                .then(() => refreshLike(entry, img));
+
+                            } else if (entry.dataset.liked === "true") {
+                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        "X-CSRFToken": csrftoken,
+                                    },
+                                    body: JSON.stringify(data),
+                                })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP ${response.status}`);
+                                    }
+                                })
+                                .then(() => refreshLike(entry, img));
+                            }
+                        });
+                    });
+                });
+            </script>
         </div>
 
         <div class="dropdown">
             <button class="dropdown__toggle" onclick="copyToClipboard()">
-                <img src="{% static 'munch/icons/upload.svg' %}">
+                <img src="{% static 'munch/icons/copy_link.png' %}">
             </button>
             <!-- copyToClipboard function from Google, Gemini, "Django Shareable Link", 03-15-26 -->
-            <span id="share-url" style = "display: none">{{ request.build_absolute_uri }}</span>
+            <span id="share-url" style="display: none">{{ request.build_absolute_uri }}</span>
             <script>
                 function copyToClipboard() {
                     const url = document.getElementById('share-url').innerText;

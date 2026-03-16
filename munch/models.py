@@ -65,7 +65,7 @@ class Entry(models.Model):
 class Comment(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
-    published = models.DateTimeField(default=datetime.now)
+    published = models.DateTimeField(default=timezone.now)
     contentType = models.CharField(max_length=200)
     comment = models.TextField()
 
@@ -74,7 +74,7 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/commented/{self.serial}"
+            self.fqid = f"{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/commented/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Like(models.Model):
@@ -96,7 +96,7 @@ class Like(models.Model):
         ]   
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"https://{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/liked/{self.serial}"
+            self.fqid = f"{settings.BACKEND_URL}/munch/api/authors/{self.author.uuid}/liked/{self.serial}"
         return super().save(*args, **kwargs)
 
 class Follow(models.Model):

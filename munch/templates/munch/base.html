@@ -7,6 +7,9 @@
     {% endblock links %}
 
     {% block scripts %}
+    <script>
+        csrftoken = '{{ csrf_token }}'
+    </script>
     {% endblock scripts %}
 
     {% block styles %}
