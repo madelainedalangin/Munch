@@ -128,17 +128,48 @@ class EntrySerializer(serializers.ModelSerializer):
     id = serializers.URLField(source='fqid', read_only=True)
     web = serializers.URLField(source='url', read_only=True)
     author = AuthorSerializer()
-
-    # TODO - implement comments and likes!
-    # comments = CommentsSerializer()
-    # likes = LikesSerializer()
-
-    # removed comments and likes in the fields 
+    comments = serializers.SerializerMethodField()
+    likes = serializers.SerializerMethodField()
 
     class Meta:
         model = Entry
-        fields = ['type', 'title', 'id', 'web', 'description', 'contentType', 'content', 'author', 'published', 'visibility']
+        fields = [
+            'type', 
+            'title', 
+            'id', 
+            'web', 
+            'description', 
+            'contentType', 
+            'content', 
+            'author', 
+            'published', 
+            'visibility', 
+            'comments', 
+            'likes'
+            ]
 
+    def get_comments(self, obj):
+        comments = Comment.objects.filter(entry=obj)
+        return {
+            "type": "comments",
+            "id": f"{obj.fqid}/comments",
+            "web": f"{settings.BACKEND_URL}/authors/{obj.author.uuid}/entries/{obj.serial}/",
+            "page_number": 1,
+            "size": 5,
+            "count": comments.count(),
+            "src": CommentSerializer(comments[:5], many=True).data,
+        }
+    def get_likes(self, obj):
+        likes = Like.objects.filter(object_url=obj.fqid)
+        return {
+            "type": "likes",
+            "id": f"{obj.fqid}/likes",
+            "web": f"{settings.BACKEND_URL}/authors/{obj.author.uuid}/entries/{obj.serial}/",
+            "page_number": 1,
+            "size": likes.count(),
+            "count": likes.count(),
+            "src": LikeSerializer(likes, many=True).data,
+        }
 class EntriesSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='entries')
     page_number = serializers.IntegerField()
