@@ -59,6 +59,11 @@
                 <button class="comment-button">
                     <img src="{% static 'munch/icons/chat_bubble.svg' %}" alt="comment">
                 </button>
+                <!--
+                Source: https://stackoverflow.com/questions/11800016/adding-the-number-of-comments-to-a-queryset-in-django
+                Date Accessed: Saturday, March 15, 2026
+                Comment by girasquid is used here
+                -->
                 <p class="comments-count">{{ entry.comment_set.count }}</p>
             </div>
 
