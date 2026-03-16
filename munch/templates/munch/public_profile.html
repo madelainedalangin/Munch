@@ -21,13 +21,9 @@
 
 {% block content-scrollable %} 
 <section class="profile-card">
-    <div class="profile-card__banner__wrapper">
-        <img src="https://via.placeholder.com/15">
-    </div>
-
     <div class="profile-card__headline">
         <div class="profile-card__avatar__wrapper">
-            <img src="{{ author.profileImage|default:'https://via.placeholder.com/150' }}">
+            <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
         </div>
 
         <div class="profile-card__actions">
@@ -59,10 +55,10 @@
     
         <div class="profile-card__stats">
             <span><a href="{% url 'munch:list_following' author.uuid %}">
-                <strong>0</strong> Following
+                <strong>{{ following_count }}</strong> Following
             </a></span>
             <span><a href="{% url 'munch:list_followers' author.uuid %}">
-                <strong>0</strong> Followers</a>
+                <strong>{{ followers_count }}</strong> Follower{{ followers_count|pluralize }}</a>
             </span>
         </div>
     </div>
