@@ -21,10 +21,6 @@
 
 {% block content-scrollable %} 
 <section class="profile-card">
-    <div class="profile-card__banner__wrapper">
-        <img src="{% static 'munch/icons/default_banner.png' %}">
-    </div>
-
     <div class="profile-card__headline">
         <div class="profile-card__avatar__wrapper">
             <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
