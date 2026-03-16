@@ -738,6 +738,7 @@ def manage_following(request, author_serial, target_FQID):
 
 # Followers API
 
+@login_required
 @api_view(['GET', 'DELETE', 'PUT'])
 def manage_follower(request, author_serial, target_FQID):
     
@@ -749,12 +750,6 @@ def manage_follower(request, author_serial, target_FQID):
         
         serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
-    
-    if not request.user.is_authenticated:
-        return Response(
-            {'detail': 'Authentication is required'},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
 
     if request.method == 'DELETE':
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
