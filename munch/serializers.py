@@ -127,7 +127,7 @@ class EntrySerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='entry', read_only=True)
     id = serializers.URLField(source='fqid', read_only=True)
     web = serializers.URLField(source='url', read_only=True)
-    author = AuthorSerializer()
+    author = AuthorSerializer(read_only=True)
     comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
 

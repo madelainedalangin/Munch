@@ -366,26 +366,26 @@ def manage_entry_by_serial(request, author_id, entry_serial):
         return Response(serializer.data)
     
     elif request.method == 'PUT':
+        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
                 {"detail": "Only the author can update this entry."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         serializer = EntrySerializer(entry, data=request.data)
         if serializer.is_valid():
-            serializer.save(author=entry.author)
-            return Response(serializer.data)
+            serializer.save(author=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
+        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
                 {"detail": "Only the author can update this entry."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         
         if entry.visibility == "DELETED":
             return Response({"detail": "Entry already deleted."},status=status.HTTP_204_NO_CONTENT)
@@ -403,7 +403,7 @@ def manage_entry_by_FQID(request, entry_FQID):
         return visibility_error
     
     serializer = EntrySerializer(entry)
-    return Response(serializer.data)
+    return Response(serializer.data,status=status.HTTP_200_OK)
 
 @api_view(['GET','POST'])
 def create_entry(request, author_id):
@@ -463,7 +463,7 @@ def create_entry(request, author_id):
                         "size": size,
                         "count": total,
                         "src": serializer.data
-                        })
+                        }, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
 
