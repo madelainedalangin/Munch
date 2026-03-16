@@ -373,7 +373,9 @@ def manage_entry_by_serial(request, author_id, entry_serial):
 def manage_entry_by_FQID(request, entry_FQID):
     entry = get_object_or_404(Entry, fqid=entry_FQID)
 
-    # TODO - implement friend authentication if entry is friends only
+    visibility_error = check_entry_visibility(request, entry)
+    if visibility_error:
+        return visibility_error
     
     serializer = EntrySerializer(entry)
     return Response(serializer.data)
