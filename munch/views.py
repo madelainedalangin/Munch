@@ -333,11 +333,13 @@ def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
 
     if request.method == 'GET':
-
-        # TODO - implement friend authentication if entry is friends only
-
+        visibility_error = check_entry_visibility(request, entry)
+        if visibility_error:
+            return visibility_error
+        
         serializer = EntrySerializer(entry)
         return Response(serializer.data)
+    
     elif request.method == 'PUT':
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
@@ -351,6 +353,7 @@ def manage_entry_by_serial(request, author_id, entry_serial):
             serializer.save(author=entry.author)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     elif request.method == 'DELETE':
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
@@ -358,6 +361,7 @@ def manage_entry_by_serial(request, author_id, entry_serial):
                 status=status.HTTP_403_FORBIDDEN
             )
         entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+        
         if entry.visibility == "DELETED":
             return Response({"detail": "Entry already deleted."},status=status.HTTP_204_NO_CONTENT)
         entry.visibility = "DELETED"
