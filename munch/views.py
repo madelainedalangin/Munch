@@ -676,8 +676,12 @@ def get_following(request, author_serial):
     # get authors that are in a follower_relations relation with the specified actor
     following = Author.objects.filter(follower_relations__actor=author)
 
-    serializer = AuthorSerializer(following, many=True)
-    return Response(serializer.data)
+    if following:
+        serializer = AuthorSerializer(following, many=True)
+        return Response(serializer.data)
+    
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
     
 @login_required
 @api_view(['GET', 'DELETE', 'PUT'])
