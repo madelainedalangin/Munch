@@ -49,7 +49,6 @@
             <h2 class="profile__display-name">{{ author.displayName }}</h2>
             <p class="profile__handle">@{{ author.username }}</p>
 
-            <!--Author FQID (full API URL) is included for frontend JS also to pass the test we have-->
             <p class="profile__fqid" style="display:none;">{{ author.id }}</p>
         </div>
     
@@ -63,11 +62,11 @@
     
         <div class="profile-card__stats">
             <span><a href="{% url 'munch:list_following' author.uuid %}">
-                <strong>0</strong> Following
+                <strong>{{ following_count }}</strong> Following
             </a></span>
             <span><a href="{% url 'munch:list_followers' author.uuid %}">
-                <strong>0</strong> Followers</a>
-            </span>
+                <strong>{{ followers_count }}</strong> Follower{{ followers_count|pluralize }}
+            </a></span>
         </div>
     </div>
 </section>

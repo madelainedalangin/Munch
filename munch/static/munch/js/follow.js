@@ -10,7 +10,7 @@ async function initializeFollowButtonState(follow_button) {
         const user_uuid = follow_button.dataset.userUuid;
 
         // check accepted follows
-        const response = await fetch(`/munch/api/authors/${user_uuid}/following/${author_uuid}/`);
+        const response = await fetch(`/munch/api/authors/${user_uuid}/following/${author_uuid}`);
 
         if (response.status === 200) {
             const data = await response.json();
@@ -36,7 +36,7 @@ async function initializeFollowButtonState(follow_button) {
 
 async function manageAuthorFollow(follow_button, user_uuid, author_uuid, http_method) {
     try {
-        const url = `/munch/api/authors/${user_uuid}/following/${author_uuid}/`;
+        const url = `/munch/api/authors/${user_uuid}/following/${author_uuid}`;
         console.log('manageAuthorFollow URL:', url);
         const response = await fetch(url, {
             method: http_method,
