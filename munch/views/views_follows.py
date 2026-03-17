@@ -1,0 +1,173 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
+from munch.serializers import *
+from munch.models import *
+
+import requests
+import re
+
+def followers_view(request, author_uuid):
+    author = Author.objects.get(uuid=author_uuid)   # use fqid in future
+    follower_list = Author.objects.filter(following_relations__object=author)
+    context = {
+        "user": author,
+        "followers": follower_list
+    }
+    return render(request, 'munch/followers.html', context)
+
+def list_following(request, author_uuid):
+    author = Author.objects.get(uuid=author_uuid)
+    following_list = Author.objects.filter(follower_relations__actor=author)
+    context = {
+        "user": author,
+        "following": following_list
+    }
+    return render(request, 'munch/following_list.html', context)
+
+def list_follow_requests(request, author_uuid):
+    author = Author.objects.get(uuid=author_uuid)
+    follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
+    context = {
+        "user": author,
+        "followers": follower_list
+    }
+    return render(request, 'munch/follow_request_list.html', context)
+
+# Following API
+
+@login_required
+@api_view(['GET'])
+def get_following(request, author_serial):
+    author = Author.objects.get(uuid=author_serial)
+
+    # get authors that are in a follower_relations relation with the specified actor
+    following = Author.objects.filter(follower_relations__actor=author)
+
+    if following:
+        serializer = AuthorSerializer(following, many=True)
+        return Response(serializer.data)
+    
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+@login_required
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_following(request, author_serial, target_FQID):
+    follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
+
+    if request.method == 'GET':
+        follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID, status='accepted').first()
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        follow_entry.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    elif request.method == 'PUT':
+
+        # capture group 1: 0+ chars as few as possible until serial
+        # capture group 2: 1+ chars until /
+        regex_match = re.search(r'^(.*?api\/authors\/)([^/]+)', target_FQID)
+        target_service = regex_match.group(1)
+        target_serial = regex_match.group(2)
+
+        isLocalAuthor = (target_service == f"{settings.BACKEND_URL}/munch/api/authors/")
+
+        # create follow object if none exists yet
+        if follow_entry == None:
+
+            target_author = Author.objects.get(id=target_FQID)
+            if target_author == None:
+                # TODO request user data from other nodes in future milestones
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
+
+            follow_entry = Follow.objects.create(
+                actor=actor_author,
+                object=target_author,
+                status='requesting'
+            )
+
+        serializer = FollowRequestSerializer(follow_entry)
+
+        if isLocalAuthor:
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        else:
+            response = requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
+
+            if response.status_code == 201:
+                return Response(response.json(), status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+
+# Followers API
+
+@login_required
+@api_view(['GET', 'DELETE', 'PUT'])
+def manage_follower(request, author_serial, target_FQID):
+    
+    if request.method == 'GET':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial, status='accepted').first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
+
+    if request.method == 'DELETE':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+        if follow_entry != None:
+            follow_entry.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    elif request.method == 'PUT':
+        follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
+
+        if follow_entry == None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        follow_entry.status = 'accepted'
+        follow_entry.save()
+
+        serializer = FollowRequestSerializer(follow_entry)
+        return Response(serializer.data)
+
+# Follow Request API
+
+@api_view(['GET'])
+def get_follow_requests(request, author_serial):
+    author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
+
+    # get authors that are requesting to follow given author
+    follow_requests = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
+
+    if follow_requests:
+        serializer = AuthorSerializer(follow_requests, many=True)
+        return Response(serializer.data)
+    
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+def follow(request, target_serial):
+    serializer = FollowRequestSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(status=400, data=serializer.errors)
