@@ -154,7 +154,7 @@ class ManageFollowingTestCase(APITestCase):
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
     
-    def test_put_create_new(self):
+    def test_put_local_create_new(self):
         self.client.login(username='alice', password='123')
 
         response = self.client.put(self.url)
@@ -168,7 +168,7 @@ class ManageFollowingTestCase(APITestCase):
 
         self.assertEqual(response.data, FollowRequestSerializer(follow_alice_bob).data)
 
-    def test_put_existing(self):
+    def test_put_local_existing(self):
         self.client.login(username='alice', password='123')
 
         Follow.objects.create(
@@ -178,7 +178,7 @@ class ManageFollowingTestCase(APITestCase):
         )
 
         response = self.client.put(self.url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 class ManageFollowerTestCase(APITestCase):
 

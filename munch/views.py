@@ -705,12 +705,13 @@ def manage_following(request, author_serial, target_FQID):
 
     elif request.method == 'PUT':
 
-        # to be used for future milestones maybe
-        # capture group 1: 0+ chars as few as possible until 
+        # capture group 1: 0+ chars as few as possible until serial
         # capture group 2: 1+ chars until /
         regex_match = re.search(r'^(.*?api\/authors\/)([^/]+)', target_FQID)
         target_service = regex_match.group(1)
         target_serial = regex_match.group(2)
+
+        isLocalAuthor = (target_service == f"{settings.BACKEND_URL}/munch/api/authors/")
 
         # create follow object if none exists yet
         if follow_entry == None:
@@ -721,34 +722,24 @@ def manage_following(request, author_serial, target_FQID):
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
 
-            follow_entry = Follow(
+            follow_entry = Follow.objects.create(
                 actor=actor_author,
                 object=target_author,
                 status='requesting'
             )
-        
-            # serialize follow request and post to target inbox
-            serializer = FollowRequestSerializer(follow_entry)
-            
-            #Sam over here
-            """The issue is in manage_following PUT. The test expects 201 but the view POSTs to the inbox and returns 
-            based on that response. In the test environment there's no real server running so requests.post() to the 
-            inbox fails, returning 400. The view needs to save the follow entry to the database and return 201 directly 
-            for local follows, instead of depending on the inbox POST response.
-            
-            Changes:
-            - Use Follow.objects.create() to actually save to the database
-            - Wrap the inbox POST in try/except so it doesn't crash in tests
-            - Return 201 directly instead of depending on inbox response
-            - Return 400 if follow already exists
-            """
-            try:
-                requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
-            except Exception as e:
-                print(f"Failed to forward to inbox: {e}")
+
+        serializer = FollowRequestSerializer(follow_entry)
+
+        if isLocalAuthor:
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            response = requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
+
+            if response.status_code == 201:
+                return Response(response.json(), status=status.HTTP_201_CREATED)
+            else:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
 # Followers API
 
