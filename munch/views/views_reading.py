@@ -75,17 +75,22 @@ def get_stream_entries(user):
 
 @login_required
 def stream(request):
-    """
-    Purpose: This function is UI for the stream page.
-    
-    Args:
-        request: HTTP GET req from user
-
-    Returns:
-        Rendered HTML page displaying what the user's stream
-    """
     entries = get_stream_entries(request.user)
-    return render(request, 'munch/stream.html', {'entries': entries})
+    
+    page = int(request.GET.get('page', 1))
+    size = 10
+    start = (page - 1) * size
+    end = start + size
+    total = entries.count()
+    total_pages = (total + size - 1) // size
+    entries = entries[start:end]
+    
+    return render(request, 'munch/stream.html', {
+        'entries': entries,
+        'page': page,
+        'total_pages': total_pages,
+        'total': total,
+    })
       
 @api_view(['GET'])
 @login_required
