@@ -84,7 +84,7 @@ def manage_following(request, author_serial, target_FQID):
         target_service = regex_match.group(1)
         target_serial = regex_match.group(2)
 
-        isLocalAuthor = (target_service == f"{settings.BACKEND_URL}/munch/api/authors/")
+        isLocalAuthor = (target_service == f"{settings.BACKEND_URL}/api/authors/")
 
         # create follow object if none exists yet
         if follow_entry == None:
@@ -93,7 +93,7 @@ def manage_following(request, author_serial, target_FQID):
             if target_author == None:
                 # TODO request user data from other nodes in future milestones
                 return Response(status=status.HTTP_400_BAD_REQUEST)
-            actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
+            actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/api/authors/{author_serial}")
 
             follow_entry = Follow.objects.create(
                 actor=actor_author,
@@ -152,7 +152,7 @@ def manage_follower(request, author_serial, target_FQID):
 
 @api_view(['GET'])
 def get_follow_requests(request, author_serial):
-    author = Author.objects.get(id=f"{settings.BACKEND_URL}/munch/api/authors/{author_serial}")
+    author = Author.objects.get(id=f"{settings.BACKEND_URL}/api/authors/{author_serial}")
 
     # get authors that are requesting to follow given author
     follow_requests = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')

@@ -45,7 +45,7 @@ class PostingTest(TestCase):
   def test_create_entry(self):
     #lets first create an entry 
     entry = self.mockEntry()
-    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    response = self.client.get(f"/authors/{self.user.uuid}/entries/{entry.serial}/")
     self.assertEqual(response.status_code, 200)
 
   # Tests modifying an entry by checking if the content changed before and after modification
@@ -53,10 +53,10 @@ class PostingTest(TestCase):
   def test_edit_entry(self):
     entry = self.mockEntry()
     initial_content = entry.content
-    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    response = self.client.get(f"/authors/{self.user.uuid}/entries/{entry.serial}/")
     self.assertEqual(response.status_code, 200)
     response = self.client.post(
-      f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
+      f"/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
       {
         "author": self.user,
         "title": 'Posty posts',
@@ -74,13 +74,13 @@ class PostingTest(TestCase):
   # User Story: "As an author, I want to delete my own entries locally, so I can remove entries that are out of date or made by mistake."
   def test_delete_entry(self):
     entry = self.mockEntry()
-    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    response = self.client.get(f"/authors/{self.user.uuid}/entries/{entry.serial}/")
     self.assertEqual(response.status_code, 200)
-    self.client.post(f'/munch/authors/{self.user.uuid}/entries/{entry.serial}/delete/')
+    self.client.post(f'/authors/{self.user.uuid}/entries/{entry.serial}/delete/')
     entry.refresh_from_db()
     self.assertEqual(entry.visibility,"DELETED")
     # check if the page exists after deletion
-    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    response = self.client.get(f"/authors/{self.user.uuid}/entries/{entry.serial}/")
     self.assertEqual(response.status_code, 410)
 
   # Tests if entry is generated in plain or common mark text
@@ -91,12 +91,12 @@ class PostingTest(TestCase):
     # first create an entry plain text 
     entry =  self.mockEntry()
     # assert if we successfully access the entry page
-    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    response = self.client.get(f"/authors/{self.user.uuid}/entries/{entry.serial}/")
     self.assertEqual(response.status_code, 200)
     self.assertEqual(entry.contentType, 'text/plain')
     #Convert text to markdown
     response = self.client.post(
-      f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
+      f"/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
       {
         "author": self.user,
         "title": 'Posty posts',
@@ -108,7 +108,7 @@ class PostingTest(TestCase):
     )
     entry.refresh_from_db()
     # assert if we successfully access the entry page 
-    response = self.client.get(f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/")
+    response = self.client.get(f"/authors/{self.user.uuid}/entries/{entry.serial}/")
     self.assertEqual(response.status_code, 200)
     self.assertEqual(entry.contentType, 'text/markdown')
 
@@ -124,7 +124,7 @@ class PostingTest(TestCase):
     )
     self.client.login(username='posty2', password='ilove8989')
     response = self.client.post(
-      f"/munch/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
+      f"/authors/{self.user.uuid}/entries/{entry.serial}/edit/",
       {
         "author": self.user,
         "title": 'Posty posts',
@@ -191,25 +191,25 @@ class PostingAPITest(TestCase):
   def test_get_entry_by_author_and_serial(self):
     self.client.login(username="postyapi", password="ilove7676")
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/'
+        f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/'
     )
     self.assertEqual(response.status_code, 200)
   def test_get_entry_by_author_and_serial_as_friend(self):
     self.client.login(username="nineninetynine", password="percentofgamblersquitbeforehittingbig")
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/'
+        f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/'
     )
     self.assertEqual(response.status_code, 200)
   def test_get_entry_by_author_and_serial_as_stranger(self):
     self.client.login(username="patience", password="isavirtue")
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/'
+        f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/'
     )
     self.assertEqual(response.status_code, 403) 
   def test_put_entry_by_author_and_serial(self):
     self.client.login(username="postyapi", password="ilove7676")
     response = self.client.put(
-      f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/',
+      f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/',
       {
         "title": 'rahhh',
         "content":'rahh rahh rahh',
@@ -222,7 +222,7 @@ class PostingAPITest(TestCase):
   def test_put_entry_by_author_and_serial_as_not_author(self):
     self.client.login(username="nineninetynine", password="percentofgamblersquitbeforehittingbig")
     response = self.client.put(
-      f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/',
+      f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/',
       {
         "author": self.author,
         "title": 'rahhh',
@@ -237,7 +237,7 @@ class PostingAPITest(TestCase):
   def test_delete_entry_by_author_and_serial(self):
     self.client.login(username="postyapi", password="ilove7676")
     response = self.client.delete(
-      f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/'
+      f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/'
     )
     self.assertEqual(response.status_code, 204)
     entry = Entry.objects.get(
@@ -249,7 +249,7 @@ class PostingAPITest(TestCase):
   def test_delete_entry_by_author_and_serial_as_not_author(self):
     self.client.login(username="nineninetynine", password="percentofgamblersquitbeforehittingbig")
     response = self.client.delete(
-      f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/'
+      f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/'
     )
     self.assertEqual(response.status_code, 403)
     entry = Entry.objects.get(
@@ -261,28 +261,28 @@ class PostingAPITest(TestCase):
   def test_get_entry_by_fqid(self):
     self.client.login(username="postyapi", password="ilove7676")
     response = self.client.get(
-      f'/munch/api/entries/{self.private_entry.fqid}/'
+      f'/api/entries/{self.private_entry.fqid}/'
     )
     self.assertEqual(response.status_code, 200)
 
   def test_get_entry_by_fqid_as_friend(self):
     self.client.login(username="nineninetynine", password="percentofgamblersquitbeforehittingbig")
     response = self.client.get(
-      f'/munch/api/entries/{self.private_entry.fqid}/'
+      f'/api/entries/{self.private_entry.fqid}/'
     )
     self.assertEqual(response.status_code, 200)
 
   def test_get_entry_by_fqid_as_stranger(self):
     self.client.login(username="patience", password="isavirtue")
     response = self.client.get(
-      f'/munch/api/entries/{self.private_entry.fqid}/'
+      f'/api/entries/{self.private_entry.fqid}/'
     )
     self.assertEqual(response.status_code, 403)
 
   def test_get_entry_creation(self):
     self.client.login(username="postyapi", password="ilove7676")
     response = self.client.get(
-      f'/munch/api/authors/{self.author.uuid}/entries/'
+      f'/api/authors/{self.author.uuid}/entries/'
     )
     self.assertEqual(response.status_code, 200)
 
@@ -294,7 +294,7 @@ class PostingAPITest(TestCase):
   def test_get_entry_creation_as_stranger(self):
     self.client.login(username="patience", password="isavirtue")
     response = self.client.get(
-      f'/munch/api/authors/{self.author.uuid}/entries/'
+      f'/api/authors/{self.author.uuid}/entries/'
     )
     self.assertEqual(response.status_code, 200)
 
@@ -306,7 +306,7 @@ class PostingAPITest(TestCase):
   def test_get_entry_creation_as_friend(self):
     self.client.login(username="nineninetynine", password="percentofgamblersquitbeforehittingbig")
     response = self.client.get(
-      f'/munch/api/authors/{self.author.uuid}/entries/'
+      f'/api/authors/{self.author.uuid}/entries/'
     )
     self.assertEqual(response.status_code, 200)
 
@@ -318,7 +318,7 @@ class PostingAPITest(TestCase):
   def test_post_entry_creation(self):
     self.client.login(username="postyapi", password="ilove7676")
     response = self.client.post(
-      f'/munch/api/authors/{self.author.uuid}/entries/',
+      f'/api/authors/{self.author.uuid}/entries/',
       {
         "title": 'rahhh',
         "content":'rahh rahh rahh',
@@ -332,7 +332,7 @@ class PostingAPITest(TestCase):
   def test_post_entry_creation_with_invalid_form(self):
     self.client.login(username="postyapi", password="ilove7676")
     response = self.client.post(
-      f'/munch/api/authors/{self.author.uuid}/entries/',
+      f'/api/authors/{self.author.uuid}/entries/',
       {
         "content":'rahh rahh rahh',
         "contentType": "text/plain",
@@ -345,7 +345,7 @@ class PostingAPITest(TestCase):
   def test_post_entry_creation_with_invalid_form(self):
     self.client.login(username="nineninetynine", password="percentofgamblersquitbeforehittingbig")
     response = self.client.post(
-      f'/munch/api/authors/{self.author.uuid}/entries/',
+      f'/api/authors/{self.author.uuid}/entries/',
       {
         "author": self.author,
         "content":'rahh rahh rahh',
@@ -426,39 +426,39 @@ class ImageEntryAPITest(TestCase):
 
   def test_get_public_image_by_serial(self):
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.public_image_entry.serial}/image/'
+        f'/api/authors/{self.author.uuid}/entries/{self.public_image_entry.serial}/image/'
     )
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response['Content-Type'], 'image/png')
 
   def test_get_image_not_found_for_text_entry(self):
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.text_entry.serial}/image/'
+        f'/api/authors/{self.author.uuid}/entries/{self.text_entry.serial}/image/'
     )
     self.assertEqual(response.status_code, 404)
 
   def test_get_private_image_as_stranger(self):
     self.client.login(username='StrangerShrek', password='donkeykongRAAH999')
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.private_image_entry.serial}/image/'
+        f'/api/authors/{self.author.uuid}/entries/{self.private_image_entry.serial}/image/'
     )
     self.assertEqual(response.status_code, 403)
 
   def test_get_private_image_as_friend(self):
     self.client.login(username='NemoTheFish', password='findingthingslol')
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.private_image_entry.serial}/image/'
+        f'/api/authors/{self.author.uuid}/entries/{self.private_image_entry.serial}/image/'
     )
     self.assertEqual(response.status_code, 200)
 
   def test_get_deleted_image(self):
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.deleted_image_entry.serial}/image/'
+        f'/api/authors/{self.author.uuid}/entries/{self.deleted_image_entry.serial}/image/'
     )
     self.assertEqual(response.status_code, 410)
 
   def test_get_unauthenticated_private_image(self):
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.private_image_entry.serial}/image/'
+        f'/api/authors/{self.author.uuid}/entries/{self.private_image_entry.serial}/image/'
     )
     self.assertEqual(response.status_code, 403) 

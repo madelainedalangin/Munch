@@ -40,10 +40,10 @@ class AuthorTest(TestCase):
         """
         # Check API FQID (id)
         self.assertTrue(self.author.id.endswith(f"authors/{self.author.uuid}"))
-        self.assertIn("/munch/api/", self.author.id)
+        self.assertIn("/api/", self.author.id)
         
         # Check Web URL (web)
-        self.assertIn("/munch/authors/", self.author.web)
+        self.assertIn("/authors/", self.author.web)
         self.assertNotIn("api/", self.author.web)
         
         # Ensure they don't change on second save

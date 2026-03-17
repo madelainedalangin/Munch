@@ -72,14 +72,14 @@ class GetEntryTest(TestCase):
   def test_public_direct_entry_visibility(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
-        f'/munch/api/authors/{self.author1.uuid}/entries/{self.public_entry.serial}/'
+        f'/api/authors/{self.author1.uuid}/entries/{self.public_entry.serial}/'
     )
     self.assertEqual(response.status_code, 200)
 
   def test_public_stream_entry_visibility(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
-        f'/munch/api/stream/'
+        f'/api/stream/'
     )
     self.assertEqual(response.status_code, 200)
     # Check that the public entry is in the stream results
@@ -91,7 +91,7 @@ class GetEntryTest(TestCase):
   def test_private_direct_entry_visibility_when_not_friends(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
-        f'/munch/api/authors/{self.author1.uuid}/entries/{self.private_entry.serial}/'
+        f'/api/authors/{self.author1.uuid}/entries/{self.private_entry.serial}/'
     )
     self.assertEqual(response.status_code, 403)
 
@@ -110,14 +110,14 @@ class GetEntryTest(TestCase):
       status='accepted'
     )
     response = self.client.get(
-        f'/munch/api/authors/{self.author1.uuid}/entries/{self.private_entry.serial}/'
+        f'/api/authors/{self.author1.uuid}/entries/{self.private_entry.serial}/'
     )
     self.assertEqual(response.status_code, 200)
 
   def test_private_stream_entry_visibility_when_not_friends(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
-        f'/munch/api/stream/'
+        f'/api/stream/'
     )
     self.assertEqual(response.status_code, 200)
     # Check that the private entry is not in the stream results
@@ -139,7 +139,7 @@ class GetEntryTest(TestCase):
       status='accepted'
     )
     response = self.client.get(
-        f'/munch/api/stream/'
+        f'/api/stream/'
     )
     self.assertEqual(response.status_code, 200)
     # Check that the private entry is in the stream results
@@ -151,14 +151,14 @@ class GetEntryTest(TestCase):
   def test_unlisted_direct_entry_visibility(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
-        f'/munch/api/authors/{self.author1.uuid}/entries/{self.unlisted_entry.serial}/'
+        f'/api/authors/{self.author1.uuid}/entries/{self.unlisted_entry.serial}/'
     )
     self.assertEqual(response.status_code, 200)
 
   def test_unlisted_stream_entry_visibility_when_not_following(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
-        f'/munch/api/stream/'
+        f'/api/stream/'
     )
     self.assertEqual(response.status_code, 200)
     # Check that the unlisted entry is not in the stream results
@@ -174,7 +174,7 @@ class GetEntryTest(TestCase):
       status='accepted'
     )
     response = self.client.get(
-        f'/munch/api/stream/'
+        f'/api/stream/'
     )
     self.assertEqual(response.status_code, 200)
     # Check that the unlisted entry is in the stream results
@@ -186,7 +186,7 @@ class GetEntryTest(TestCase):
   def test_deleted_direct_entry_visibility_when_not_admin(self):
     self.client.login(username='author2', password='IamNicePerson1')
     response = self.client.get(
-        f'/munch/api/authors/{self.author1.uuid}/entries/{self.deleted_entry.serial}/'
+        f'/api/authors/{self.author1.uuid}/entries/{self.deleted_entry.serial}/'
     )
     self.assertEqual(response.status_code, 410)
 
@@ -198,7 +198,7 @@ class GetEntryTest(TestCase):
     )
     self.client.login(username='admin', password='AllSeeingEye')
     response = self.client.get(
-        f'/munch/api/authors/{self.author1.uuid}/entries/{self.deleted_entry.serial}/'
+        f'/api/authors/{self.author1.uuid}/entries/{self.deleted_entry.serial}/'
     )
     self.assertEqual(response.status_code, 200)
     

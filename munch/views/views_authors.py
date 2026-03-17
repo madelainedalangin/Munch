@@ -41,7 +41,7 @@ def get_author(request, author_id):
     id_type = 'FQID' if (author_id.find("http://") != -1) else 'serial'
 
     if id_type == 'serial':
-        fqid = f"{settings.BACKEND_URL}/munch/api/authors/{author_id}"
+        fqid = f"{settings.BACKEND_URL}/api/authors/{author_id}"
     else:
         fqid = author_id
     
