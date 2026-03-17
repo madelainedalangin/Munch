@@ -57,7 +57,7 @@ class StreamAPITest(TestCase):
   #stream returns empty list when no entries exists
   def test_empty(self):
     """Tests for when no entries exists"""
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 0)
       
@@ -73,7 +73,7 @@ class StreamAPITest(TestCase):
       visibility='DELETED',
       description='this is a test under StreamAPITest',
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 0)
     
@@ -81,7 +81,7 @@ class StreamAPITest(TestCase):
     #unaunthenticated user cannot access stream 
   def test_unauthenticated_user(self):
     self.client.logout()
-    self.assertEqual(self.client.get('/munch/api/stream/').status_code, 302)
+    self.assertEqual(self.client.get('/api/stream/').status_code, 302)
     
   #Test public entries visible to everyone
   
@@ -96,7 +96,7 @@ class StreamAPITest(TestCase):
       visibility = 'PUBLIC',
       description = 'This entry is a test with public visibility setting',
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 1)
     self.assertEqual(response.json()['src'][0]['title'], 'Public PSA TEST')
@@ -112,7 +112,7 @@ class StreamAPITest(TestCase):
       visibility = 'PUBLIC',
       description = 'This entry is a test using stranger',
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 1)
     self.assertEqual(response.json()['src'][0]['title'], 'Public PSA Test by Stranger')
@@ -143,7 +143,7 @@ class StreamAPITest(TestCase):
       visibility = 'PUBLIC',
       description = 'This entry is a test using stranger for many entries',
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 3)
     
@@ -158,7 +158,7 @@ class StreamAPITest(TestCase):
       visibility = 'PRIVATE',
       description = 'test friends only post',
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 0)
   
@@ -181,7 +181,7 @@ class StreamAPITest(TestCase):
       visibility = 'PRIVATE',
       description = 'One way friendship test',
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 0)
     
@@ -195,7 +195,7 @@ class StreamAPITest(TestCase):
       visibility='PUBLIC',
       description='test user and their own post'
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 1)
     self.assertEqual(response.json()['src'][0]['title'], 'My Public Post For Me')
@@ -210,7 +210,7 @@ class StreamAPITest(TestCase):
       visibility='PRIVATE',
       description='test for friends only entries i can see for meself'
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 1)
     self.assertEqual(response.json()['src'][0]['title'], 'My Private Post')
@@ -225,7 +225,7 @@ class StreamAPITest(TestCase):
       visibility='UNLISTED',
       description='test for meself unlisted'
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 1)
     self.assertEqual(response.json()['src'][0]['title'], 'My Unlisted Post for meself')
@@ -241,7 +241,7 @@ class StreamAPITest(TestCase):
       visibility='DELETED',
       description='test deleted post'
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 0)
 
@@ -255,7 +255,7 @@ class StreamAPITest(TestCase):
           visibility='DELETED',
           description='test author deleted entry'
       )
-      response = self.client.get('/munch/api/stream/')
+      response = self.client.get('/api/stream/')
       self.assertEqual(response.status_code, 200)
       self.assertEqual(len(response.json()['src']), 0)
 
@@ -279,7 +279,7 @@ class StreamAPITest(TestCase):
       description='test',
       published=timezone.now()
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     entries = response.json()['src']
     self.assertEqual(len(entries), 2)
@@ -303,7 +303,7 @@ class StreamAPITest(TestCase):
     entry.content = 'Updated content'
     entry.save()
 
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     entries = response.json()['src']
     self.assertEqual(len(entries), 1)
@@ -329,7 +329,7 @@ class StreamAPITest(TestCase):
         visibility='UNLISTED',
         description='test follower sees unlisted'
     )
-    response = self.client.get('/munch/api/stream/')
+    response = self.client.get('/api/stream/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(len(response.json()['src']), 1)
     self.assertEqual(response.json()['src'][0]['title'], 'A message to all of you my awesome followers')
@@ -354,7 +354,7 @@ class StreamAPITest(TestCase):
           visibility='PRIVATE',
           description='test entry. friend sees private entry'
       )
-      response = self.client.get('/munch/api/stream/')
+      response = self.client.get('/api/stream/')
       self.assertEqual(response.status_code, 200)
       self.assertEqual(len(response.json()['src']), 1)
       self.assertEqual(response.json()['src'][0]['title'], 'Private Post by Friend TEST')

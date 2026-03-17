@@ -96,7 +96,7 @@ def stream(request):
 @login_required
 def stream_api(request):
     """
-    Purpose: This function runs whenever some user peeps /munch/stream
+    Purpose: This function runs whenever some user peeps /stream
     Args:
         request: HTTP GET req from user
 

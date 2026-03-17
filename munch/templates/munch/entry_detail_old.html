@@ -33,12 +33,12 @@
 
     <hr id="line">
     <div class="entry_buttons">
-        <button id="profile_button" onclick="window.location.href='/munch/authors/{{ entry.author.uuid }}/'">Go to Profile</button>
+        <button id="profile_button" onclick="window.location.href='/authors/{{ entry.author.uuid }}/'">Go to Profile</button>
         {% if request.user == entry.author %}
             <a href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}"><button id="edit_button" type="button">Edit</button></a>
             <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
             {% csrf_token %}
-            <button id="delete_button" type="submit" onclick="window.location.href='/munch/authors/{{ entry.author.uuid }}/'">Delete</button>
+            <button id="delete_button" type="submit" onclick="window.location.href='/authors/{{ entry.author.uuid }}/'">Delete</button>
             </form>
         {% endif %}
     </div>
