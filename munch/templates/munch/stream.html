@@ -4,6 +4,7 @@
 {% block links %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'munch/css/entry.css' %}">
+<link rel="stylesheet" href="{% static 'munch/css/stream.css' %}">
 {% endblock links %}
 
 {% block title %}
@@ -25,5 +26,14 @@ Stream
     {% empty %}
     <p>Nothing yet :3</p>
     {% endfor %} 
+</div>
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="?page={{ page|add:'-1' }}">Previous</a>
+    {% endif %}
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+        <a href="?page={{ page|add:'1' }}">Next</a>
+    {% endif %}
 </div>
 {% endblock content-scrollable %}

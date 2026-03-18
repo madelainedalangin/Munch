@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const is_liked = button.dataset.liked === 'true';
 
       if (!is_liked) {
-        const response = await fetch(`/munch/api/authors/${user_serial}/liked/`, {
+        const response = await fetch(`/api/authors/${user_serial}/liked/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
           count_span.textContent = (parseInt(count_span.textContent) || 0) + 1;
         }
       } else {
-        const response = await fetch(`/munch/api/authors/${user_serial}/liked/`, {
+        const response = await fetch(`/api/authors/${user_serial}/liked/`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',

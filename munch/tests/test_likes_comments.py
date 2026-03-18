@@ -55,7 +55,7 @@ class CommentAPITest(TestCase):
 
   def test_get_entry_comments_public(self):
     response = self.client.get(
-      f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/comments/'
+      f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/comments/'
     )
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['type'], 'comments')
@@ -64,21 +64,21 @@ class CommentAPITest(TestCase):
   def test_get_entry_comments_private_as_stranger(self):
     self.client.login(username='stranger', password='justalurkerlol')
     response = self.client.get(
-      f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
+      f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
     )
     self.assertEqual(response.status_code, 403)
   
   def test_get_entry_comments_private_as_friend(self):
     self.client.login(username='RealFriend', password='imyouroppfr')
     response = self.client.get(
-        f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
+        f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
     )
     self.assertEqual(response.status_code, 200)
 
   def test_post_comment(self):
     self.client.login(username='RealFriend', password='imyouroppfr')
     response = self.client.post(
-        f'/munch/api/authors/{self.friend.uuid}/commented/',
+        f'/api/authors/{self.friend.uuid}/commented/',
         {
           'entry': self.public_entry.fqid,
           'comment': 'hecc yea! WE LOVE CARBS!'
@@ -90,13 +90,13 @@ class CommentAPITest(TestCase):
   def test_get_comment(self):
     self.client.login(username='RealFriend', password='imyouroppfr')
     response = self.client.get(
-      f'/munch/api/authors/{self.friend.uuid}/commented/{self.comment.serial}/'
+      f'/api/authors/{self.friend.uuid}/commented/{self.comment.serial}/'
     )
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['comment'], 'Pizza and garlic bread omnomnoms')
 
   def test_get_entry_comments_not_authenticated(self):
-    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/')
+    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/')
     self.assertEqual(response.status_code, 403)
 
   def test_get_comments_on_deleted_entry(self):
@@ -105,7 +105,7 @@ class CommentAPITest(TestCase):
       content='gone', visibility='DELETED'
     )
     response = self.client.get(
-      f'/munch/api/authors/{self.author.uuid}/entries/{deleted_entry.serial}/comments/'
+      f'/api/authors/{self.author.uuid}/entries/{deleted_entry.serial}/comments/'
     )
     self.assertEqual(response.status_code, 410)
 
@@ -116,7 +116,7 @@ class CommentAPITest(TestCase):
       )
       self.client.login(username='RealFriend', password='imyouroppfr')
       response = self.client.post(
-          f'/munch/api/authors/{self.friend.uuid}/commented/',
+          f'/api/authors/{self.friend.uuid}/commented/',
           {
             'entry': deleted_entry.fqid,
             'comment': 'hello? is it me youre looking for?? - Lionel Richie'
@@ -168,31 +168,31 @@ class LikeAPITest(TestCase):
     )
 
   def test_get_entry_likes_public(self):
-    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/likes/')
+    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/likes/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['type'], 'likes')
     self.assertEqual(response.data['count'], 1)
 
   def test_get_entry_likes_private_as_stranger(self):
     self.client.force_login(self.stranger)
-    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
+    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
     self.assertEqual(response.status_code, 403)
 
   def test_get_entry_likes_private_as_friend(self):
     self.client.login(username='Kerroppi', password='hellokittypochacco')
-    response = self.client.get(f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
+    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
     self.assertEqual(response.status_code, 200)
 
   def test_like_entry(self):
     self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
-    response = self.client.post(f'/munch/api/authors/{self.stranger.uuid}/liked/', {'object': self.public_entry.fqid})
+    response = self.client.post(f'/api/authors/{self.stranger.uuid}/liked/', {'object': self.public_entry.fqid})
     self.assertEqual(response.status_code, 201)
     self.assertTrue(Like.objects.filter(author=self.stranger, object_url=self.public_entry.fqid).exists())
 
   def test_like_comment(self):
     self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
     response = self.client.post(
-      f'/munch/api/authors/{self.stranger.uuid}/liked/',
+      f'/api/authors/{self.stranger.uuid}/liked/',
       {'object': self.comment.fqid}
     )
     self.assertEqual(response.status_code, 201)
@@ -201,14 +201,14 @@ class LikeAPITest(TestCase):
   def test_get_comment_likes(self):
     Like.objects.create(author=self.stranger, object_url=self.comment.fqid)
     response = self.client.get(
-      f'/munch/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{self.comment.serial}/likes/'
+      f'/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{self.comment.serial}/likes/'
     )
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['count'], 1)
 
   def test_get_like(self):
     response = self.client.get(
-      f'/munch/api/authors/{self.friend.uuid}/liked/{self.like.serial}/'
+      f'/api/authors/{self.friend.uuid}/liked/{self.like.serial}/'
     )
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['object'], self.public_entry.fqid)
@@ -216,18 +216,18 @@ class LikeAPITest(TestCase):
 
   def test_get_entry_likes_unauthenticated(self):
     response = self.client.get(
-      f'/munch/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/'
+      f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/'
     )
     self.assertEqual(response.status_code, 403)
 
   def test_like_spam(self):
       self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
       self.client.post(
-        f'/munch/api/authors/{self.stranger.uuid}/liked/',
+        f'/api/authors/{self.stranger.uuid}/liked/',
         {'object': self.public_entry.fqid}
       )
       response = self.client.post(
-        f'/munch/api/authors/{self.stranger.uuid}/liked/',
+        f'/api/authors/{self.stranger.uuid}/liked/',
         {'object': self.public_entry.fqid}
       )
       self.assertEqual(response.status_code, 400)

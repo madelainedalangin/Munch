@@ -88,7 +88,7 @@
                     const entrySerial = entry.dataset.entrySerial;
                     const like_count = entry.querySelector(".likes-count");
 
-                    fetch(`/munch/api/authors/${authorSerial}/entries/${entrySerial}/likes/`)
+                    fetch(`/api/authors/${authorSerial}/entries/${entrySerial}/likes/`)
                         .then(response => {
                             if (!response.ok) {
                                 throw new Error(`HTTP ${response.status}`);
@@ -123,7 +123,7 @@
                             const data = { object: entryFqid };
 
                             if (entry.dataset.liked === "false") {
-                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`, {
+                                fetch(`/api/authors/${currentAuthorSerial}/liked/`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -136,7 +136,7 @@
                                 .then(() => refreshLike(entry, img));
 
                             } else if (entry.dataset.liked === "true") {
-                                fetch(`/munch/api/authors/${currentAuthorSerial}/liked/`, {
+                                fetch(`/api/authors/${currentAuthorSerial}/liked/`, {
                                     method: 'DELETE',
                                     headers: {
                                         'Content-Type': 'application/json',
