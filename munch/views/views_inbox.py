@@ -20,23 +20,25 @@ def inbox(request, target_serial):
     payload_type = request.get('type')
     
     if payload_type == 'author':
-        pass
+        serializer = AuthorSerializer(data=request.data)
 
     elif payload_type == 'follow':
         serializer = FollowRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
     
     elif payload_type == 'entry':
-        pass
+        serializer = EntrySerializer(data=request.data)
 
     elif payload_type == 'comment':
-        pass
+        serializer = CommentSerializer(data=request.data)
+        
 
     elif payload_type == 'like':
-        pass
+        serializer = FollowRequestSerializer(data=request.data)
 
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+    if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
