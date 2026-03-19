@@ -1,14 +1,51 @@
 from django.db import models
 from datetime import datetime
 import uuid
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.conf import settings
 from django.utils import timezone
 import markdown
 
+# Class referenced from Claude, https://claude.ai/share/138e51b0-e514-4a40-bc76-b0d1263fdc8b, 03-19-2026
+# https://docs.djangoproject.com/en/5.2/topics/auth/customizing/#django.contrib.auth.models.AbstractBaseUser
+class AuthorManager(BaseUserManager):
+    def create_user(self, username, password=None, **extra_fields):
+
+        if not username:
+            raise ValueError('Users must have a username') 
+        
+        user = self.model(
+            username=username, 
+            **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+    
+    def create_superuser(self, username, password=None, **extra_fields):
+
+        extra_fields.setdefault('is_staff', True)   # for login access to admin
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_approved', True)
+
+        return self.create_user(username, password, **extra_fields)
+    
+    def create_user_stub(self, **extra_fields):
+        
+        user = self.model(**extra_fields)
+        user.set_unusable_password()        # prevents login
+        user.save(using=self._db)
+        
+        return user
+
 # The following class from Google, Gemini, "Django Author Identity", 02-28-2026
-class Author(AbstractUser):
-    # Primary Key is a URL (the FQID)
+# Claude, https://claude.ai/share/138e51b0-e514-4a40-bc76-b0d1263fdc8b, 03-19-2026
+# https://docs.djangoproject.com/en/5.2/topics/auth/customizing/#django.contrib.auth.models.AbstractBaseUser
+class Author(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField(max_length=200, unique=True, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models. BooleanField(default=False)
+
     id = models.URLField(primary_key=True, max_length=500)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     host = models.URLField(default=f"{settings.BACKEND_URL}/api/")
@@ -19,8 +56,9 @@ class Author(AbstractUser):
     is_approved = models.BooleanField(default=False)
     web = models.URLField(blank=True, unique=True)
 
+    objects = AuthorManager()
+    USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['displayName']
-
 
     def save(self, *args, **kwargs):
         # Ensure UUID is generated before we build the FQID

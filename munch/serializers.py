@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 from .models import *   # replace * with specific models once defined
 
@@ -16,6 +17,40 @@ class AuthorSerializer(serializers.ModelSerializer):
             'web': {'validators': []},
         }
 
+    def isLocal(self, host):
+        local_host = f"{settings.BACKEND_URL}/api"
+        return host.rstrip('/') == local_host
+    
+    def create(self, validated_data):
+        validated_data.pop('type', None)    # default=None so KeyError isn't raised
+
+        host = validated_data.get('host')
+        author_id = validated_data.get('id')
+        defaults={
+                'uuid': author_id.rsplit('/', 1)[-1],
+                'host': host,
+                'displayName': validated_data.get('displayName'),
+                'github': validated_data.get('github'),
+                'profileImage': validated_data.get('profileImage'),
+                'web': validated_data.get('web')
+        }     
+        
+        try:
+            author = Author.objects.get(id=author_id)
+            for field, value in defaults.items():       # update if author exists in database
+                setattr(author, field, value)
+            author.save
+
+        except Author.DoesNotExist:
+            if self.isLocal(host):
+                raise serializers.ValidationError(
+                    f"Local author {author_id} not found. "
+                )
+            else:
+                author = Author.objects.create_user_stub(**validated_data)
+
+        return author
+
 class FollowRequestSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='follow')
     summary = serializers.SerializerMethodField()
@@ -30,8 +65,8 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         actor_data = validated_data.pop('actor')
         object_data = validated_data.pop('object')
 
-        actor_author = self.update_or_create(actor_data)
-        object_author = self.update_or_create(object_data)
+        actor_author = AuthorSerializer().create(actor_data)
+        object_author = AuthorSerializer().create(object_data)
 
         return Follow.objects.create(
             actor=actor_author,
@@ -40,20 +75,6 @@ class FollowRequestSerializer(serializers.ModelSerializer):
     
     def get_summary(self, obj):
         return f"{obj.actor.displayName} wants to follow {obj.object.displayName}"
-    
-    def update_or_create(self, author_data):
-        author, _ = Author.objects.update_or_create(
-            id=author_data.get('id'),
-            defaults={
-                'uuid': author_data.get('id').rsplit('/', 1)[-1],
-                'host': author_data.get('host'),
-                'displayName': author_data.get('displayName'),
-                'github': author_data.get('github'),
-                'profileImage': author_data.get('profileImage'),
-                'web': author_data.get('web')
-            }
-        )
-        return author
 
 class LikeSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='like')
