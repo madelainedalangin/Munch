@@ -163,11 +163,3 @@ def get_follow_requests(request, author_serial):
     
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-@api_view(['POST'])
-def follow(request, target_serial):
-    serializer = FollowRequestSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(status=400, data=serializer.errors)
