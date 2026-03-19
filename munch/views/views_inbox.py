@@ -17,7 +17,7 @@ import re
 
 @api_view(['POST'])
 def inbox(request, target_serial):
-    payload_type = request.get('type')
+    payload_type = request.data.get('type')
 
     if payload_type == 'follow':
         serializer = FollowRequestSerializer(data=request.data)
@@ -35,6 +35,6 @@ def inbox(request, target_serial):
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
     if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
