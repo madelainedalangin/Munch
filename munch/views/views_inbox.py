@@ -18,11 +18,8 @@ import re
 @api_view(['POST'])
 def inbox(request, target_serial):
     payload_type = request.get('type')
-    
-    if payload_type == 'author':
-        serializer = AuthorSerializer(data=request.data)
 
-    elif payload_type == 'follow':
+    if payload_type == 'follow':
         serializer = FollowRequestSerializer(data=request.data)
     
     elif payload_type == 'entry':
@@ -30,7 +27,6 @@ def inbox(request, target_serial):
 
     elif payload_type == 'comment':
         serializer = CommentSerializer(data=request.data)
-        
 
     elif payload_type == 'like':
         serializer = FollowRequestSerializer(data=request.data)
