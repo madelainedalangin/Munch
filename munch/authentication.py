@@ -1,5 +1,4 @@
 import base64
-from django.utils import timezone
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from munch.models import Server
