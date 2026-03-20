@@ -1,21 +1,29 @@
 from django.conf import settings
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from munch.serializers import *
 from munch.models import *
+from munch.authentication import ServerBasicAuthentication
+from munch.permissions import IsAuthorizedServer
 
 # Authors API
 
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication, ServerBasicAuthentication])
+@permission_classes([IsAuthenticated | IsAuthorizedServer])
 def get_authors(request):
     authors = Author.objects.all()
     serializer = AuthorSerializer(authors, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication, ServerBasicAuthentication])
+@permission_classes([IsAuthenticated | IsAuthorizedServer])
 def get_authors_paginated(request):
     page = request.GET.get('page')
     size = request.GET.get('size')
@@ -37,13 +45,18 @@ def get_authors_paginated(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT'])
+@authentication_classes([SessionAuthentication, ServerBasicAuthentication])
 def get_author(request, author_id):
     id_type = 'FQID' if (author_id.find("http://") != -1) else 'serial'
+    fqid = None
 
-    if id_type == 'serial':
+    if id_type == 'serial' and IsAuthenticated().has_permission(request, None):
         fqid = f"{settings.BACKEND_URL}/api/authors/{author_id}"
-    else:
+    elif IsAuthorizedServer().has_permission(request, None):
         fqid = author_id
+
+    if fqid == None:
+        return Response(data={'error': 'Not authenticated'}, status=status.HTTP_403_FORBIDDEN)
     
     author = Author.objects.get(id=fqid)
     if author == None:
