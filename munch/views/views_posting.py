@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -10,6 +12,8 @@ from munch.serializers import *
 from munch.models import *
 from munch.forms import EntryForm
 from munch.views.views_utils import check_entry_visibility
+from munch.authentication import ServerBasicAuthentication
+from munch.permissions import IsAuthorizedServer
 
 import base64 #for image_entry api
 
@@ -169,8 +173,50 @@ def display_entry_by_serial(request, author_id, entry_serial):
 #     entry = get_object_or_404(Entry, fqid=entry_FQID)
 #     return render(request, "munch/entry_detail.html", {"entry": entry})
 
-# # Following entry functions deal with the given API functions
+@login_required
+def create_entry_UI(request, author_id):
+    '''
+    Purpose: Creates an entry through a filled out form from the user in the UI 
+
+    If user fills the form correctly, it will save as an entry in the database
+    '''
+    if not request.user.is_authenticated:
+        return redirect('munch:login')
+
+    if request.method == 'POST':
+        form = EntryForm(request.POST, request.FILES) 
+        if form.is_valid():
+            entry = form.save(commit=False)
+            entry.author = request.user
+            
+            image_file = request.FILES.get('image')
+            if image_file:
+                image_data = image_file.read()
+                entry.content = base64.b64encode(image_data).decode('utf-8')
+                entry.contentType = image_file.content_type + ';base64'
+            
+            entry.save()
+            return redirect('munch:display_entry_by_serial',
+                            author_id=entry.author.uuid,
+                            entry_serial=entry.serial)
+    else:
+        form = EntryForm()
+        
+    return render(
+        request, 
+        'munch/create_entry.html', 
+        {
+            'form': form, 
+            'title':"Create Entry", 
+            'button_title':"Create Entry"
+        })
+
+
+# Entries API
+
 @api_view(['GET', 'DELETE', 'PUT'])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer, IsAuthenticated])
 def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
 
@@ -183,6 +229,9 @@ def manage_entry_by_serial(request, author_id, entry_serial):
         return Response(serializer.data)
     
     elif request.method == 'PUT':
+        if not IsAuthenticated().has_permission(request, None):
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
+
         entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
@@ -197,6 +246,9 @@ def manage_entry_by_serial(request, author_id, entry_serial):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif request.method == 'DELETE':
+        if not IsAuthenticated().has_permission(request, None):
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
+
         entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
         if not request.user.is_authenticated or request.user != entry.author:
             return Response(
@@ -212,6 +264,8 @@ def manage_entry_by_serial(request, author_id, entry_serial):
         return Response({"detail": "Entry successfully deleted."},status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def manage_entry_by_FQID(request, entry_FQID):
     entry = get_object_or_404(Entry, fqid=entry_FQID)
 
@@ -223,6 +277,8 @@ def manage_entry_by_FQID(request, entry_FQID):
     return Response(serializer.data,status=status.HTTP_200_OK)
 
 @api_view(['GET','POST'])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer, IsAuthenticated])
 def create_entry(request, author_id):
     """
     GET api/authors/{AUTHOR_SERIAL}/entries/
@@ -283,6 +339,8 @@ def create_entry(request, author_id):
                         }, status=status.HTTP_200_OK)
     
     elif request.method == "POST":
+        if not IsAuthenticated().has_permission(request, None):
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
 
         if not request.user.is_authenticated:
             return Response(
@@ -303,10 +361,12 @@ def create_entry(request, author_id):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-# Entries API
 
 # Image Entries API
+
 @api_view(['GET'])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer, IsAuthenticated])
 def get_image_by_serial(request, author_serial, entry_serial):
     #Entry model contentType is plain CharField
     #lookup entry by serial
@@ -336,6 +396,8 @@ def get_image_by_serial(request, author_serial, entry_serial):
     return HttpResponse(image_data, content_type=entry_content_type)
 
 @api_view(['GET'])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer, IsAuthenticated])
 def get_image_by_fqid(request, entry_fqid):
     """similar to serial version except we are using entry fqid"""
     #Entry model contentType is plain CharField
@@ -364,41 +426,3 @@ def get_image_by_fqid(request, entry_fqid):
     #after split: reinhardt_image/png
     entry_content_type = entry.contentType.split(";")[0]
     return HttpResponse(image_data, content_type=entry_content_type)
-
-@login_required
-def create_entry_UI(request, author_id):
-    '''
-    Purpose: Creates an entry through a filled out form from the user in the UI 
-
-    If user fills the form correctly, it will save as an entry in the database
-    '''
-    if not request.user.is_authenticated:
-        return redirect('munch:login')
-
-    if request.method == 'POST':
-        form = EntryForm(request.POST, request.FILES) 
-        if form.is_valid():
-            entry = form.save(commit=False)
-            entry.author = request.user
-            
-            image_file = request.FILES.get('image')
-            if image_file:
-                image_data = image_file.read()
-                entry.content = base64.b64encode(image_data).decode('utf-8')
-                entry.contentType = image_file.content_type + ';base64'
-            
-            entry.save()
-            return redirect('munch:display_entry_by_serial',
-                            author_id=entry.author.uuid,
-                            entry_serial=entry.serial)
-    else:
-        form = EntryForm()
-        
-    return render(
-        request, 
-        'munch/create_entry.html', 
-        {
-            'form': form, 
-            'title':"Create Entry", 
-            'button_title':"Create Entry"
-        })
