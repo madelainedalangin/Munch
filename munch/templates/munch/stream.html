@@ -20,6 +20,26 @@ Stream
 {% endblock content-bar %}
 
 {% block content-scrollable %} 
+<style>
+        .entry-content {
+            overflow-wrap: break-word;
+        }
+
+        .entry-content.collapsed {
+            max-height: 200px;
+            overflow: hidden;
+        }
+
+        .entry-content.expanded {
+            max-height: none;
+            overflow: visible;
+        }
+
+        .entry-card {
+            max-width: 700px;
+        }
+</style>
+
 <div class="item-list">
     {% for entry in entries %}
     {% include "munch/entry.html" with entry=entry %}
@@ -36,4 +56,33 @@ Stream
         <a href="?page={{ page|add:'1' }}">Next</a>
     {% endif %}
 </div>
+<script>
+    // function partially generated from chatGPT, 03.29.26
+    window.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".entry-card").forEach((entry) => {
+            const content = entry.querySelector(".entry-content");
+            const readButton = entry.querySelector(".read-more");
+
+            if (!content || !readButton) return;
+
+            requestAnimationFrame(() => {
+                if (content.scrollHeight > 200) {
+                    readButton.hidden = false;
+                }
+            });
+
+            readButton.addEventListener("click", () => {
+                if (content.classList.contains("collapsed")) {
+                    content.classList.remove("collapsed");
+                    content.classList.add("expanded");
+                    readButton.textContent = "Read less";
+                } else {
+                    content.classList.remove("expanded");
+                    content.classList.add("collapsed");
+                    readButton.textContent = "Read more";
+                }
+            });
+        });
+    });
+</script>
 {% endblock content-scrollable %}
