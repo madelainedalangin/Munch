@@ -1,13 +1,17 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 from munch.serializers import *
 from munch.models import *
+from munch.authentication import ServerBasicAuthentication
+from munch.permissions import IsAuthorizedServer
 
 import requests
 import re
@@ -39,10 +43,12 @@ def list_follow_requests(request, author_uuid):
     }
     return render(request, 'munch/follow_request_list.html', context)
 
+
 # Following API
 
-@login_required
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def get_following(request, author_serial):
     author = Author.objects.get(uuid=author_serial)
 
@@ -56,8 +62,9 @@ def get_following(request, author_serial):
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
-@login_required
 @api_view(['GET', 'DELETE', 'PUT'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def manage_following(request, author_serial, target_FQID):
     follow_entry = Follow.objects.filter(actor__uuid=author_serial, object__id=target_FQID).first()
 
@@ -114,10 +121,12 @@ def manage_following(request, author_serial, target_FQID):
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
 # Followers API
 
-@login_required
 @api_view(['GET', 'DELETE', 'PUT'])
+@authentication_classes([SessionAuthentication, ServerBasicAuthentication])
+@permission_classes([IsAuthenticated | IsAuthorizedServer])
 def manage_follower(request, author_serial, target_FQID):
     
     if request.method == 'GET':
@@ -129,7 +138,10 @@ def manage_follower(request, author_serial, target_FQID):
         serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
 
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
+        if not IsAuthenticated().has_permission(request, None):
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
+
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
         if follow_entry != None:
             follow_entry.delete()
@@ -137,8 +149,10 @@ def manage_follower(request, author_serial, target_FQID):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     elif request.method == 'PUT':
+        if not IsAuthenticated().has_permission(request, None):
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
+        
         follow_entry = Follow.objects.filter(actor__id=target_FQID, object__uuid=author_serial).first()
-
         if follow_entry == None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
@@ -148,9 +162,12 @@ def manage_follower(request, author_serial, target_FQID):
         serializer = FollowRequestSerializer(follow_entry)
         return Response(serializer.data)
 
+
 # Follow Request API
 
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def get_follow_requests(request, author_serial):
     author = Author.objects.get(id=f"{settings.BACKEND_URL}/api/authors/{author_serial}")
 
