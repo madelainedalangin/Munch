@@ -7,9 +7,6 @@ from munch.models import *
 from munch.authentication import ServerBasicAuthentication
 from munch.permissions import IsAuthorizedServer
 
-import requests
-import re
-
 
 # Inbox API
 
