@@ -56,7 +56,7 @@ def get_author(request, author_id):
         fqid = author_id
 
     if fqid == None:
-        return Response(data={'error': 'Not authenticated'}, status=status.HTTP_403_FORBIDDEN)
+        return Response(data={'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
     
     author = Author.objects.get(id=fqid)
     if author == None:
