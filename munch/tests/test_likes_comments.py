@@ -3,6 +3,7 @@ from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APIClient
 from munch.models import Author, Entry, Comment, Like, Follow
+from urllib.parse import quote
 
 ##################################
 # COMMENTS/LIKES USER STORY TEST #
@@ -201,7 +202,7 @@ class LikeAPITest(TestCase):
     Like.objects.create(author=self.stranger, object_url=self.comment.fqid)
     self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
     response = self.client.get(
-      f'/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{self.comment.serial}/likes/'
+      f'/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{quote(self.comment.fqid, safe="")}/likes/'
     )
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['count'], 1)

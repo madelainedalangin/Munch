@@ -148,8 +148,6 @@ def get_comment_likes(request, author_serial, entry_serial, comment_fqid):
     
     
     comment = Comment.objects.filter(entry=entry, fqid=comment_fqid).first()
-    if not comment:
-        comment = get_object_or_404(Comment, entry=entry, serial=comment_fqid)
     
     visibility_error = check_entry_visibility(request, comment.entry)
     if visibility_error:
