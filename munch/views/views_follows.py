@@ -114,10 +114,16 @@ def manage_following(request, author_serial, target_FQID):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         else:
-            response = requests.post(f"{target_service}{target_serial}/inbox", json=serializer.data)
+            response = requests.post(f"{target_service}{target_serial}/inbox", auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=serializer.data, headers={'Origin':settings.BACKEND_URL})
 
             if response.status_code == 201:
+
+                # assume accepted
+                follow_entry.status = 'accepted'
+                follow_entry.save()
+
                 return Response(response.json(), status=status.HTTP_201_CREATED)
+            
             else:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
