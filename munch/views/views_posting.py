@@ -216,7 +216,7 @@ def create_entry_UI(request, author_id):
 
 @api_view(['GET', 'DELETE', 'PUT'])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def manage_entry_by_serial(request, author_id, entry_serial):
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
 
@@ -278,7 +278,7 @@ def manage_entry_by_FQID(request, entry_FQID):
 
 @api_view(['GET','POST'])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def create_entry(request, author_id):
     """
     GET api/authors/{AUTHOR_SERIAL}/entries/
@@ -366,7 +366,7 @@ def create_entry(request, author_id):
 
 @api_view(['GET'])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_image_by_serial(request, author_serial, entry_serial):
     #Entry model contentType is plain CharField
     #lookup entry by serial
@@ -397,7 +397,7 @@ def get_image_by_serial(request, author_serial, entry_serial):
 
 @api_view(['GET'])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_image_by_fqid(request, entry_fqid):
     """similar to serial version except we are using entry fqid"""
     #Entry model contentType is plain CharField

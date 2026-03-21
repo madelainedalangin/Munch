@@ -22,7 +22,7 @@ import requests
 
 @api_view(["GET"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_entry_likes(request, author_serial, entry_serial):
     """
     GET api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/likes/
@@ -121,7 +121,7 @@ def get_entry_likes_by_fqid(request, entry_fqid):
 
 @api_view(["GET"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_comment_likes(request, author_serial, entry_serial, comment_serial):
     """
     GET api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_SERIAL}/likes/
@@ -183,7 +183,7 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
 
 @api_view(["GET", "POST", "DELETE"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def liked(request, author_serial):
     """
     This function handles entries and comments that have been liked.
@@ -263,7 +263,7 @@ def liked(request, author_serial):
 
 @api_view(["GET"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_like_by_serial(request, author_serial, like_serial):
     """
     This function gets a single like by the author's serial and like's serial.
@@ -315,7 +315,7 @@ def get_like_by_fqid(request, like_fqid):
 
 @api_view(["GET"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_comment_by_serial(request, author_serial, comment_serial):
     """
     This function gets a comment by the author's serial and comment's serial.
@@ -363,7 +363,7 @@ def get_comment_by_fqid(request, comment_fqid):
     
 @api_view(["GET"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_entry_comments_by_serial(request, author_serial, entry_serial):
     """
     This function is getting comments from an entry using the entry's serial 
@@ -400,7 +400,7 @@ def get_entry_comments_by_serial(request, author_serial, entry_serial):
     
 @api_view(["GET"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_entry_comments_by_fqid(request, entry_fqid):
     # Source: https://stackoverflow.com/questions/71771838/python-urllib-url-quote-unquote-issue
     # Date Accessed: March 15, 2026
@@ -440,7 +440,7 @@ def get_entry_comments_by_fqid(request, entry_fqid):
 # Commented API
 @api_view(["GET", "POST"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
-@permission_classes([IsAuthorizedServer, IsAuthenticated])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def commented(request, author_serial):
     """
     THis function gets all comments on an entry using the author's serial and 
