@@ -63,7 +63,7 @@ def get_stream_entries(user):
     #This answers the question of, what posts/entries should a user currently
     #logged in should see?
     entries = Entry.objects.filter(
-        Q(author__in=user_following, visibility='PUBLIC') | 
+        Q(visibility='PUBLIC') | 
         Q(author__in=user_following, visibility='UNLISTED') |
         Q(author__in=user_friends, visibility='PRIVATE') |
         Q(author = user)
@@ -76,6 +76,16 @@ def get_stream_entries(user):
 @login_required
 def stream(request):
     entries = get_stream_entries(request.user)
+    
+    # Sourced from get_stream_entries function
+    # Only show entries of users followed
+    user_following_ids = Follow.objects.filter(
+        actor=request.user, 
+        status='accepted'
+    ).values_list('object', flat=True)
+    entries = entries.filter(
+        Q(author__in=user_following_ids) | Q(author=request.user)
+    )
     
     page = int(request.GET.get('page', 1))
     size = 10
