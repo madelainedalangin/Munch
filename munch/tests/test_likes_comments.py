@@ -52,6 +52,7 @@ class CommentAPITest(TestCase):
       'author_serial': self.author.uuid,
       'entry_serial': self.public_entry.serial
     })
+    self.client.login(username=self.author.username, password='notOscarWilde')
     response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['type'], 'comments')
@@ -100,6 +101,7 @@ class CommentAPITest(TestCase):
       author=self.author, title='Deleted Entry',
       content='gone', visibility='DELETED'
     )
+    self.client.login(username=self.author.username, password='notOscarWilde')
     response = self.client.get(
       f'/api/authors/{self.author.uuid}/entries/{deleted_entry.serial}/comments/'
     )
@@ -164,6 +166,7 @@ class LikeAPITest(TestCase):
     )
 
   def test_get_entry_likes_public(self):
+    self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
     response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/likes/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['type'], 'likes')
@@ -196,6 +199,7 @@ class LikeAPITest(TestCase):
 
   def test_get_comment_likes(self):
     Like.objects.create(author=self.stranger, object_url=self.comment.fqid)
+    self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
     response = self.client.get(
       f'/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{self.comment.serial}/likes/'
     )
@@ -203,6 +207,7 @@ class LikeAPITest(TestCase):
     self.assertEqual(response.data['count'], 1)
 
   def test_get_like(self):
+    self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
     response = self.client.get(
       f'/api/authors/{self.friend.uuid}/liked/{self.like.serial}/'
     )
