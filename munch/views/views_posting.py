@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
@@ -47,6 +48,10 @@ def edit_entry(request, author_id, entry_serial):
     User will be taken to a page with the entry details already filled in which they can modify and save once they are done
     '''
     entry = get_object_or_404(Entry, author__uuid=author_id, serial=entry_serial)
+
+    # Disable editing for github entries
+    if entry.github_id:
+        raise PermissionDenied("GitHub entries cannot be edited.")
     
     # TODO - cancel button
     # TODO - if the filled form is invalid, redirct user back to entry details and show error
