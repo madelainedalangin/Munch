@@ -1,21 +1,18 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.conf import settings
-
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 
 from munch.serializers import *
 from munch.models import *
-
-import requests
-import re
+from munch.authentication import ServerBasicAuthentication
+from munch.permissions import IsAuthorizedServer
 
 
 # Inbox API
 
 @api_view(['POST'])
+@authentication_classes([ServerBasicAuthentication])
+@permission_classes([IsAuthorizedServer])
 def inbox(request, target_serial):
     payload_type = request.data.get('type')
 

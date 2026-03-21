@@ -3,19 +3,26 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db import IntegrityError # for liked function
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 from munch.serializers import *
 from munch.models import *
 from munch.views.views_utils import check_entry_visibility
+from munch.authentication import ServerBasicAuthentication
+from munch.permissions import IsAuthorizedServer
 
 import requests
+
 
 # Likes API
 
 @api_view(["GET"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_entry_likes(request, author_serial, entry_serial):
     """
     GET api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/likes/
@@ -73,6 +80,8 @@ def get_entry_likes(request, author_serial, entry_serial):
         })
 
 @api_view(["GET"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def get_entry_likes_by_fqid(request, entry_fqid):
     # Source: https://stackoverflow.com/questions/71771838/python-urllib-url-quote-unquote-issue
     # Date Accessed: March 15, 2026
@@ -111,6 +120,8 @@ def get_entry_likes_by_fqid(request, entry_fqid):
         })
 
 @api_view(["GET"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_comment_likes(request, author_serial, entry_serial, comment_serial):
     """
     GET api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_SERIAL}/likes/
@@ -167,53 +178,12 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
         "src": serializer.data,
         })
 
-@api_view(["GET"])
-def get_like_by_serial(request, author_serial, like_serial):
-    """
-    This function gets a single like by the author's serial and like's serial.
-
-    Args:
-        request: HTTP GET request from the client
-        author_serial: UUID of the like's author
-        like_serial: UUID of the like being queried
-
-    Returns:
-        Response: A single like object. Returns 404 if not found.
-    """
-    like = get_object_or_404(Like, author__uuid=author_serial, serial=like_serial)
-    serializer = LikeSerializer(like)
-    return Response(serializer.data)
-
-@api_view(["GET"])
-def get_like_by_fqid(request, like_fqid):
-    """
-    This function gets a single like by its FQID (whether entry or comment).
-    It also has visibility checks of the liked entry or comment.
-
-    Args:
-        request: HTTP GET request from the client
-        like_fqid: Full URL identifier of the like
-
-    Returns:
-        Response: A single like object. Returns 403 if unauthorized,
-                410 if the liked entry is deleted, 404 if not found.
-    """
-    like = get_object_or_404(Like, fqid=like_fqid)
-    
-    if "entries" in like.object_url:
-        entry = get_object_or_404(Entry, fqid=like.object_url)
-        visibility_error = check_entry_visibility(request, entry)
-    else:
-        comment = get_object_or_404(Comment, fqid=like.object_url)
-        visibility_error = check_entry_visibility(request, comment.entry)
-    if visibility_error:
-        return visibility_error
-    
-    serializer = LikeSerializer(like)
-    return Response(serializer.data)
 
 # Liked API
+
 @api_view(["GET", "POST", "DELETE"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def liked(request, author_serial):
     """
     This function handles entries and comments that have been liked.
@@ -291,9 +261,61 @@ def liked(request, author_serial):
         like.delete()
         return Response({"detail": "Like successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
 
+@api_view(["GET"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
+def get_like_by_serial(request, author_serial, like_serial):
+    """
+    This function gets a single like by the author's serial and like's serial.
+
+    Args:
+        request: HTTP GET request from the client
+        author_serial: UUID of the like's author
+        like_serial: UUID of the like being queried
+
+    Returns:
+        Response: A single like object. Returns 404 if not found.
+    """
+    like = get_object_or_404(Like, author__uuid=author_serial, serial=like_serial)
+    serializer = LikeSerializer(like)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def get_like_by_fqid(request, like_fqid):
+    """
+    This function gets a single like by its FQID (whether entry or comment).
+    It also has visibility checks of the liked entry or comment.
+
+    Args:
+        request: HTTP GET request from the client
+        like_fqid: Full URL identifier of the like
+
+    Returns:
+        Response: A single like object. Returns 403 if unauthorized,
+                410 if the liked entry is deleted, 404 if not found.
+    """
+    like = get_object_or_404(Like, fqid=like_fqid)
+    
+    if "entries" in like.object_url:
+        entry = get_object_or_404(Entry, fqid=like.object_url)
+        visibility_error = check_entry_visibility(request, entry)
+    else:
+        comment = get_object_or_404(Comment, fqid=like.object_url)
+        visibility_error = check_entry_visibility(request, comment.entry)
+    if visibility_error:
+        return visibility_error
+    
+    serializer = LikeSerializer(like)
+    return Response(serializer.data)
+
+
 # Comments API
 
 @api_view(["GET"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_comment_by_serial(request, author_serial, comment_serial):
     """
     This function gets a comment by the author's serial and comment's serial.
@@ -317,6 +339,8 @@ def get_comment_by_serial(request, author_serial, comment_serial):
     return Response(serializer.data)
 
 @api_view(["GET"])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def get_comment_by_fqid(request, comment_fqid):
     """
     This function gets a single comment using its fqid
@@ -338,6 +362,8 @@ def get_comment_by_fqid(request, comment_fqid):
     return Response(serializer.data)
     
 @api_view(["GET"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_entry_comments_by_serial(request, author_serial, entry_serial):
     """
     This function is getting comments from an entry using the entry's serial 
@@ -373,6 +399,8 @@ def get_entry_comments_by_serial(request, author_serial, entry_serial):
     })
     
 @api_view(["GET"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_entry_comments_by_fqid(request, entry_fqid):
     # Source: https://stackoverflow.com/questions/71771838/python-urllib-url-quote-unquote-issue
     # Date Accessed: March 15, 2026
@@ -411,6 +439,8 @@ def get_entry_comments_by_fqid(request, entry_fqid):
 
 # Commented API
 @api_view(["GET", "POST"])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def commented(request, author_serial):
     """
     THis function gets all comments on an entry using the author's serial and 
@@ -454,6 +484,9 @@ def commented(request, author_serial):
         })
         
     elif request.method == "POST":
+        if not IsAuthenticated().has_permission(request, None):
+            return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
+
         entry_url = request.data.get("entry")
         comment_text = request.data.get("comment")
         

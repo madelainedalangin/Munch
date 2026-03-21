@@ -5,6 +5,7 @@ from munch.models import *
 from munch.serializers import *
 
 from unittest import skip
+import base64
 
 # INBOX TEST CASES
 
@@ -31,16 +32,38 @@ class InboxAPITest(APITestCase):
             'web': 'http://remotenode.herokuapp.com/authors/2051213d-d4b4-4cf9-ba57-f2922b39dfa9'
         }
 
+        cls.remote_server_approved = Server.objects.create(
+            url = 'http://remotenode.herokuapp.com',
+            username = 'remote',
+            password = '123',
+            is_approved = True
+        )
+
         cls.url = reverse('munch:inbox', kwargs={'target_serial': cls.alice_local.uuid})
 
-    def test_post_follow(self):
+    def basic_auth_header(self, username, password):
+        login = base64.b64encode(
+            f"{username}:{password}".encode('utf-8')
+        ).decode('utf-8')
 
+        return f"Basic {login}"
+
+    def test_post_follow(self):
+        
         remote_api_follow = {
             'type': 'follow',
             'summary': 'Bob wants to follow Alice',
             'actor': self.bob_remote_data,
             'object': AuthorSerializer(self.alice_local).data
         }
+
+        self.client.credentials(
+            HTTP_ORIGIN = self.remote_server_approved.url,
+            HTTP_AUTHORIZATION = self.basic_auth_header(
+                self.remote_server_approved.username, 
+                self.remote_server_approved.password
+            )
+        )
 
         response = self.client.post(self.url, data=remote_api_follow, format='json')
 

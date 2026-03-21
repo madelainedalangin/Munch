@@ -1,14 +1,8 @@
-from django.test import TestCase, Client
-from munch.models import Author, Entry, Comment, Like, Follow
+from django.test import TestCase
 from django.conf import settings
-from django.utils import timezone
-from datetime import timedelta
-import uuid
 from django.urls import reverse
-from unittest.mock import patch
-from munch.utils import sync_github_activity
 from rest_framework.test import APIClient
-import unittest
+from munch.models import Author, Entry, Comment, Like, Follow
 
 ##################################
 # COMMENTS/LIKES USER STORY TEST #
@@ -54,9 +48,12 @@ class CommentAPITest(TestCase):
     )
 
   def test_get_entry_comments_public(self):
-    response = self.client.get(
-      f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/comments/'
-    )
+    url = reverse('munch:get_entry_comments_by_serial', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.public_entry.serial
+    })
+    self.client.login(username=self.author.username, password='notOscarWilde')
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['type'], 'comments')
     self.assertEqual(response.data['count'], 1)
@@ -104,6 +101,7 @@ class CommentAPITest(TestCase):
       author=self.author, title='Deleted Entry',
       content='gone', visibility='DELETED'
     )
+    self.client.login(username=self.author.username, password='notOscarWilde')
     response = self.client.get(
       f'/api/authors/{self.author.uuid}/entries/{deleted_entry.serial}/comments/'
     )
@@ -168,6 +166,7 @@ class LikeAPITest(TestCase):
     )
 
   def test_get_entry_likes_public(self):
+    self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
     response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/likes/')
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['type'], 'likes')
@@ -200,6 +199,7 @@ class LikeAPITest(TestCase):
 
   def test_get_comment_likes(self):
     Like.objects.create(author=self.stranger, object_url=self.comment.fqid)
+    self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
     response = self.client.get(
       f'/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{self.comment.serial}/likes/'
     )
@@ -207,6 +207,7 @@ class LikeAPITest(TestCase):
     self.assertEqual(response.data['count'], 1)
 
   def test_get_like(self):
+    self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
     response = self.client.get(
       f'/api/authors/{self.friend.uuid}/liked/{self.like.serial}/'
     )

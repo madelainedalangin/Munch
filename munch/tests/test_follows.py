@@ -41,7 +41,7 @@ class GetFollowingTestCase(APITestCase):
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         
     def test_no_following(self):
         self.client.login(username='alice', password='123')
@@ -94,13 +94,13 @@ class ManageFollowingTestCase(APITestCase):
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         response = self.client.put(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post(self):
         self.client.login(username='alice', password='123')
@@ -204,13 +204,13 @@ class ManageFollowerTestCase(APITestCase):
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         response = self.client.put(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_post(self):
         self.client.login(username='alice', password='123')
