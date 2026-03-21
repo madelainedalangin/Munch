@@ -425,6 +425,7 @@ class ImageEntryAPITest(TestCase):
     )
 
   def test_get_public_image_by_serial(self):
+    self.client.login(username=self.author.username, password='meowUWUniao8')
     response = self.client.get(
         f'/api/authors/{self.author.uuid}/entries/{self.public_image_entry.serial}/image/'
     )
@@ -432,6 +433,7 @@ class ImageEntryAPITest(TestCase):
     self.assertEqual(response['Content-Type'], 'image/png')
 
   def test_get_image_not_found_for_text_entry(self):
+    self.client.login(username=self.author.username, password='meowUWUniao8')
     response = self.client.get(
         f'/api/authors/{self.author.uuid}/entries/{self.text_entry.serial}/image/'
     )
@@ -452,6 +454,7 @@ class ImageEntryAPITest(TestCase):
     self.assertEqual(response.status_code, 200)
 
   def test_get_deleted_image(self):
+    self.client.login(username=self.author.username, password='meowUWUniao8')
     response = self.client.get(
         f'/api/authors/{self.author.uuid}/entries/{self.deleted_image_entry.serial}/image/'
     )
