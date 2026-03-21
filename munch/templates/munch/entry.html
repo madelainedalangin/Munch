@@ -37,7 +37,9 @@
         <div class="dropdown">
             <button class="dropdown__toggle">...</button>  
             <div class="dropdown__content">
+                {% if not entry.github_id %}
                 <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
+                {% endif %}
                 <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
                     {% csrf_token %}
                     <button id="delete_button" type="submit">Delete</button>
