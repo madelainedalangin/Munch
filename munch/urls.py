@@ -66,23 +66,25 @@ urlpatterns = [
     # Comments API
     path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/', views.get_entry_comments_by_serial, name='get_entry_comments_by_serial'),
     path('api/entries/<str:entry_fqid>/comments/', views.get_entry_comments_by_fqid, name='get_entry_comments_by_fqid'),
-    # TODO ://service/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{REMOTE_COMMENT_FQID} 
+    #need to be before get_comment_by_entry_fqid because <path:comment_fqid>/  matches {serial}/likes before Django even peeps da likes URL.
+    path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/<path:comment_fqid>/likes/', views.get_comment_likes, name='get_comment_likes'),
+    path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/<path:comment_fqid>/', views.get_comment_by_fqid, name='get_comment_by_entry_fqid'),
 
-    # Commented API
+# Commented API
     path('api/authors/<str:author_serial>/commented/', views.commented, name='commented'),
-    # TODO path('api/authors/{AUTHOR_FQID}/commented', views., name=''),
     path('api/authors/<str:author_serial>/commented/<str:comment_serial>/', views.get_comment_by_serial, name='get_comment_by_serial'),
+    path('api/authors/<path:author_serial>/commented/', views.commented, name='commented_by_fqid'),
     path('api/commented/<path:comment_fqid>/', views.get_comment_by_fqid, name='get_comment_by_fqid'),
+
 
     # Likes API
     path('api/authors/<str:author_serial>/entries/<str:entry_serial>/likes/', views.get_entry_likes, name='get_entry_likes'),
     path('api/entries/<str:entry_fqid>/likes/', views.get_entry_likes_by_fqid, name='get_entry_likes_by_fqid'),
-    path('api/authors/<str:author_serial>/entries/<str:entry_serial>/comments/<str:comment_serial>/likes/', views.get_comment_likes, name='get_comment_likes'),
-    
+
     # Liked API
     path('api/authors/<str:author_serial>/liked/', views.liked, name='liked'),
     path('api/authors/<str:author_serial>/liked/<str:like_serial>/', views.get_like_by_serial, name='get_like_by_serial'),
-    # TODO path('api/authors/{AUTHOR_FQID}/liked', views., name=''),
+    path('api/authors/<path:author_serial>/liked/', views.liked, name='liked_by_fqid'),
     path('api/liked/<path:like_fqid>/', views.get_like_by_fqid, name='get_like_by_fqid'),
 
     # Authors API

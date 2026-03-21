@@ -16,6 +16,7 @@ from munch.authentication import ServerBasicAuthentication
 from munch.permissions import IsAuthorizedServer
 
 import requests
+from urllib.parse import unquote
 
 
 # Likes API
@@ -90,7 +91,7 @@ def get_entry_likes_by_fqid(request, entry_fqid):
     #unquote converts it back to http
     #without it, django gonna look for an entry with a %-encoded url and that doesnt
     #match anything in our db
-    from urllib.parse import unquote
+    
     entry_fqid = unquote(entry_fqid)
     
     entry = get_object_or_404(Entry, fqid=entry_fqid)
@@ -122,9 +123,9 @@ def get_entry_likes_by_fqid(request, entry_fqid):
 @api_view(["GET"])
 @authentication_classes([ServerBasicAuthentication, SessionAuthentication])
 @permission_classes([IsAuthorizedServer | IsAuthenticated])
-def get_comment_likes(request, author_serial, entry_serial, comment_serial):
+def get_comment_likes(request, author_serial, entry_serial, comment_fqid):
     """
-    GET api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_SERIAL}/likes/
+    GET api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_FQID}/likes/
     This function gets likes on a specific comment. The likes is a list and is
     paginated.
     
@@ -134,7 +135,7 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
         request: HTTP GET request from the client
         author_serial: UUID of the comment's author
         entry_serial: UUID of the parent entry
-        comment_serial: UUID of the comment being queried
+        comment_fqid: FQID of the comment being queried
 
     Returns: 
         Response: A paginated likes object containing type, web, id,
@@ -142,16 +143,15 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
         
         - Returns 403 if unauthorized, 410 if parent entry is deleted.
     """
-    
+    comment_fqid = unquote(comment_fqid)
     entry = get_object_or_404(Entry, serial=entry_serial)
-    comment = get_object_or_404(
-        Comment,
-        entry=entry,
-        author__uuid=author_serial,
-        serial=comment_serial
-    )
-    visibility_error = check_entry_visibility(request, comment.entry)
     
+    
+    comment = Comment.objects.filter(entry=entry, fqid=comment_fqid).first()
+    if not comment:
+        comment = get_object_or_404(Comment, entry=entry, serial=comment_fqid)
+    
+    visibility_error = check_entry_visibility(request, comment.entry)
     if visibility_error:
         return visibility_error
     
@@ -166,7 +166,7 @@ def get_comment_likes(request, author_serial, entry_serial, comment_serial):
     
     author_str = f"authors/{author_serial}"
     entries_str = f"entries/{entry_serial}"
-    comments_str = f"comments/{comment_serial}"
+    comments_str = f"comments/{comment_fqid}"
     
     return Response({
         "type": "likes",
@@ -467,6 +467,11 @@ def commented(request, author_serial):
     
     if request.method == "GET":
         author_comments = Comment.objects.filter(author=author)
+        
+        if isinstance(request.successful_authenticator, ServerBasicAuthentication):
+            author_comments = author_comments.filter(
+                entry__visibility__in=['PUBLIC', 'UNLISTED']
+            )
         page = int(request.GET.get('page', 1))
         size = int(request.GET.get('size', 5))
         start_page = (page - 1) * size
