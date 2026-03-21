@@ -63,9 +63,9 @@ def get_stream_entries(user):
     #This answers the question of, what posts/entries should a user currently
     #logged in should see?
     entries = Entry.objects.filter(
-        Q(visibility = 'PUBLIC') | 
-        Q(visibility = 'UNLISTED', author__in=user_following) |
-        Q(visibility = 'PRIVATE', author__in=user_friends) |
+        Q(author__in=user_following, visibility='PUBLIC') | 
+        Q(author__in=user_following, visibility='UNLISTED') |
+        Q(author__in=user_friends, visibility='PRIVATE') |
         Q(author = user)
     ).exclude(
         visibility = 'DELETED'
