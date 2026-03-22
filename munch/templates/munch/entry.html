@@ -5,7 +5,31 @@
         data-entry-serial="{{ entry.serial }}"
         data-current-author-serial="{% if request.user.is_authenticated %}{{ request.user.uuid }}{% endif %}"
         data-entry-fqid="{{ entry.fqid }}"
-        data-liked="false">
+        data-liked="false"
+        data-entry-content="{{ entry.content }}"
+        data-entry-title="{{ entry.title }}">
+    <style>
+        .entry-card {
+            max-width: 700px;
+        }
+        .entry-content {
+            max-height: none;
+            overflow: hidden;
+            overflow-wrap: break-word;
+        }   
+        .read-more {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font: inherit;
+            color: inherit;
+            cursor: pointer;
+            font-size: small;
+            color: darkgray;
+        }
+    </style>
+
     <div class="entry-card__headline">
         {% include "munch/profile-summary.html" with author=entry.author only %}
 
@@ -13,7 +37,9 @@
         <div class="dropdown">
             <button class="dropdown__toggle">...</button>  
             <div class="dropdown__content">
+                {% if not entry.github_id %}
                 <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
+                {% endif %}
                 <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
                     {% csrf_token %}
                     <button id="delete_button" type="submit">Delete</button>
@@ -30,11 +56,13 @@
     <strong>{{ entry.description }}</strong>
 
     {% if entry.contentType == 'text/markdown' %}
-        <div>{{ entry.markdownContent|safe }}</div>
+        <div class="entry-content collapsed" >{{ entry.markdownContent|safe }}</div>
+        <button class="read-more" type="button" hidden>Read more</button>
     {% elif entry.contentType == 'image/png;base64' or entry.contentType == 'image/jpeg;base64' %}
         <img src="data:{{ entry.contentType }},{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
     {% else %}
-        <p>{{ entry.content|linebreaks }}</p>
+        <div class="entry-content collapsed" >{{ entry.content|linebreaks }}</div>
+        <button class="read-more" type="button" hidden>Read more</button>
     {% endif %}
 
     {% if entry.github_id %}
@@ -116,7 +144,9 @@
                         const img = entry.querySelector(".like-icon");
                         const entryFqid = entry.dataset.entryFqid;
                         const currentAuthorSerial = entry.dataset.currentAuthorSerial;
-
+                        const content = entry.querySelector(".entry-content");
+                        const read_button = entry.querySelector(".read-more");
+                    
                         refreshLike(entry, img);
 
                         like_button.addEventListener("click", function () {
@@ -152,7 +182,7 @@
                                 .then(() => refreshLike(entry, img));
                             }
                         });
-                    });
+                    });    
                 });
             </script>
         </div>

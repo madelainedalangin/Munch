@@ -75,6 +75,9 @@ class Author(AbstractBaseUser, PermissionsMixin):
             
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.username or f"remote: {self.displayName}" or self.id
+
 class Entry(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     published = models.DateTimeField(default=timezone.now)
@@ -185,3 +188,10 @@ class Follow(models.Model):
     # Optional: ensure an author can't follow the same person twice
     class Meta:
         unique_together = ('actor', 'object')
+
+class Server(models.Model):
+    url = models.URLField(max_length=200, unique=True)
+    username = models.CharField(max_length=200)
+    password = models.CharField(max_length=256)
+    is_approved = models.BooleanField(default=False)
+    is_authenticated = False    # needed for permission checks

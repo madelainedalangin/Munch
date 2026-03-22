@@ -5,3 +5,5 @@ from .models import *
 admin.site.register(Author)
 admin.site.register(Entry)
 admin.site.register(Comment)
+admin.site.register(Server)
+admin.site.register(Follow)
