@@ -22,6 +22,7 @@ urlpatterns = [
     path('authors/<uuid:author_uuid>/followers/', views.followers_view, name="list_followers"),
     path('authors/<uuid:author_uuid>/following/', views.list_following, name="list_following"),
     path('authors/<uuid:author_uuid>/follow_requests/', views.list_follow_requests, name="list_follow_requests"),
+    path('connect/', views.connect, name='connect'),
 
     # Entry Management
     path('authors/<str:author_id>/entries/', views.create_entry_UI, name='create_entry_UI'),

@@ -1,0 +1,26 @@
+{% extends "munch/nav-content.html" %}
+{% load static %}
+
+{% block title %}Author Suggestions{% endblock title %}
+
+{% block scripts %}
+{{ block.super }}
+<script defer src="{% static 'munch/js/follow.js' %}"></script>
+{% endblock scripts %}
+
+{% block content-bar %}
+{% include "munch/follow-content-bar.html" %}
+{% endblock content-bar %}
+
+{% block content-scrollable %}
+<ul id="author-suggestions-list">
+    {% for author in suggested_authors %}
+    <li id="suggested-{{ author.id }}">
+        <a href="{{ author.web }}">{{ author.displayName }}</a>
+        <button class="follow" data-author-fqid="{{ author.id }}" data-user-fqid="{{ user.id }}">Follow</button>
+    </li>
+    {% empty %}
+    <p>No suggestions yet...</p>
+    {% endfor %}
+</ul>
+{% endblock content-scrollable %}
