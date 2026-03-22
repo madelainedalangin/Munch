@@ -33,23 +33,25 @@ async function manageAuthorFollow(btn_follow, user_fqid, author_fqid, http_metho
     }
 }
 
-const btn_follow = document.querySelector('#follow');
+const follow_btns = document.querySelectorAll('.follow');
 
-if (btn_follow) {
-    initializeFollowBtnState(btn_follow);
-    btn_follow.addEventListener('click', (event) => {
-        const author_fqid = btn_follow.dataset.authorFqid;
-        const user_fqid = btn_follow.dataset.userFqid;
-        const isFollowing = btn_follow.classList.toggle('following');   // returns new state
+if (follow_btns) {
+    follow_btns.forEach(btn_follow => {
+        initializeFollowBtnState(btn_follow);
+        btn_follow.addEventListener('click', (event) => {
+            const author_fqid = btn_follow.dataset.authorFqid;
+            const user_fqid = btn_follow.dataset.userFqid;
+            const isFollowing = btn_follow.classList.toggle('following');   // returns new state
 
-        if (isFollowing) {
-            btn_follow.textContent = 'Unfollow';
-            manageAuthorFollow(btn_follow, user_fqid, author_fqid, 'PUT');
+            if (isFollowing) {
+                btn_follow.textContent = 'Unfollow';
+                manageAuthorFollow(btn_follow, user_fqid, author_fqid, 'PUT');
 
-        } else {
-            btn_follow.textContent = 'Follow';
-            manageAuthorFollow(btn_follow, user_fqid, author_fqid, 'DELETE');
-        }
-    });
+            } else {
+                btn_follow.textContent = 'Follow';
+                manageAuthorFollow(btn_follow, user_fqid, author_fqid, 'DELETE');
+            }
+        });
+    })
 }
 
