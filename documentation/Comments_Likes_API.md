@@ -2,7 +2,7 @@
 
 ## Comments API
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/
 
 **Access:** local, remote
 
@@ -16,7 +16,7 @@
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/
 ```
 
 **Example Response**
@@ -33,23 +33,23 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
             "type": "comment",
             "author": {
                 "type": "author",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
-                "host": "http://127.0.0.1:8000/munch/api/",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "host": "http://127.0.0.1:8000/api/",
                 "displayName": "madelaine",
                 "github": "https://github.com/madelainedalangin",
                 "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyqXzlelYVbGPw3dMKLOmqDwMLaOLe7Q-KRg&s",
-                "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
                 "description": ""
             },
             "comment": "TEST",
             "contentType": "text/plain",
             "published": "2026-03-16T01:17:22.738223-06:00",
-            "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf",
-            "entry": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
-            "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf",
+            "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
             "likes": {
                 "type": "likes",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf/likes",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf/likes",
                 "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/",
                 "page_number": 1,
                 "size": 0,
@@ -61,23 +61,23 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
             "type": "comment",
             "author": {
                 "type": "author",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
-                "host": "http://127.0.0.1:8000/munch/api/",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "host": "http://127.0.0.1:8000/api/",
                 "displayName": "madelaine",
                 "github": "https://github.com/madelainedalangin",
                 "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyqXzlelYVbGPw3dMKLOmqDwMLaOLe7Q-KRg&s",
-                "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
                 "description": ""
             },
             "comment": "another one",
             "contentType": "text/plain",
             "published": "2026-03-16T01:18:52.508757-06:00",
-            "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd",
-            "entry": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
-            "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd",
+            "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
             "likes": {
                 "type": "likes",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd/likes",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd/likes",
                 "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/",
                 "page_number": 1,
                 "size": 0,
@@ -106,7 +106,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_FQID}/
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_FQID}/
 
 **Access:** local, remote
 
@@ -120,11 +120,11 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 **Additional Notes**
 - The comment FQID must be percent-encoded in the URL.
-- This routes to the same logic as `GET /munch/api/commented/{COMMENT_FQID}/` but is scoped under the entry path for remote node compatibility.
+- This routes to the same logic as `GET /api/commented/{COMMENT_FQID}/` but is scoped under the entry path for remote node compatibility.
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fcommented%2F85047bab-3ccc-40f4-b190-903f2186a9bf/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fcommented%2F85047bab-3ccc-40f4-b190-903f2186a9bf/
 ```
 
 **Example Response**
@@ -155,7 +155,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 ---
 
-### GET /munch/api/entries/{ENTRY_FQID}/comments/
+### GET /api/entries/{ENTRY_FQID}/comments/
 
 **Access:** local, remote
 
@@ -169,7 +169,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 **Example Request**
 ```
-GET /munch/api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fentries%2F1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/
+GET /api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fentries%2F1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/
 ```
 
 **Example Response**
@@ -198,7 +198,7 @@ GET /munch/api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/commented/
+### GET /api/authors/{AUTHOR_SERIAL}/commented/
 
 **Access:** local, remote
 
@@ -212,7 +212,7 @@ GET /munch/api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 ```
 
 **Example Response**
@@ -247,7 +247,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 
 ---
 
-### POST /munch/api/authors/{AUTHOR_SERIAL}/commented/
+### POST /api/authors/{AUTHOR_SERIAL}/commented/
 
 **Access:** local only
 
@@ -261,7 +261,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 
 **Example Request**
 ```
-POST /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
+POST /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 Content-Type: application/json
 
 {
@@ -302,7 +302,7 @@ Content-Type: application/json
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/commented/{COMMENT_SERIAL}/
+### GET /api/authors/{AUTHOR_SERIAL}/commented/{COMMENT_SERIAL}/
 
 **Access:** local, remote
 
@@ -316,7 +316,7 @@ Content-Type: application/json
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001/
 ```
 
 **Example Response**
@@ -342,7 +342,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0
 
 ---
 
-### GET /munch/api/commented/{COMMENT_FQID}/
+### GET /api/commented/{COMMENT_FQID}/
 
 **Access:** local, remote
 
@@ -356,7 +356,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0
 
 **Example Request**
 ```
-GET /munch/api/commented/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fcommented%2Fdef67890/
+GET /api/commented/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fcommented%2Fdef67890/
 ```
 
 **Example Response**
@@ -384,7 +384,7 @@ GET /munch/api/commented/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc1234
 
 ## Likes API
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/likes/
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/likes/
 
 **Access:** local, remote
 
@@ -398,7 +398,7 @@ GET /munch/api/commented/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc1234
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/
 ```
 
 **Example Response**
@@ -449,7 +449,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 ---
 
-### GET /munch/api/entries/{ENTRY_FQID}/likes/
+### GET /api/entries/{ENTRY_FQID}/likes/
 
 **Access:** local only
 
@@ -463,7 +463,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 **Example Request**
 ```
-GET /munch/api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fentries%2F1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/
+GET /api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fentries%2F1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/
 ```
 
 **Example Response**
@@ -481,7 +481,7 @@ GET /munch/api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_FQID}/likes/
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_FQID}/likes/
 
 **Access:** local, remote
 
@@ -495,7 +495,7 @@ GET /munch/api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/def67890-0000-0000-0000-000000000001/likes/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/def67890-0000-0000-0000-000000000001/likes/
 ```
 
 **Example Response**
@@ -513,7 +513,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/liked/
+### GET /api/authors/{AUTHOR_SERIAL}/liked/
 
 **Access:** local, remote
 
@@ -527,7 +527,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 ```
 
 **Example Response**
@@ -559,7 +559,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 
 ---
 
-### POST /munch/api/authors/{AUTHOR_SERIAL}/liked/
+### POST /api/authors/{AUTHOR_SERIAL}/liked/
 
 **Access:** local, remote
 
@@ -573,7 +573,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 
 **Example Request**
 ```
-POST /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
+POST /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 Content-Type: application/json
 
 {
@@ -609,7 +609,7 @@ Content-Type: application/json
 
 ---
 
-### DELETE /munch/api/authors/{AUTHOR_SERIAL}/liked/
+### DELETE /api/authors/{AUTHOR_SERIAL}/liked/
 
 **Access:** local only
 
@@ -625,7 +625,7 @@ Content-Type: application/json
 
 **Example Request**
 ```
-DELETE /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
+DELETE /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 Content-Type: application/json
 
 {
@@ -645,7 +645,7 @@ Content-Type: application/json
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}/
+### GET /api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}/
 
 **Access:** local, remote
 
@@ -657,7 +657,7 @@ Content-Type: application/json
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-0000-0000-000000000001/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-0000-0000-000000000001/
 ```
 
 **Example Response**
@@ -680,7 +680,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-
 
 ---
 
-### GET /munch/api/liked/{LIKE_FQID}/
+### GET /api/liked/{LIKE_FQID}/
 
 **Access:** local only
 
@@ -692,5 +692,5 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-
 
 **Example Request**
 ```
-GET /munch/api/liked/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fliked%2Fghi11111/
+GET /api/liked/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fliked%2Fghi11111/
 ```
