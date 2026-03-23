@@ -1,0 +1,25 @@
+.user-block {
+    display: flex;
+    gap: 1rem;
+}
+
+.user-block__avatar {
+    height: 48px;
+    width: 48px;
+    overflow: hidden;
+    border-radius: 50%;
+}
+
+.user-block__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-block__display-name {
+    font-weight: var(--font-weight-bold);
+}
+
+.user-block__username {
+    color: var(--dark-grey-500);
+}

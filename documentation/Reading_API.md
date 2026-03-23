@@ -1,6 +1,6 @@
 # STREAM API
 
-## GET /munch/api/stream
+## GET /api/stream
 
 **When:** Use this so that as a user, one can see their homefeed personalized to them based on their entries, friends' entries and public entries.  
 **How:** Send a GET request while logged in.  
@@ -14,8 +14,8 @@
 
 ## Example Request
 ```txt
-GET /munch/api/stream/
-GET /munch/api/stream/?page=2&size=10
+GET /api/stream/
+GET /api/stream/?page=2&size=10
 ```
 
 ## Example Response
@@ -29,13 +29,13 @@ GET /munch/api/stream/?page=2&size=10
         {
             "type": "entry",
             "title": "Hello Munch!",
-            "id": "http://127.0.0.1:8000/munch/api/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e/entries/5b072938-c424-43a2-8df9-4c71dcb6af4a",
+            "id": "http://127.0.0.1:8000/api/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e/entries/5b072938-c424-43a2-8df9-4c71dcb6af4a",
             "description": "greeting entry",
             "contentType": "text/plain",
             "content": "Hello! Can't wait to meet new people :)",
             "author": {
                 "type": "author",
-                "id": "http://127.0.0.1:8000/munch/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e",
+                "id": "http://127.0.0.1:8000/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e",
                 "host": "http://127.0.0.1:8000/",
                 "displayName": "Madelaine",
                 "github": null,
@@ -80,7 +80,7 @@ This is for when there are no entries or all entries are deleted.
 - `title` (string): Title of the entry 
   - Example: "Looking for the best Donair Pizza in the city"
 - `id` (string): Full URL of the entry  
-  - Example: "http://127.0.0.1:8000/munch/api/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e/entries/5b072938-c424-43a2-8df9-4c71dcb6af4a"
+  - Example: "http://127.0.0.1:8000/api/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e/entries/5b072938-c424-43a2-8df9-4c71dcb6af4a"
 - `description` (string): Brief summary of the entry  
   - Example: "Question / Recommendations"
 - `contentType` (string): "text/plain", "text/markdown", "image/png;base64", or "image/jpeg;base64"
@@ -99,7 +99,7 @@ This is for when there are no entries or all entries are deleted.
 - `type` (string): Always "author"
   - Example: "author"
 - `id` (string): Full URL of the author
-  - Example: "http://127.0.0.1:8000/munch/api/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e"
+  - Example: "http://127.0.0.1:8000/api/authors/5eb62157-1cbe-4bfc-a8d4-f4b3233bc93e"
 - `host` (string): The author's node URL
   - Example: "http://127.0.0.1:8000/"
 - `displayName` (string): The author's display name

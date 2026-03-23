@@ -2,7 +2,9 @@
 
 ## Comments API
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/
+
+**Access:** local, remote
 
 **When:** Use this to get a paginated list of all comments on a specific entry.
 
@@ -14,7 +16,7 @@
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/
 ```
 
 **Example Response**
@@ -31,23 +33,23 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
             "type": "comment",
             "author": {
                 "type": "author",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
-                "host": "http://127.0.0.1:8000/munch/api/",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "host": "http://127.0.0.1:8000/api/",
                 "displayName": "madelaine",
                 "github": "https://github.com/madelainedalangin",
                 "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyqXzlelYVbGPw3dMKLOmqDwMLaOLe7Q-KRg&s",
-                "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
                 "description": ""
             },
             "comment": "TEST",
             "contentType": "text/plain",
             "published": "2026-03-16T01:17:22.738223-06:00",
-            "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf",
-            "entry": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
-            "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf",
+            "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
             "likes": {
                 "type": "likes",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf/likes",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf/likes",
                 "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/",
                 "page_number": 1,
                 "size": 0,
@@ -59,23 +61,23 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
             "type": "comment",
             "author": {
                 "type": "author",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
-                "host": "http://127.0.0.1:8000/munch/api/",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "host": "http://127.0.0.1:8000/api/",
                 "displayName": "madelaine",
                 "github": "https://github.com/madelainedalangin",
                 "profileImage": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyqXzlelYVbGPw3dMKLOmqDwMLaOLe7Q-KRg&s",
-                "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+                "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
                 "description": ""
             },
             "comment": "another one",
             "contentType": "text/plain",
             "published": "2026-03-16T01:18:52.508757-06:00",
-            "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd",
-            "entry": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
-            "web": "http://127.0.0.1:8000/munch/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd",
+            "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
             "likes": {
                 "type": "likes",
-                "id": "http://127.0.0.1:8000/munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd/likes",
+                "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/1ff90034-3fa6-42c9-968e-fb04f112cbbd/likes",
                 "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/",
                 "page_number": 1,
                 "size": 0,
@@ -104,19 +106,25 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/commented/{COMMENT_SERIAL}/
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_FQID}/
 
-**When:** Use this to get a single comment by the author's serial and comment's serial.
+**Access:** local, remote
 
-**How:** Send a GET request with the comment author's serial and the comment's serial.
+**When:** Use this to get a single specific comment on an entry, identified by the comment's percent-encoded FQID.
 
-**Why:** Allows retrieval of a specific comment.
+**How:** Send a GET request with the entry author's serial, the entry's serial, and the comment's percent-encoded FQID.
+
+**Why:** Allows remote nodes to retrieve a specific comment scoped under the entry's URL path, as required by the spec.
 
 **Authentication:** Required for comments on private/unlisted entries.
 
+**Additional Notes**
+- The comment FQID must be percent-encoded in the URL.
+- This routes to the same logic as `GET /api/commented/{COMMENT_FQID}/` but is scoped under the entry path for remote node compatibility.
+
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fcommented%2F85047bab-3ccc-40f4-b190-903f2186a9bf/
 ```
 
 **Example Response**
@@ -131,33 +139,68 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0
         "github": null,
         "profileImage": null
     },
-    "comment": "Great post!",
+    "comment": "TEST",
     "contentType": "text/plain",
-    "published": "2026-03-15T21:00:00+00:00",
-    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001",
+    "published": "2026-03-16T01:17:22.738223-06:00",
+    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/85047bab-3ccc-40f4-b190-903f2186a9bf",
     "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
     "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d"
 }
 ```
 
+**Error Responses**
+- `403 Forbidden`: Entry is private and user is not a friend
+- `404 Not Found`: Comment or entry does not exist
+- `410 Gone`: Entry has been deleted
+
 ---
 
-### GET /munch/api/commented/{COMMENT_FQID}/
+### GET /api/entries/{ENTRY_FQID}/comments/
 
-**When:** Use this to get a single comment by its full FQID.
+**Access:** local, remote
 
-**How:** Send a GET request with the comment's percent-encoded FQID.
+**When:** Use this to get comments on an entry using the entry's full FQID.
 
-**Why:** Allows remote nodes to retrieve a specific comment using its full URL.
+**How:** Send a GET request with the entry's percent-encoded FQID.
+
+**Why:** Allows remote nodes to retrieve comments using the entry's full URL identifier.
+
+**Authentication:** Required for private and unlisted entries.
 
 **Example Request**
 ```
-GET /munch/api/commented/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fcommented%2Fdef67890/
+GET /api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fentries%2F1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/
+```
+
+**Example Response**
+```json
+{
+    "type": "comments",
+    "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/",
+    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/",
+    "page_number": 1,
+    "size": 5,
+    "count": 1,
+    "src": [
+        {
+            "type": "comment",
+            "author": { "..." : "..." },
+            "comment": "Thanks for sharing!",
+            "contentType": "text/plain",
+            "published": "2026-03-15T21:00:00+00:00",
+            "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001",
+            "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+            "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d"
+        }
+    ]
+}
 ```
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/commented/
+### GET /api/authors/{AUTHOR_SERIAL}/commented/
+
+**Access:** local, remote
 
 **When:** Use this to get all comments made by a specific author.
 
@@ -165,11 +208,11 @@ GET /munch/api/commented/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc1234
 
 **Why:** Allows retrieval of everything an author has commented on.
 
-**Authentication:** Required.
+**Authentication:** Required. Remote nodes only receive comments on PUBLIC and UNLISTED entries.
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 ```
 
 **Example Response**
@@ -191,7 +234,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
                 "github": null,
                 "profileImage": null
             },
-            "comment": "Great post!",
+            "comment": "I totally agree with you!",
             "contentType": "text/plain",
             "published": "2026-03-15T21:00:00+00:00",
             "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001",
@@ -204,7 +247,9 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 
 ---
 
-### POST /munch/api/authors/{AUTHOR_SERIAL}/commented/
+### POST /api/authors/{AUTHOR_SERIAL}/commented/
+
+**Access:** local only
 
 **When:** Use this to post a new comment on an entry.
 
@@ -216,7 +261,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 
 **Example Request**
 ```
-POST /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
+POST /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/
 Content-Type: application/json
 
 {
@@ -237,7 +282,7 @@ Content-Type: application/json
         "github": null,
         "profileImage": null
     },
-    "comment": "Great post!",
+    "comment": "Yumm can't wait to use this recipe tonight!",
     "contentType": "text/plain",
     "published": "2026-03-15T21:00:00+00:00",
     "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001",
@@ -255,10 +300,93 @@ Content-Type: application/json
 **Additional Notes**
 - After a comment is created, it is automatically forwarded to the entry author's inbox.
 
+---
+
+### GET /api/authors/{AUTHOR_SERIAL}/commented/{COMMENT_SERIAL}/
+
+**Access:** local, remote
+
+**When:** Use this to get a single comment by the author's serial and comment's serial.
+
+**How:** Send a GET request with the comment author's serial and the comment's serial.
+
+**Why:** Allows retrieval of a specific comment.
+
+**Authentication:** Required for comments on private/unlisted entries.
+
+**Example Request**
+```
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001/
+```
+
+**Example Response**
+```json
+{
+    "type": "comment",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+        "host": "http://127.0.0.1:8000/api/",
+        "displayName": "Madelaine",
+        "github": null,
+        "profileImage": null
+    },
+    "comment": "this is awesome!",
+    "contentType": "text/plain",
+    "published": "2026-03-15T21:00:00+00:00",
+    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001",
+    "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+    "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d"
+}
+```
+
+---
+
+### GET /api/commented/{COMMENT_FQID}/
+
+**Access:** local, remote
+
+**When:** Use this to get a single comment by its full FQID.
+
+**How:** Send a GET request with the comment's percent-encoded FQID.
+
+**Why:** Allows retrieval of a specific comment using its full URL.
+
+**Authentication:** Required for comments on private/unlisted entries.
+
+**Example Request**
+```
+GET /api/commented/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fcommented%2Fdef67890/
+```
+
+**Example Response**
+```json
+{
+    "type": "comment",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+        "host": "http://127.0.0.1:8000/api/",
+        "displayName": "Madelaine",
+        "github": null,
+        "profileImage": null
+    },
+    "comment": "you got this!",
+    "contentType": "text/plain",
+    "published": "2026-03-15T21:00:00+00:00",
+    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/commented/def67890-0000-0000-0000-000000000001",
+    "entry": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d",
+    "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d"
+}
+```
+
+---
 
 ## Likes API
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/likes/
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/likes/
+
+**Access:** local, remote
 
 **When:** Use this to get all likes on a specific entry.
 
@@ -270,7 +398,7 @@ Content-Type: application/json
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/
 ```
 
 **Example Response**
@@ -321,11 +449,45 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_SERIAL}/likes/
+### GET /api/entries/{ENTRY_FQID}/likes/
+
+**Access:** local only
+
+**When:** Use this to get all likes on an entry using the entry's full FQID.
+
+**How:** Send a GET request with the entry's percent-encoded FQID.
+
+**Why:** Allows retrieval of likes using the entry's full URL identifier.
+
+**Authentication:** Required.
+
+**Example Request**
+```
+GET /api/entries/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2F4bad05f0-481d-4b77-b601-2ea2c7cde423%2Fentries%2F1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/
+```
+
+**Example Response**
+```json
+{
+    "type": "likes",
+    "web": "http://127.0.0.1:8000/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/",
+    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/likes/",
+    "page_number": 1,
+    "size": 5,
+    "count": 0,
+    "src": []
+}
+```
+
+---
+
+### GET /api/authors/{AUTHOR_SERIAL}/entries/{ENTRY_SERIAL}/comments/{COMMENT_FQID}/likes/
+
+**Access:** local, remote
 
 **When:** Use this to get all likes on a specific comment.
 
-**How:** Send a GET request with the author's serial, entry's serial, and comment's serial.
+**How:** Send a GET request with the author's serial, entry's serial, and comment's percent-encoded FQID.
 
 **Why:** Allows users to see how many people liked a comment.
 
@@ -333,7 +495,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/def67890-0000-0000-0000-000000000001/likes/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d/comments/def67890-0000-0000-0000-000000000001/likes/
 ```
 
 **Example Response**
@@ -351,7 +513,9 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/liked/
+### GET /api/authors/{AUTHOR_SERIAL}/liked/
+
+**Access:** local, remote
 
 **When:** Use this to get all likes made by a specific author.
 
@@ -363,7 +527,7 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-829
 
 **Example Request**
 ```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 ```
 
 **Example Response**
@@ -395,55 +559,9 @@ GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 
 ---
 
-### GET /munch/api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}/
+### POST /api/authors/{AUTHOR_SERIAL}/liked/
 
-**When:** Use this to get a single like by its serial.
-
-**How:** Send a GET request with the author's serial and like's serial.
-
-**Why:** Allows retrieval of a specific like object.
-
-**Example Request**
-```
-GET /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-0000-0000-000000000001/
-```
-
-**Example Response**
-```json
-{
-    "type": "like",
-    "author": {
-        "type": "author",
-        "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
-        "host": "http://127.0.0.1:8000/api/",
-        "displayName": "Madelaine",
-        "github": null,
-        "profileImage": null
-    },
-    "published": "2026-03-15T21:00:00+00:00",
-    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-0000-0000-000000000001",
-    "object": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d"
-}
-```
-
----
-
-### GET /munch/api/liked/{LIKE_FQID}/
-
-**When:** Use this to get a single like by its FQID.
-
-**How:** Send a GET request with the like's percent-encoded FQID.
-
-**Why:** Allows remote nodes to retrieve a specific like using its full URL.
-
-**Example Request**
-```
-GET /munch/api/liked/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fliked%2Fghi11111/
-```
-
----
-
-### POST /munch/api/authors/{AUTHOR_SERIAL}/liked/
+**Access:** local, remote
 
 **When:** Use this to like an entry or comment.
 
@@ -455,7 +573,7 @@ GET /munch/api/liked/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2F
 
 **Example Request**
 ```
-POST /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
+POST /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 Content-Type: application/json
 
 {
@@ -491,7 +609,11 @@ Content-Type: application/json
 
 ---
 
-### DELETE /munch/api/authors/{AUTHOR_SERIAL}/liked/
+### DELETE /api/authors/{AUTHOR_SERIAL}/liked/
+
+**Access:** local only
+
+> **Note:** This endpoint is a custom extension not defined in the project spec. It is provided for a better user experience.
 
 **When:** Use this to unlike an entry or comment.
 
@@ -503,7 +625,7 @@ Content-Type: application/json
 
 **Example Request**
 ```
-DELETE /munch/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
+DELETE /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/
 Content-Type: application/json
 
 {
@@ -520,3 +642,55 @@ Content-Type: application/json
 
 **Error Responses**
 - `404 Not Found`: Like does not exist
+
+---
+
+### GET /api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}/
+
+**Access:** local, remote
+
+**When:** Use this to get a single like by its serial.
+
+**How:** Send a GET request with the author's serial and like's serial.
+
+**Why:** Allows retrieval of a specific like object.
+
+**Example Request**
+```
+GET /api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-0000-0000-000000000001/
+```
+
+**Example Response**
+```json
+{
+    "type": "like",
+    "author": {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423",
+        "host": "http://127.0.0.1:8000/api/",
+        "displayName": "Madelaine",
+        "github": null,
+        "profileImage": null
+    },
+    "published": "2026-03-15T21:00:00+00:00",
+    "id": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/liked/ghi11111-0000-0000-0000-000000000001",
+    "object": "http://127.0.0.1:8000/api/authors/4bad05f0-481d-4b77-b601-2ea2c7cde423/entries/1546e0a2-8293-43b1-b78f-e2258dbb8e7d"
+}
+```
+
+---
+
+### GET /api/liked/{LIKE_FQID}/
+
+**Access:** local only
+
+**When:** Use this to get a single like by its FQID.
+
+**How:** Send a GET request with the like's percent-encoded FQID.
+
+**Why:** Allows retrieval of a specific like using its full URL.
+
+**Example Request**
+```
+GET /api/liked/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fabc12345%2Fliked%2Fghi11111/
+```

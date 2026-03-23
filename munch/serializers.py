@@ -1,6 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
 from .models import *   # replace * with specific models once defined
+from django.db import IntegrityError
 
 # API objects in project description
 
@@ -85,6 +86,26 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = ['type', 'author', 'published', 'id', 'object']
+    
+    def create(self, validated_data):
+        """
+        This is called when doing serializer.save() after validating incoming
+        data.
+        
+        Defines how to turn the validated incoming JSON into a saved model
+        instance
+        """
+        validated_data.pop('type', None)
+        author_data = validated_data.pop('author')
+        author = AuthorSerializer().create(author_data)
+        try:
+            return Like.objects.create(
+                author=author,
+                published=validated_data.get('published'),
+                object_url=validated_data.get('object_url')
+            )
+        except IntegrityError:
+            raise serializers.ValidationError("Already liked.")
 
 class LikesSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='likes')
@@ -101,7 +122,7 @@ class CommentSerializer(serializers.ModelSerializer):
     web = serializers.SerializerMethodField()
     id = serializers.URLField(source="fqid")
     likes = serializers.SerializerMethodField()
-    entry = serializers.SerializerMethodField()
+    entry = serializers.CharField()
     
     class Meta:
         model = Comment
@@ -124,7 +145,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.entry.fqid.replace("/api/", "/") #add web field to Entry
     
     def get_likes(self, obj):
-        likes = Like.objects.filter(object_url=obj.fqid)
+        likes = Like.objects.filter(object_url=obj.fqid).order_by("-published")
         return {
             "type": "likes",
             "id": f"{obj.fqid}/likes",
@@ -134,7 +155,28 @@ class CommentSerializer(serializers.ModelSerializer):
             "count": likes.count(),
             "src": LikeSerializer(likes, many=True).data,
         }
+        
+    def to_representation(self, obj):
+        rep = super().to_representation(obj)
+        rep['entry'] = obj.entry.fqid  # always output the FQID on GET
+        return rep
 
+    def create(self, validated_data):
+        validated_data.pop('type', None)
+        author_data = validated_data.pop('author')
+        author = AuthorSerializer().create(author_data)
+        entry_fqid = validated_data.pop('entry')
+        try:
+            entry = Entry.objects.get(fqid=entry_fqid)
+        except Entry.DoesNotExist:
+            raise serializers.ValidationError(f"Entry {entry_fqid} not found.")
+        return Comment.objects.create(
+            author=author,
+            entry=entry,
+            comment=validated_data.get('comment'),
+            contentType=validated_data.get('contentType', 'text/plain'),
+            published=validated_data.get('published'),
+        )
 class CommentsSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='comments')
     web = serializers.URLField()
@@ -146,9 +188,14 @@ class CommentsSerializer(serializers.Serializer):
 
 class EntrySerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='entry', read_only=True)
-    id = serializers.URLField(source='fqid', read_only=True)
-    web = serializers.URLField(source='url', read_only=True)
-    author = AuthorSerializer(read_only=True)
+    
+    #Removed read_only=True from id and web so the incoming id and web fields 
+    # actually land in validated_data as fqid and url.
+    #also will help when writing tests for test_inbox
+    id = serializers.URLField(source='fqid', required=False)
+    web = serializers.URLField(source='url', required=False)
+    
+    author = AuthorSerializer(required=False, allow_null=True, default=None)
     comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
 
@@ -170,7 +217,7 @@ class EntrySerializer(serializers.ModelSerializer):
             ]
 
     def get_comments(self, obj):
-        comments = Comment.objects.filter(entry=obj)
+        comments = Comment.objects.filter(entry=obj).order_by("-published")
         return {
             "type": "comments",
             "id": f"{obj.fqid}/comments",
@@ -181,7 +228,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "src": CommentSerializer(comments[:5], many=True).data,
         }
     def get_likes(self, obj):
-        likes = Like.objects.filter(object_url=obj.fqid)
+        likes = Like.objects.filter(object_url=obj.fqid).order_by("-published")
         return {
             "type": "likes",
             "id": f"{obj.fqid}/likes",
@@ -191,9 +238,40 @@ class EntrySerializer(serializers.ModelSerializer):
             "count": likes.count(),
             "src": LikeSerializer(likes, many=True).data,
         }
+    
+    def create(self, validated_data):
+        validated_data.pop("type", None)
+        author_data = validated_data.pop("author", None)
+        if author_data is not None:
+            if isinstance(author_data, Author):
+                # passed directly as an object via serializer.save(author=request.user)
+                validated_data["author"] = author_data
+            else:
+                # incoming JSON from remote node inbox
+                validated_data["author"] = AuthorSerializer().create(author_data)
+        fqid = validated_data.pop("fqid", None)
+        url = validated_data.pop("url", None)
+        entry = Entry.objects.create(**validated_data)
+        if fqid:
+            entry.fqid = fqid
+            entry.url = url or fqid
+            entry.save()
+        return entry
+        
 class EntriesSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='entries')
     page_number = serializers.IntegerField()
     size = serializers.IntegerField()
     count = serializers.IntegerField()
     src = EntrySerializer(many=True)
+
+class ServerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Server
+        fields = ['url', 'username', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
+
+    def validate_url(self, value):
+        return value.rstrip('/')
