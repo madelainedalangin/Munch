@@ -188,9 +188,14 @@ class CommentsSerializer(serializers.Serializer):
 
 class EntrySerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='entry', read_only=True)
-    id = serializers.URLField(source='fqid', read_only=True)
-    web = serializers.URLField(source='url', read_only=True)
-    author = AuthorSerializer(read_only=True)
+    
+    #Removed read_only=True from id and web so the incoming id and web fields 
+    # actually land in validated_data as fqid and url.
+    #also will help when writing tests for test_inbox
+    id = serializers.URLField(source='fqid', required=False)
+    web = serializers.URLField(source='url', required=False)
+    
+    author = AuthorSerializer(required=False, allow_null=True, default=None)
     comments = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
 
@@ -233,6 +238,26 @@ class EntrySerializer(serializers.ModelSerializer):
             "count": likes.count(),
             "src": LikeSerializer(likes, many=True).data,
         }
+    
+    def create(self, validated_data):
+        validated_data.pop("type", None)
+        author_data = validated_data.pop("author", None)
+        if author_data is not None:
+            if isinstance(author_data, Author):
+                # passed directly as an object via serializer.save(author=request.user)
+                validated_data["author"] = author_data
+            else:
+                # incoming JSON from remote node inbox
+                validated_data["author"] = AuthorSerializer().create(author_data)
+        fqid = validated_data.pop("fqid", None)
+        url = validated_data.pop("url", None)
+        entry = Entry.objects.create(**validated_data)
+        if fqid:
+            entry.fqid = fqid
+            entry.url = url or fqid
+            entry.save()
+        return entry
+        
 class EntriesSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='entries')
     page_number = serializers.IntegerField()

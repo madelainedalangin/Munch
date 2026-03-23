@@ -12,34 +12,11 @@ from rest_framework import status
 from munch.serializers import *
 from munch.models import *
 from munch.forms import EntryForm
-from munch.views.views_utils import check_entry_visibility
+from munch.views.views_utils import *
 from munch.authentication import ServerBasicAuthentication
 from munch.permissions import IsAuthorizedServer
 
 import base64 #for image_entry api
-
-def create_entry_UI(request, author_id):
-    '''
-    Purpose: Creates an entry through a filled out form from the user in the UI 
-
-    If user fills the form correctly, it will save as an entry in the database
-    '''
-    if not request.user.is_authenticated:
-        return redirect('munch:login')
-
-    if request.method == 'POST':
-        form = EntryForm(request.POST)
-        if form.is_valid():
-            entry = form.save(commit=False)
-            entry.author = request.user
-            entry.save()
-            return redirect('munch:display_entry_by_serial',
-                            author_id=entry.author.uuid,
-                            entry_serial=entry.serial)
-    else:
-        form = EntryForm()
-        
-    return render(request, 'munch/create_entry.html', {'form': form, 'title':"Create Entry", 'button_title':"Create Entry"})
 
 def edit_entry(request, author_id, entry_serial):
     '''
@@ -361,7 +338,9 @@ def create_entry(request, author_id):
 
         serializer = EntrySerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(author=request.user)
+            entry = serializer.save(author=request.user)
+            push_image_to_remote_followers(entry, request.user)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
