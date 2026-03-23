@@ -18,6 +18,10 @@ def inbox(request, target_serial):
 
     if payload_type == 'follow':
         serializer = FollowRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif payload_type == 'entry':
         author_data = request.data.get('author', {})
@@ -58,9 +62,8 @@ def inbox(request, target_serial):
         existing_comment = Comment.objects.filter(fqid=incoming_id).first()
 
         if existing_comment:
-            serializer = CommentSerializer(existing_comment, data=request.data)
-        else:
-            serializer = CommentSerializer(data=request.data)
+            return Response(CommentSerializer(existing_comment).data, status=status.HTTP_200_OK)
+        serializer = CommentSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -72,10 +75,9 @@ def inbox(request, target_serial):
         existing_like = Like.objects.filter(fqid=incoming_id).first()
 
         if existing_like:
-            serializer = LikeSerializer(existing_like, data=request.data)
-        else:
-            serializer = LikeSerializer(data=request.data)
+            return Response(LikeSerializer(existing_like).data, status=status.HTTP_400_BAD_REQUEST)
 
+        serializer = LikeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
