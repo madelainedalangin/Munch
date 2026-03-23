@@ -22,6 +22,7 @@ def edit_profile(request):
     return render(request, 'munch/edit_profile.html', {'form': form})
 
 # The following function from Google, Gemini, "Django Author Identity", 02-28-2026
+@login_required
 def public_profile(request, author_uuid):
     
     author = get_object_or_404(Author, uuid=author_uuid)
