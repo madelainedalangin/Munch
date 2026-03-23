@@ -1,0 +1,29 @@
+{% extends "munch/nav-content.html" %}
+{% load static %}
+
+{% block title %}Node Connections{% endblock title %}
+
+{% block scripts %}
+{{ block.super }}
+{% endblock scripts %}
+
+{% block content-bar %}
+<strong>Node Connections</strong>
+{% endblock content-bar %}
+
+{% block content-scrollable %}
+<a href="{% url 'munch:create_node_connection' %}">
+    Connect New Node
+</a>
+<ul>
+    {% for node in nodes %}
+    <li>
+        <p>{{ node.url }}</p>
+        <button class="refresh-connection" data-node-url="{{ node.url }}">Refresh</button>
+        <button class="remove-connection" data-node-url="{{ node.url }}">Remove</button>
+    </li>
+    {% empty %}
+    <p>No node connections yet...</p>
+    {% endfor %}
+</ul>
+{% endblock content-scrollable %}
