@@ -84,7 +84,9 @@
 
             <div class="entry-card__stat">
                 <button class="comment-button">
-                    <img src="{% static 'munch/icons/comment_for_entry.png' %}" alt="comment" style="width: 16px; height: 16px;">
+                    <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}#comments">
+                        <img src="{% static 'munch/icons/comment_for_entry.png' %}" alt="comment" style="width: 16px; height: 16px;">
+                    </a>
                 </button>
                 <!--
                 Source: https://stackoverflow.com/questions/11800016/adding-the-number-of-comments-to-a-queryset-in-django
