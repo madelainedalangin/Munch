@@ -20,16 +20,16 @@ def followers_view(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)   # use fqid in future
     follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='accepted')
     context = {
-        "user": author,
+        "author": author,
         "followers": follower_list
     }
     return render(request, 'munch/followers.html', context)
 
 def list_following(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)
-    following_list = Author.objects.filter(follower_relations__actor=author, following_relations__status='accepted')
+    following_list = Author.objects.filter(follower_relations__actor=author, follower_relations__status='accepted')
     context = {
-        "user": author,
+        "author": author,
         "following": following_list
     }
     return render(request, 'munch/following_list.html', context)
@@ -38,7 +38,7 @@ def list_follow_requests(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)
     follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
     context = {
-        "user": author,
+        "author": author,
         "followers": follower_list
     }
     return render(request, 'munch/follow_request_list.html', context)
