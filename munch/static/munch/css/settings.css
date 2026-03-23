@@ -1,0 +1,41 @@
+//Source: Claude SOnnet 4.6 Date Accessed: Mon march 23, 2026
+//prompt: create a logout button with dialog box to confirm logout with logout and cancel"
+.settings-item {
+    display: block;
+    padding: 0.875rem 1.5rem;
+    font-size: 14px;
+    font-weight: 400;
+    color: #000000;
+    text-decoration: none;
+    border-bottom: 0.5px solid #e0e0e0;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.settings-item:hover {
+    background: #f5f5f5;
+}
+
+.settings-item--logout {
+    color: #000000;
+}
+
+.settings-item--logout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #000000;
+}
+
+.settings-item--logout img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
