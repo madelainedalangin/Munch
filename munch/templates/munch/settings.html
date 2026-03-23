@@ -22,4 +22,7 @@ Settings
         Logout
     </button>
 </form>
+{% if request.user and request.user.is_staff %}
+<a href="{% url 'munch:node_management_page' %}">Node Management</a>
+{% endif %}
 {% endblock content-scrollable %} 
