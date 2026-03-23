@@ -145,7 +145,7 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.entry.fqid.replace("/api/", "/") #add web field to Entry
     
     def get_likes(self, obj):
-        likes = Like.objects.filter(object_url=obj.fqid)
+        likes = Like.objects.filter(object_url=obj.fqid).order_by("-published")
         return {
             "type": "likes",
             "id": f"{obj.fqid}/likes",
@@ -212,7 +212,7 @@ class EntrySerializer(serializers.ModelSerializer):
             ]
 
     def get_comments(self, obj):
-        comments = Comment.objects.filter(entry=obj)
+        comments = Comment.objects.filter(entry=obj).order_by("-published")
         return {
             "type": "comments",
             "id": f"{obj.fqid}/comments",
@@ -223,7 +223,7 @@ class EntrySerializer(serializers.ModelSerializer):
             "src": CommentSerializer(comments[:5], many=True).data,
         }
     def get_likes(self, obj):
-        likes = Like.objects.filter(object_url=obj.fqid)
+        likes = Like.objects.filter(object_url=obj.fqid).order_by("-published")
         return {
             "type": "likes",
             "id": f"{obj.fqid}/likes",
@@ -247,6 +247,6 @@ class ServerSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True},
         }
- 
+
     def validate_url(self, value):
         return value.rstrip('/')
