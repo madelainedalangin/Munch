@@ -18,7 +18,7 @@ import re
 
 def followers_view(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)   # use fqid in future
-    follower_list = Author.objects.filter(following_relations__object=author)
+    follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='accepted')
     context = {
         "user": author,
         "followers": follower_list
@@ -27,7 +27,7 @@ def followers_view(request, author_uuid):
 
 def list_following(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)
-    following_list = Author.objects.filter(follower_relations__actor=author)
+    following_list = Author.objects.filter(follower_relations__actor=author, following_relations__status='accepted')
     context = {
         "user": author,
         "following": following_list
@@ -42,6 +42,20 @@ def list_follow_requests(request, author_uuid):
         "followers": follower_list
     }
     return render(request, 'munch/follow_request_list.html', context)
+
+@login_required
+def connect(request):
+    author = Author.objects.get(id=request.user.id)
+    following_ids = Author.objects.filter(
+        follower_relations__actor=author, 
+        following_relations__status='accepted'
+    ).values_list('id', flat=True)
+    suggestions = Author.objects.exclude(id__in=following_ids).exclude(id=request.user.id)
+
+    context = {
+        "suggested_authors": suggestions,
+    }
+    return render(request, 'munch/connect.html', context)
 
 
 # Following API

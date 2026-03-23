@@ -12,7 +12,7 @@ from rest_framework import status
 from munch.serializers import *
 from munch.models import *
 from munch.forms import EntryForm
-from munch.views.views_utils import check_entry_visibility
+from munch.views.views_utils import *
 from munch.authentication import ServerBasicAuthentication
 from munch.permissions import IsAuthorizedServer
 
@@ -402,6 +402,8 @@ def create_entry(request, author_id):
             # update all applicable nodes
             inbox_urls = get_inboxs(entry, request.user)
             distribute(entry, inbox_urls, notif=True)
+            push_image_to_remote_followers(entry, request.user)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

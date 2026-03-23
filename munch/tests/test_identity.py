@@ -74,6 +74,7 @@ class AuthorTest(TestCase):
         """
         Tests that the web frontend profile page is accessible.
         """
+        self.client.login(username='joshua1', password='password123')
         url = reverse('munch:public_profile', kwargs={'author_uuid': self.author.uuid})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)

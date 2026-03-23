@@ -1,0 +1,44 @@
+{% extends "munch/nav-content.html" %}
+{% load static %}
+
+{% block title %} Connect New Node {% endblock title %}
+
+{% block scripts %}
+{{ block.super }}
+{% endblock scripts %}
+
+{% block content-bar %}
+<strong>Connect New Node</strong>
+{% endblock content-bar %}
+
+{% block content-scrollable %}
+<form novalidate>
+    {% csrf_token %}
+
+    <div class="field">
+        <label for="url">Node URL</label>
+        <input type="url" id="url" name="url" placeholder="https://remote-node.com" autocomplete="off" required>
+        <div class="field-error" id="url-error"></div>
+    </div>
+   
+    <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="off" required>
+        <div class="field-error" id="username-error"></div>
+    </div>
+   
+    <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        <div class="field-error" id="password-error"></div>
+    </div>
+   
+    <hr class="divider">
+   
+    <button type="submit" class="btn" id="submitBtn">
+        <div class="spinner" id="spinner"></div>
+        <span id="btnText">Register node</span>
+    </button>
+    
+</form>
+{% endblock content-scrollable %}

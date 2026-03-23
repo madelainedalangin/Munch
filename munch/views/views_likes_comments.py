@@ -60,7 +60,7 @@ def get_entry_likes(request, author_serial, entry_serial):
     if request.user.is_authenticated:
         user_liked = Like.objects.filter(author__uuid=request.user.uuid,object_url=entry.fqid).exists()
 
-    entry_likes = Like.objects.filter(object_url=entry.fqid)
+    entry_likes = Like.objects.filter(object_url=entry.fqid).order_by("-published")
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
     start_page = (page - 1) * size
@@ -101,7 +101,7 @@ def get_entry_likes_by_fqid(request, entry_fqid):
     if visibility_error:
         return visibility_error
     
-    entry_likes = Like.objects.filter(object_url=entry.fqid)
+    entry_likes = Like.objects.filter(object_url=entry.fqid).order_by("-published")
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
     start_page = (page - 1) * size
@@ -153,7 +153,7 @@ def get_comment_likes(request, author_serial, entry_serial, comment_fqid):
     if visibility_error:
         return visibility_error
     
-    comment_likes = Like.objects.filter(object_url=comment.fqid)
+    comment_likes = Like.objects.filter(object_url=comment.fqid).order_by("-published")
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
     start_page = (page - 1) * size
@@ -211,7 +211,7 @@ def liked(request, author_serial):
         author = get_object_or_404(Author, id=author_serial)
     
     if request.method == "GET":
-        author_likes = Like.objects.filter(author=author)
+        author_likes = Like.objects.filter(author=author).order_by("-published")
         page = int(request.GET.get('page', 1))
         size = int(request.GET.get('size', 5))
         start_page = (page - 1) * size
@@ -241,12 +241,20 @@ def liked(request, author_serial):
                 entry = Entry.objects.filter(fqid=object_url).first()
                 if entry:
                     inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
-                    requests.post(inbox_url, json=serializer.data)
+                    requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
             else:
                 comment = Comment.objects.filter(fqid=object_url).first()
                 if comment:
                     inbox_url = f"{comment.author.host}authors/{comment.author.uuid}/inbox"
-                    requests.post(inbox_url, json=serializer.data)
+                    requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
         except Exception as e:
             print(f"Failed to forward like notification to inbox: {e}")
             
@@ -378,7 +386,7 @@ def get_entry_comments_by_serial(request, author_serial, entry_serial):
     if visibility_error:
         return visibility_error
     
-    entry_comments = Comment.objects.filter(entry=entry)
+    entry_comments = Comment.objects.filter(entry=entry).order_by("-published")
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
     start = (page - 1) * size
@@ -416,7 +424,7 @@ def get_entry_comments_by_fqid(request, entry_fqid):
     if visibility_error:
         return visibility_error
     
-    entry_comments = Comment.objects.filter(entry=entry)
+    entry_comments = Comment.objects.filter(entry=entry).order_by("-published")
     page = int(request.GET.get('page', 1))
     size = int(request.GET.get('size', 5))
     start_page = (page - 1) * size
@@ -464,7 +472,7 @@ def commented(request, author_serial):
         author = get_object_or_404(Author, id=author_serial)
     
     if request.method == "GET":
-        author_comments = Comment.objects.filter(author=author)
+        author_comments = Comment.objects.filter(author=author).order_by("-published")
         
         if isinstance(request.successful_authenticator, ServerBasicAuthentication):
             author_comments = author_comments.filter(
@@ -518,7 +526,11 @@ def commented(request, author_serial):
             #- Then the node you posted it to is responsible for forwarding it to the correct inbox
         inbox_url = f"{local_entry.author.host}authors/{local_entry.author.uuid}/inbox"
         try:
-            requests.post(inbox_url, json=serializer.data)
+            requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
         except Exception as e:
             print(f"Failed to forward to inbox: {e}")
             
@@ -544,7 +556,11 @@ def post_comment(request, author_id, entry_serial):
             serializer = CommentSerializer(comment)
             inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
             try:
-                requests.post(inbox_url, json=serializer.data)
+                requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
             except Exception as e:
                 print(f"Failed to forward to inbox: {e}")
     

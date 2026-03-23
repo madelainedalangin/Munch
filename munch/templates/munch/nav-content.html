@@ -22,7 +22,7 @@
         <img src="{% static 'munch/icons/home.svg' %}">
         Feed
     </a></li>
-    <li><a href="{{ user.web }}/follow_requests/">
+    <li><a href="{% url 'munch:list_follow_requests' author_uuid=user.uuid %}">
         <img src="{% static 'munch/icons/group.svg' %}">
         Follow Req.
     </a></li>
