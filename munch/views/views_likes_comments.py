@@ -241,12 +241,20 @@ def liked(request, author_serial):
                 entry = Entry.objects.filter(fqid=object_url).first()
                 if entry:
                     inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
-                    requests.post(inbox_url, json=serializer.data)
+                    requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
             else:
                 comment = Comment.objects.filter(fqid=object_url).first()
                 if comment:
                     inbox_url = f"{comment.author.host}authors/{comment.author.uuid}/inbox"
-                    requests.post(inbox_url, json=serializer.data)
+                    requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
         except Exception as e:
             print(f"Failed to forward like notification to inbox: {e}")
             
@@ -518,7 +526,11 @@ def commented(request, author_serial):
             #- Then the node you posted it to is responsible for forwarding it to the correct inbox
         inbox_url = f"{local_entry.author.host}authors/{local_entry.author.uuid}/inbox"
         try:
-            requests.post(inbox_url, json=serializer.data)
+            requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
         except Exception as e:
             print(f"Failed to forward to inbox: {e}")
             
@@ -544,7 +556,11 @@ def post_comment(request, author_id, entry_serial):
             serializer = CommentSerializer(comment)
             inbox_url = f"{entry.author.host}authors/{entry.author.uuid}/inbox"
             try:
-                requests.post(inbox_url, json=serializer.data)
+                requests.post(inbox_url, 
+                                json=serializer.data,
+                                auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
+                                headers={"Origin": settings.BACKEND_URL}
+                                )
             except Exception as e:
                 print(f"Failed to forward to inbox: {e}")
     
