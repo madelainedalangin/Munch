@@ -148,7 +148,7 @@ def display_entry_by_serial(request, author_id, entry_serial):
     all_comments = Comment.objects.filter(entry=entry).order_by("-published")
     total_comments = all_comments.count()
     comments = all_comments[start:end]
-    total_pages = (total_comments + size - 1) // size
+    total_pages = max(1, (total_comments + size - 1) // size)
 
     comments = list(all_comments[start:end])
     for comment in comments:
