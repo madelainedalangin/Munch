@@ -1,62 +1,28 @@
-{% extends "munch/nav-content.html" %}
+{% extends "munch/nav-content.html" %} 
 {% load static %}
 
 {% block links %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'munch/css/settings.css' %}">
-<link rel="stylesheet" href="{% static 'munch/css/logout.css' %}">
-{% endblock links %}
+<!-- <link rel="stylesheet" href="{% static 'munch/css/settings.css' %}"> -->
+{% endblock links %} 
 
-{% block title %}Settings{% endblock title %}
+{% block title %}
+Settings
+{% endblock title %}
 
 {% block content-bar %}
 <strong>Settings</strong>
 {% endblock content-bar %}
 
 {% block content-scrollable %}
-<!--Source: Claude Sonnet 4.6 Date Accessed: Mon march 23, 2026
-prompt: create a logout button with dialog box to confirm logout with logout and cancel"-->
-<button class="settings-item settings-item--logout" id="logout-trigger">
-    <img src="{% static 'munch/icons/logout_icon.png' %}" alt="Log out">
-    Log out
-</button>
-
+<h3 style="margin: 1rem 1.5rem">Log Out</h3>
+<form action="{% url 'munch:logout' %}" method="post" style="margin: 1rem 1.5rem;">
+    {% csrf_token %}
+    <button type="submit" style="background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; font-family: sans-serif; font-weight: bold;">
+        Logout
+    </button>
+</form>
 {% if request.user and request.user.is_staff %}
-<a href="{% url 'munch:node_management_page' %}" class="settings-item">Node Management</a>
+<a href="{% url 'munch:node_management_page' %}">Node Management</a>
 {% endif %}
-
-{% endblock content-scrollable %}
-
-{% block content %}
-{{ block.super }}
-<div class="logout-overlay" id="logout-overlay">
-    <div class="logout-modal">
-        <p class="logout-modal__title">Do you want to log out of Munch?</p>
-        <form method="post" action="{% url 'munch:logout' %}">
-            {% csrf_token %}
-            <button type="submit" class="logout-modal__confirm">Log out</button>
-        </form>
-        <button class="logout-modal__cancel" id="logout-cancel">Cancel</button>
-    </div>
-</div>
-{% endblock content %}
-
-{% block scripts %}
-{{ block.super }}
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const trigger = document.getElementById('logout-trigger');
-        const overlay = document.getElementById('logout-overlay');
-        const cancel = document.getElementById('logout-cancel');
-
-        document.body.appendChild(overlay);
-        overlay.classList.remove('is-open');
-
-        trigger.addEventListener('click', () => overlay.classList.add('is-open'));
-        cancel.addEventListener('click', () => overlay.classList.remove('is-open'));
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) overlay.classList.remove('is-open');
-        });
-    });
-</script>
-{% endblock scripts %}
+{% endblock content-scrollable %} 
