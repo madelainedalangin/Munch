@@ -345,8 +345,8 @@ def get_comment_by_serial(request, author_serial, comment_serial):
     return Response(serializer.data)
 
 @api_view(["GET"])
-@authentication_classes([SessionAuthentication])
-@permission_classes([IsAuthenticated])
+@authentication_classes([ServerBasicAuthentication, SessionAuthentication])
+@permission_classes([IsAuthorizedServer | IsAuthenticated])
 def get_comment_by_fqid(request, comment_fqid):
     """
     This function gets a single comment using its fqid
