@@ -3,6 +3,7 @@ from rest_framework import status
 
 from munch.serializers import *
 from munch.models import *
+import requests as http_requests
 
 #-helper function for entry visibility
 def check_entry_visibility(request, entry):
@@ -38,3 +39,44 @@ def check_entry_visibility(request, entry):
     elif entry.visibility == 'UNLISTED':
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_403_FORBIDDEN)
+        
+def push_image_to_remote_followers(entry, author):
+    """
+    POST entry to inbox of all remote followers.
+    """
+    if not entry.contentType.startswith("image/"):
+        return None
+    
+    remote_followers = Follow.objects.filter(
+        object=author,
+        status='accepted'
+    ).select_related('actor').filter(
+        actor__username__isnull=True 
+    )
+    
+    entry_data = EntrySerializer(entry).data
+
+    for follow in remote_followers:
+        follower = follow.actor
+        # Extract base host from follower's FQID
+        # e.g. http://remotenode.com/api/authors/1111 -> http://remotenode.com/api/
+        inbox_url = f"{follower.id.split('/authors/')[0]}/authors/{follower.id.split('/authors/')[1]}/inbox"
+
+        # Find a Server credential for this remote node
+        try:
+            server = Server.objects.get(
+                url__icontains=follower.host.replace('/api/', ''),
+                is_approved=True
+            )
+        except Server.DoesNotExist:
+            continue
+
+        try:
+            http_requests.post(
+                inbox_url,
+                json=entry_data,
+                auth=(server.username, server.password),
+                timeout=5
+            )
+        except http_requests.RequestException:
+            continue  # no crashing :') PLEASEEEE
