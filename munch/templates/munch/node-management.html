@@ -5,6 +5,7 @@
 
 {% block scripts %}
 {{ block.super }}
+<script defer src="{% static 'munch/node-management.js' %}"></script>
 {% endblock scripts %}
 
 {% block content-bar %}
@@ -19,8 +20,8 @@
     {% for node in nodes %}
     <li>
         <p>{{ node.url }}</p>
-        <button class="refresh-connection" data-node-url="{{ node.url }}">Refresh</button>
-        <button class="remove-connection" data-node-url="{{ node.url }}">Remove</button>
+        <button class="refresh-connection" data-node-url="{{ node.url }}" data-local-url="{{ local }}">Refresh</button>
+        <button class="remove-connection" data-node-url="{{ node.url }}" data-local-url="{{ local }}">Remove</button>
     </li>
     {% empty %}
     <p>No node connections yet...</p>
