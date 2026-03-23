@@ -17,7 +17,7 @@ from munch.permissions import IsAuthorizedServer
 @authentication_classes([SessionAuthentication, ServerBasicAuthentication])
 @permission_classes([IsAuthenticated | IsAuthorizedServer])
 def get_authors(request):
-    authors = Author.objects.all()
+    authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")
     serializer = AuthorSerializer(authors, many=True)
     return Response(serializer.data)
 
@@ -32,12 +32,12 @@ def get_authors_paginated(request):
         start = page * size
         end = start + size
 
-        authors = Author.objects.all()[start:end]
+        authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")[start:end]
         serializer = AuthorSerializer(authors, many=True)
         return Response(serializer.data)
     
     elif (page == None) and (size == None):
-        authors = Author.objects.all()
+        authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")
         serializer = AuthorSerializer(authors, many=True)
         return Response(serializer.data)
     
