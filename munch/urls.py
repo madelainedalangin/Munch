@@ -38,6 +38,7 @@ urlpatterns = [
     # Settings/Node Management
     path('settings/', views.settings_page, name='settings'),
     path('node-management/', views.node_management_page, name='node_management_page'),
+    path('node-management/new/', views.create_node_connection, name='create_node_connection'),
 
     # Comments Management
     path('authors/<str:author_id>/entries/<str:entry_serial>/comment/', views.post_comment, name='post_comment'),

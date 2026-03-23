@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.conf import settings
 
 from rest_framework.views import APIView
@@ -17,7 +18,7 @@ import requests
 def settings_page(request): #renamed to settings_page its overwriting our import settings from django
     return render(request, 'munch/settings.html')
 
-@login_required
+@staff_member_required
 def node_management_page(request):
     nodes = Server.objects.filter(is_approved=True)
     context = {
@@ -25,6 +26,9 @@ def node_management_page(request):
     }
     return render(request, 'munch/node-management.html', context)
 
+@staff_member_required
+def create_node_connection(request):
+    return render(request, 'munch/create-node-connection.html')
 
 # Node Connection API
 
