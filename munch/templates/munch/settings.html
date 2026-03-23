@@ -14,7 +14,7 @@
 {% endblock content-bar %}
 
 {% block content-scrollable %}
-<!--Source: Claude SOnnet 4.6 Date Accessed: Mon march 23, 2026
+<!--Source: Claude Sonnet 4.6 Date Accessed: Mon march 23, 2026
 prompt: create a logout button with dialog box to confirm logout with logout and cancel"-->
 <button class="settings-item settings-item--logout" id="logout-trigger">
     <img src="{% static 'munch/icons/logout_icon.png' %}" alt="Log out">
@@ -50,6 +50,7 @@ prompt: create a logout button with dialog box to confirm logout with logout and
         const cancel = document.getElementById('logout-cancel');
 
         document.body.appendChild(overlay);
+        overlay.classList.remove('is-open');
 
         trigger.addEventListener('click', () => overlay.classList.add('is-open'));
         cancel.addEventListener('click', () => overlay.classList.remove('is-open'));

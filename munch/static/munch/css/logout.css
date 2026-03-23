@@ -1,5 +1,5 @@
-//Source: Claude SOnnet 4.6 Date Accessed: Mon march 23, 2026
-//prompt: create a logout button with dialog box to confirm logout with logout and cancel"
+/*Source: Claude SOnnet 4.6 Date Accessed: Mon march 23, 2026
+prompt: create a logout button with dialog box to confirm logout with logout and cancel"*/
 .logout-overlay {
     display: none;
     position: fixed;
@@ -9,8 +9,6 @@
     height: 100vh;
     background: rgba(0, 0, 0, 0.3);
     z-index: 9999;
-    align-items: center;
-    justify-content: center;
     margin: 0;
     padding: 0;
 }
