@@ -17,7 +17,7 @@ from munch.authentication import ServerBasicAuthentication
 from munch.permissions import IsAuthorizedServer
 
 import base64 #for image_entry api
-import requests
+from requests import post as requests_post, RequestException
 from django.conf import settings
 
 def get_inboxs(entry,author):
@@ -49,18 +49,13 @@ def distribute(entry, inbox_urls, notif):
     for inbox_url in inbox_urls:
 
         try:
-            print(settings.AUTH_USERNAME, settings.AUTH_PASSWORD)
             
-            response = requests.post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
+            response = requests_post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
 
             if notif and (response.status_code == 201 or response.status_code == 200):
                 EntryNotification.objects.get_or_create(entry=entry,inbox_url=inbox_url)
-            
-            print("POST to", inbox_url)
-            print("Status:", response.status_code)
-            print("Response:", response.text)
 
-        except requests.RequestException:
+        except RequestException:
             continue
     return
 
@@ -400,9 +395,12 @@ def create_entry(request, author_id):
         if serializer.is_valid():
             entry = serializer.save(author=request.user)
             # update all applicable nodes
+
+            if entry.contentType and entry.contentType.startswith("image/"):
+                push_image_to_remote_followers(entry, request.user)
+
             inbox_urls = get_inboxs(entry, request.user)
             distribute(entry, inbox_urls, notif=True)
-            push_image_to_remote_followers(entry, request.user)
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
