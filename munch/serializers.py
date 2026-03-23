@@ -197,3 +197,14 @@ class EntriesSerializer(serializers.Serializer):
     size = serializers.IntegerField()
     count = serializers.IntegerField()
     src = EntrySerializer(many=True)
+
+class ServerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Server
+        fields = ['url', 'username', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
+ 
+    def validate_url(self, value):
+        return value.rstrip('/')
