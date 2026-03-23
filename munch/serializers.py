@@ -1,6 +1,7 @@
 from django.conf import settings
 from rest_framework import serializers
 from .models import *   # replace * with specific models once defined
+from django.db import IntegrityError
 
 # API objects in project description
 
@@ -85,6 +86,26 @@ class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
         fields = ['type', 'author', 'published', 'id', 'object']
+    
+    def create(self, validated_data):
+        """
+        This is called when doing serializer.save() after validating incoming
+        data.
+        
+        Defines how to turn the validated incoming JSON into a saved model
+        instance
+        """
+        validated_data.pop('type', None)
+        author_data = validated_data.pop('author')
+        author = AuthorSerializer().create(author_data)
+        try:
+            return Like.objects.create(
+                author=author,
+                published=validated_data.get('published'),
+                object_url=validated_data.get('object_url')
+            )
+        except IntegrityError:
+            raise serializers.ValidationError("Already liked.")
 
 class LikesSerializer(serializers.ModelSerializer):
     type = serializers.CharField(max_length=100, default='likes')
@@ -101,7 +122,7 @@ class CommentSerializer(serializers.ModelSerializer):
     web = serializers.SerializerMethodField()
     id = serializers.URLField(source="fqid")
     likes = serializers.SerializerMethodField()
-    entry = serializers.SerializerMethodField()
+    entry = serializers.CharField()
     
     class Meta:
         model = Comment
@@ -134,7 +155,28 @@ class CommentSerializer(serializers.ModelSerializer):
             "count": likes.count(),
             "src": LikeSerializer(likes, many=True).data,
         }
+        
+    def to_representation(self, obj):
+        rep = super().to_representation(obj)
+        rep['entry'] = obj.entry.fqid  # always output the FQID on GET
+        return rep
 
+    def create(self, validated_data):
+        validated_data.pop('type', None)
+        author_data = validated_data.pop('author')
+        author = AuthorSerializer().create(author_data)
+        entry_fqid = validated_data.pop('entry')
+        try:
+            entry = Entry.objects.get(fqid=entry_fqid)
+        except Entry.DoesNotExist:
+            raise serializers.ValidationError(f"Entry {entry_fqid} not found.")
+        return Comment.objects.create(
+            author=author,
+            entry=entry,
+            comment=validated_data.get('comment'),
+            contentType=validated_data.get('contentType', 'text/plain'),
+            published=validated_data.get('published'),
+        )
 class CommentsSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='comments')
     web = serializers.URLField()

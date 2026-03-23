@@ -2,8 +2,9 @@ from django.test import TestCase
 from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APIClient
-from munch.models import Author, Entry, Comment, Like, Follow
+from munch.models import Author, Entry, Comment, Like, Follow, Server
 from urllib.parse import quote
+import base64
 
 ##################################
 # COMMENTS/LIKES USER STORY TEST #
@@ -48,6 +49,20 @@ class CommentAPITest(TestCase):
       comment='Pizza and garlic bread omnomnoms'
     )
 
+    self.node = Server.objects.create(
+      url='http://remotenode.com',
+      username='remotenode',
+      password='nodepassword',
+      is_approved=True
+    )
+
+  def _node_auth(self):
+    credentials = base64.b64encode(b'remotenode:nodepassword').decode('utf-8')
+    self.client.credentials(
+      HTTP_AUTHORIZATION='Basic ' + credentials,
+      HTTP_ORIGIN='http://remotenode.com'
+    )
+
   def test_get_entry_comments_public(self):
     url = reverse('munch:get_entry_comments_by_serial', kwargs={
       'author_serial': self.author.uuid,
@@ -61,40 +76,48 @@ class CommentAPITest(TestCase):
 
   def test_get_entry_comments_private_as_stranger(self):
     self.client.login(username='stranger', password='justalurkerlol')
-    response = self.client.get(
-      f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
-    )
+    url = reverse('munch:get_entry_comments_by_serial', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.private_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 403)
-  
+
   def test_get_entry_comments_private_as_friend(self):
     self.client.login(username='RealFriend', password='imyouroppfr')
-    response = self.client.get(
-        f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/'
-    )
+    url = reverse('munch:get_entry_comments_by_serial', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.private_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
 
   def test_post_comment(self):
     self.client.login(username='RealFriend', password='imyouroppfr')
-    response = self.client.post(
-        f'/api/authors/{self.friend.uuid}/commented/',
-        {
-          'entry': self.public_entry.fqid,
-          'comment': 'hecc yea! WE LOVE CARBS!'
-        }
-    )
+    url = reverse('munch:commented', kwargs={'author_serial': self.friend.uuid})
+    response = self.client.post(url, {
+      'entry': self.public_entry.fqid,
+      'comment': 'hecc yea! WE LOVE CARBS!'
+    })
     self.assertEqual(response.status_code, 201)
     self.assertTrue(Comment.objects.filter(comment='hecc yea! WE LOVE CARBS!').exists())
 
   def test_get_comment(self):
     self.client.login(username='RealFriend', password='imyouroppfr')
-    response = self.client.get(
-      f'/api/authors/{self.friend.uuid}/commented/{self.comment.serial}/'
-    )
+    url = reverse('munch:get_comment_by_serial', kwargs={
+      'author_serial': self.friend.uuid,
+      'comment_serial': self.comment.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['comment'], 'Pizza and garlic bread omnomnoms')
 
   def test_get_entry_comments_not_authenticated(self):
-    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/comments/')
+    url = reverse('munch:get_entry_comments_by_serial', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.private_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 403)
 
   def test_get_comments_on_deleted_entry(self):
@@ -103,25 +126,98 @@ class CommentAPITest(TestCase):
       content='gone', visibility='DELETED'
     )
     self.client.login(username=self.author.username, password='notOscarWilde')
-    response = self.client.get(
-      f'/api/authors/{self.author.uuid}/entries/{deleted_entry.serial}/comments/'
-    )
+    url = reverse('munch:get_entry_comments_by_serial', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': deleted_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 410)
 
   def test_post_comment_on_deleted_entry(self):
-      deleted_entry = Entry.objects.create(
-        author=self.author, title='Deleted Entry',
-        content='gone', visibility='DELETED'
-      )
-      self.client.login(username='RealFriend', password='imyouroppfr')
-      response = self.client.post(
-          f'/api/authors/{self.friend.uuid}/commented/',
-          {
-            'entry': deleted_entry.fqid,
-            'comment': 'hello? is it me youre looking for?? - Lionel Richie'
-          }
-      )
-      self.assertEqual(response.status_code, 410)
+    deleted_entry = Entry.objects.create(
+      author=self.author, title='Deleted Entry',
+      content='gone', visibility='DELETED'
+    )
+    self.client.login(username='RealFriend', password='imyouroppfr')
+    url = reverse('munch:commented', kwargs={'author_serial': self.friend.uuid})
+    response = self.client.post(url, {
+      'entry': deleted_entry.fqid,
+      'comment': 'hello? is it me youre looking for?? - Lionel Richie'
+    })
+    self.assertEqual(response.status_code, 410)
+
+  def test_remote_comment_inbox(self):
+    comment_data = {
+      "type": "comment",
+      "author": {
+        "type": "author",
+        "id": "http://remotenode.com/api/authors/111",
+        "host": "http://remotenode.com/api/",
+        "displayName": "Remote User",
+        "github": "",
+        "profileImage": "",
+        "web": "http://remotenode.com/authors/111",
+      },
+      "comment": "great post from a remote node!",
+      "contentType": "text/plain",
+      "published": "2026-06-06T13:07:04+00:00",
+      "id": "http://remotenode.com/api/authors/111/commented/130",
+      "entry": self.public_entry.fqid,
+    }
+    self._node_auth()
+    url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+    response = self.client.post(url, data=comment_data, format='json')
+    #print(response.data)
+    self.assertEqual(response.status_code, 201)
+    self.assertTrue(Comment.objects.filter(comment='great post from a remote node!').exists())
+
+def test_remote_comment_on_nonexistent_entry_via_inbox(self):
+  comment_data = {
+      "type": "comment",
+      "author": {
+        "type": "author",
+        "id": "http://remotenode.com/api/authors/111",
+        "host": "http://remotenode.com/api/",
+        "displayName": "Remote User",
+        "github": "",
+        "profileImage": "",
+        "web": "http://remotenode.com/authors/111",
+      },
+    "comment": "hello is anyone there",
+    "contentType": "text/plain",
+    "published": "2026-06-06T13:07:04+00:00",
+    "id": "http://remotenode.com/api/authors/111/commented/999",
+    "entry": "http://remotenode.com/api/authors/111/entries/doesnotexist",
+  }
+  self._node_auth()
+  url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+  response = self.client.post(url, data=comment_data, format='json')
+  self.assertEqual(response.status_code, 400)
+
+def test_remote_comment_private_entry_inbox(self):
+  comment_data = {
+      "type": "comment",
+      "author": {
+        "type": "author",
+        "id": "http://remotenode.com/api/authors/111",
+        "host": "http://remotenode.com/api/",
+        "displayName": "Remote User",
+        "github": "",
+        "profileImage": "",
+        "web": "http://remotenode.com/authors/111",
+      },
+    "comment": "sneaking into a private entry",
+    "contentType": "text/plain",
+    "published": "2026-06-06T13:07:04+00:00",
+    "id": "http://remotenode.com/api/authors/111/commented/998",
+    "entry": self.private_entry.fqid,
+  }
+  self._node_auth()
+  url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+  response = self.client.post(url, data=comment_data, format='json')
+  self.assertEqual(response.status_code, 403)
+
+
 class LikeAPITest(TestCase):
 
   def setUp(self):
@@ -166,70 +262,141 @@ class LikeAPITest(TestCase):
       object_url=self.public_entry.fqid
     )
 
+    self.node = Server.objects.create(
+      url='http://remotenode.com',
+      username='remotenode',
+      password='nodepassword',
+      is_approved=True
+    )
+
+  def _node_auth(self):
+    credentials = base64.b64encode(b'remotenode:nodepassword').decode('utf-8')
+    self.client.credentials(
+      HTTP_AUTHORIZATION='Basic ' + credentials,
+      HTTP_ORIGIN='http://remotenode.com'
+    )
+
   def test_get_entry_likes_public(self):
     self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
-    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/likes/')
+    url = reverse('munch:get_entry_likes', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.public_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['type'], 'likes')
     self.assertEqual(response.data['count'], 1)
 
   def test_get_entry_likes_private_as_stranger(self):
     self.client.force_login(self.stranger)
-    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
+    url = reverse('munch:get_entry_likes', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.private_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 403)
 
   def test_get_entry_likes_private_as_friend(self):
     self.client.login(username='Kerroppi', password='hellokittypochacco')
-    response = self.client.get(f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/')
+    url = reverse('munch:get_entry_likes', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.private_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
 
   def test_like_entry(self):
     self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
-    response = self.client.post(f'/api/authors/{self.stranger.uuid}/liked/', {'object': self.public_entry.fqid})
+    url = reverse('munch:liked', kwargs={'author_serial': self.stranger.uuid})
+    response = self.client.post(url, {'object': self.public_entry.fqid})
     self.assertEqual(response.status_code, 201)
     self.assertTrue(Like.objects.filter(author=self.stranger, object_url=self.public_entry.fqid).exists())
 
   def test_like_comment(self):
     self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
-    response = self.client.post(
-      f'/api/authors/{self.stranger.uuid}/liked/',
-      {'object': self.comment.fqid}
-    )
+    url = reverse('munch:liked', kwargs={'author_serial': self.stranger.uuid})
+    response = self.client.post(url, {'object': self.comment.fqid})
     self.assertEqual(response.status_code, 201)
     self.assertTrue(Like.objects.filter(author=self.stranger, object_url=self.comment.fqid).exists())
 
   def test_get_comment_likes(self):
     Like.objects.create(author=self.stranger, object_url=self.comment.fqid)
     self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
-    response = self.client.get(
-      f'/api/authors/{self.friend.uuid}/entries/{self.public_entry.serial}/comments/{quote(self.comment.fqid, safe="")}/likes/'
-    )
+    url = reverse('munch:get_comment_likes', kwargs={
+      'author_serial': self.friend.uuid,
+      'entry_serial': self.public_entry.serial,
+      'comment_fqid': self.comment.fqid
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['count'], 1)
 
   def test_get_like(self):
     self.client.login(username=self.stranger.username, password='strangerdangeruhOH')
-    response = self.client.get(
-      f'/api/authors/{self.friend.uuid}/liked/{self.like.serial}/'
-    )
+    url = reverse('munch:get_like_by_serial', kwargs={
+      'author_serial': self.friend.uuid,
+      'like_serial': self.like.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 200)
     self.assertEqual(response.data['object'], self.public_entry.fqid)
 
-
   def test_get_entry_likes_unauthenticated(self):
-    response = self.client.get(
-      f'/api/authors/{self.author.uuid}/entries/{self.private_entry.serial}/likes/'
-    )
+    url = reverse('munch:get_entry_likes', kwargs={
+      'author_serial': self.author.uuid,
+      'entry_serial': self.private_entry.serial
+    })
+    response = self.client.get(url)
     self.assertEqual(response.status_code, 403)
 
   def test_like_spam(self):
-      self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
-      self.client.post(
-        f'/api/authors/{self.stranger.uuid}/liked/',
-        {'object': self.public_entry.fqid}
-      )
-      response = self.client.post(
-        f'/api/authors/{self.stranger.uuid}/liked/',
-        {'object': self.public_entry.fqid}
-      )
+    self.client.login(username='AnonymousNotHacker', password='strangerdangeruhOH')
+    url = reverse('munch:liked', kwargs={'author_serial': self.stranger.uuid})
+    self.client.post(url, {'object': self.public_entry.fqid})
+    response = self.client.post(url, {'object': self.public_entry.fqid})
+    self.assertEqual(response.status_code, 400)
+
+  def test_remote_like_inbox(self):
+    like_data = {
+      "type": "like",
+      "author": {
+        "type": "author",
+        "id": "http://remotenode.com/api/authors/6767",
+        "host": "http://remotenode.com/api/",
+        "displayName": "Remote User",
+        "github": "",
+        "profileImage": "",
+        "web": "http://remotenode.com/authors/6767",
+      },
+      "published": "2026-03-09T13:06:07+00:00",
+      "id": "http://remotenode.com/api/authors/6767/liked/255",
+      "object": self.public_entry.fqid,
+    }
+    self._node_auth()
+    url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+    response = self.client.post(url, data=like_data, format='json')
+    #print(response.data)
+    self.assertEqual(response.status_code, 201)
+    self.assertTrue(Like.objects.filter(object_url=self.public_entry.fqid).count() >= 1)
+
+  def test_remote_duplicate_like_inbox(self):
+      like_data = {
+          "type": "like",
+          "author": {
+            "type": "author",
+            "id": "http://remotenode.com/api/authors/6767",
+            "host": "http://remotenode.com/api/",
+            "displayName": "Remote User",
+            "github": "",
+            "profileImage": "",
+            "web": "http://remotenode.com/authors/6767",
+          },
+        "published": "2026-03-09T13:06:07+00:00",
+        "id": "http://remotenode.com/api/authors/6767/liked/255",
+        "object": self.public_entry.fqid,
+      }
+      self._node_auth()
+      url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+      self.client.post(url, data=like_data, format='json')
+      response = self.client.post(url, data=like_data, format='json')  # send twice
       self.assertEqual(response.status_code, 400)
