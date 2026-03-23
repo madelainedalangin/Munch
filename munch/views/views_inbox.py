@@ -55,9 +55,17 @@ def inbox(request, target_serial):
 
     elif payload_type == 'comment':
         serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif payload_type == 'like':
         serializer = LikeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
