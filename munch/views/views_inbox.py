@@ -26,7 +26,7 @@ def inbox(request, target_serial):
         serializer = CommentSerializer(data=request.data)
 
     elif payload_type == 'like':
-        serializer = FollowRequestSerializer(data=request.data)
+        serializer = LikeSerializer(data=request.data)
 
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
