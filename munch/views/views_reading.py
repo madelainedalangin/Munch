@@ -92,7 +92,7 @@ def stream(request):
     start = (page - 1) * size
     end = start + size
     total = entries.count()
-    total_pages = (total + size - 1) // size
+    total_pages = max(1, (total + size - 1) // size)
     entries = entries[start:end]
     
     return render(request, 'munch/stream.html', {
