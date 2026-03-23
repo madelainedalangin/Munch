@@ -54,14 +54,28 @@ def inbox(request, target_serial):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif payload_type == 'comment':
-        serializer = CommentSerializer(data=request.data)
+        incoming_id = request.data.get("id")
+        existing_comment = Comment.objects.filter(fqid=incoming_id).first()
+
+        if existing_comment:
+            serializer = CommentSerializer(existing_comment, data=request.data)
+        else:
+            serializer = CommentSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif payload_type == 'like':
-        serializer = LikeSerializer(data=request.data)
+        incoming_id = request.data.get("id")
+        existing_like = Like.objects.filter(fqid=incoming_id).first()
+
+        if existing_like:
+            serializer = LikeSerializer(existing_like, data=request.data)
+        else:
+            serializer = LikeSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -70,7 +84,3 @@ def inbox(request, target_serial):
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
