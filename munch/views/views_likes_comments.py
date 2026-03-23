@@ -263,17 +263,26 @@ def liked(request, author_serial):
             return Response({"detail": "Already liked."}, status=status.HTTP_400_BAD_REQUEST)
         serializer = LikeSerializer(like)
         try:
+            inbox_urls = set()
+
             if "entries" in object_url:
                 entry = Entry.objects.filter(fqid=object_url).first()
                 if entry:
-                    inbox_urls = get_inboxs(entry,entry.author)
-                    like_distribute(like,inbox_urls)
+                    inbox_urls.update(get_inboxs(entry,entry.author))
+                    # make sure the entry author gets it too
+                    inbox_urls.add(f"{entry.author.id.rstrip('/')}/inbox")
+    
                     
             else:
                 comment = Comment.objects.filter(fqid=object_url).first()
                 if comment:
-                    inbox_urls = get_inboxs(comment.entry,comment.entry.author)
-                    like_distribute(like,inbox_urls)
+                    inbox_urls.update(get_inboxs(comment.entry,comment.entry.author))
+                    # make sure comment author gets it
+                    inbox_urls.add(f"{comment.author.id.rstrip('/')}/inbox")
+                    # optional: also notify entry author
+                    inbox_urls.add(f"{comment.entry.author.id.rstrip('/')}/inbox")
+
+            like_distribute(like,list(inbox_urls))
             
         except Exception as e:
             print(f"Failed to forward like notification to inbox: {e}")
