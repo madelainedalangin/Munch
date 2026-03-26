@@ -37,6 +37,7 @@ def get_stream_entries(user):
         entries = Entry.objects.filter(
             Q(visibility = 'PUBLIC') | 
             Q(visibility = 'DELETED') |
+            Q(visibility = 'UNLISTED') |
             Q(author = user)
         ).order_by('-published')
         
