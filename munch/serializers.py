@@ -40,7 +40,7 @@ class AuthorSerializer(serializers.ModelSerializer):
             author = Author.objects.get(id=author_id)
             for field, value in defaults.items():       # update if author exists in database
                 setattr(author, field, value)
-            author.save
+            author.save()
 
         except Author.DoesNotExist:
             if self.isLocal(host):
@@ -98,12 +98,20 @@ class LikeSerializer(serializers.ModelSerializer):
         validated_data.pop('type', None)
         author_data = validated_data.pop('author')
         author = AuthorSerializer().create(author_data)
+        fqid = validated_data.pop('fqid', None)
+
         try:
-            return Like.objects.create(
+            like =  Like.objects.create(
                 author=author,
                 published=validated_data.get('published'),
                 object_url=validated_data.get('object_url')
             )
+
+            if fqid:
+                like.fqid = fqid
+                like.save()
+        
+            return like
         except IntegrityError:
             raise serializers.ValidationError("Already liked.")
 
@@ -166,17 +174,27 @@ class CommentSerializer(serializers.ModelSerializer):
         author_data = validated_data.pop('author')
         author = AuthorSerializer().create(author_data)
         entry_fqid = validated_data.pop('entry')
+        fqid = validated_data.pop('fqid', None)
+
         try:
             entry = Entry.objects.get(fqid=entry_fqid)
         except Entry.DoesNotExist:
             raise serializers.ValidationError(f"Entry {entry_fqid} not found.")
-        return Comment.objects.create(
+        
+        comment = Comment.objects.create(
             author=author,
             entry=entry,
             comment=validated_data.get('comment'),
             contentType=validated_data.get('contentType', 'text/plain'),
             published=validated_data.get('published'),
         )
+    
+        if fqid:
+            comment.fqid = fqid
+            comment.save()
+        
+        return comment
+    
 class CommentsSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='comments')
     web = serializers.URLField()

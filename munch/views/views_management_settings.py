@@ -22,7 +22,8 @@ def settings_page(request): #renamed to settings_page its overwriting our import
 def node_management_page(request):
     nodes = Server.objects.filter(is_approved=True)
     context = {
-        'nodes': nodes
+        'nodes': nodes,
+        'local': settings.BACKEND_URL
     }
     return render(request, 'munch/node-management.html', context)
 
@@ -77,4 +78,5 @@ class ManageNode(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        serializer.save()
         return Response(data, status=status.HTTP_200_OK)

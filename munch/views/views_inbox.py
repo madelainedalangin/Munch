@@ -18,6 +18,10 @@ def inbox(request, target_serial):
 
     if payload_type == 'follow':
         serializer = FollowRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif payload_type == 'entry':
         author_data = request.data.get('author', {})
@@ -54,15 +58,31 @@ def inbox(request, target_serial):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif payload_type == 'comment':
+        incoming_id = request.data.get("id")
+        existing_comment = Comment.objects.filter(fqid=incoming_id).first()
+
+        if existing_comment:
+            return Response(CommentSerializer(existing_comment).data, status=status.HTTP_200_OK)
         serializer = CommentSerializer(data=request.data)
 
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     elif payload_type == 'like':
+        incoming_id = request.data.get("id")
+        existing_like = Like.objects.filter(fqid=incoming_id).first()
+
+        if existing_like:
+            return Response(LikeSerializer(existing_like).data, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = LikeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
