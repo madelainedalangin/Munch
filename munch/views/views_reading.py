@@ -38,6 +38,7 @@ def get_stream_entries(user):
             Q(visibility = 'PUBLIC') | 
             Q(visibility = 'DELETED') |
             Q(visibility = 'UNLISTED') |
+            Q(visibility = 'PRIVATE') |
             Q(author = user)
         ).order_by('-published')
         
