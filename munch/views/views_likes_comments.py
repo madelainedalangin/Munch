@@ -524,7 +524,7 @@ def commented(request, author_serial):
         })
         
     elif request.method == "POST":
-        if not IsAuthenticated().has_permission(request, None):
+        if not (IsAuthenticated().has_permission(request, None) or IsAuthorizedServer().has_permission(request, None)):
             return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
 
         entry_url = request.data.get("entry")
