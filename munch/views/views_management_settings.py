@@ -70,7 +70,9 @@ class ManageNode(APIView):
             )
         
         data=response.json()
-        serializer = AuthorSerializer(data=data, many=True)
+        authors_list = data.get("authors", [])
+        serializer = AuthorSerializer(data=authors_list, many=True)
+        
         if not serializer.is_valid():
             return Response(
                 data={
@@ -81,4 +83,4 @@ class ManageNode(APIView):
             )
         
         serializer.save()
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(authors_list, status=status.HTTP_200_OK)
