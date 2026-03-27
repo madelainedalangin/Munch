@@ -25,8 +25,8 @@ def get_authors(request):
 @authentication_classes([SessionAuthentication, ServerBasicAuthentication])
 @permission_classes([IsAuthenticated | IsAuthorizedServer])
 def get_authors_paginated(request):
-    page = request.GET.get('page')
-    size = request.GET.get('size')
+    page = int(request.GET.get('page'))
+    size = int(request.GET.get('size'))
 
     if (page != None) and (size != None):
         start = page * size
@@ -59,7 +59,7 @@ def get_author(request, author_id):
         return Response(data={'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
     
     author = Author.objects.get(id=fqid)
-    if author == None:
+    if author is None:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
