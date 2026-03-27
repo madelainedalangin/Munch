@@ -34,6 +34,8 @@ def create_node_connection(request):
 # Node Connection API
 
 class ConnectNode(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         serializer = ServerSerializer(data=request.data)
