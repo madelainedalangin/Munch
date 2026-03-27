@@ -19,6 +19,7 @@ import requests
 from urllib.parse import unquote
 from requests import post as requests_post, RequestException
 from munch.views.views_posting import get_inboxs
+import re
 
 def like_distribute(like,inbox_urls):
     serializer = LikeSerializer(like)
@@ -271,6 +272,10 @@ def liked(request, author_serial):
                     inbox_urls.update(get_inboxs(entry,entry.author))
                     # make sure the entry author gets it too
                     inbox_urls.add(f"{entry.author.id.rstrip('/')}/inbox")
+                else:
+                    match = re.match(r'(.*?/api/authors/[^/]+)', object_url)
+                    if match:
+                        inbox_urls.add(f"{match.group(1).rstrip('/')}/inbox")
     
                     
             else:
