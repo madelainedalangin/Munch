@@ -6,6 +6,7 @@ from munch.serializers import *
 from munch.models import *
 from munch.authentication import ServerBasicAuthentication
 from munch.permissions import IsAuthorizedServer
+from munch.views.views_likes_comments import get_inboxs,comment_distribute
 
 
 # Inbox API
@@ -66,8 +67,16 @@ def inbox(request, target_serial):
         serializer = CommentSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            comment = serializer.save()
+
+            local_host = f"{settings.BACKEND_URL}/api".rstrip("/")
+
+
+            if comment.entry.author.host.rstrip("/") == local_host:
+                inbox_urls = set(get_inboxs(comment.entry, comment.entry.author))
+                comment_distribute(comment, list(inbox_urls))
+
+            return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif payload_type == 'like':
