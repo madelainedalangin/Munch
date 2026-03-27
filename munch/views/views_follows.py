@@ -110,10 +110,15 @@ def manage_following(request, author_serial, target_FQID):
         # create follow object if none exists yet
         if follow_entry == None:
 
-            target_author = Author.objects.get(id=target_FQID)
-            if target_author == None:
+            target_author = Author.objects.filter(id=target_FQID).first()
+            if target_author is None:
                 # TODO request user data from other nodes in future milestones
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {
+                        "detail": "Remote author cannot be found. Add them from via admin first"  
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/api/authors/{author_serial}")
 
             follow_entry = Follow.objects.create(
