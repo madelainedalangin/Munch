@@ -68,7 +68,7 @@ def get_stream_entries(user):
     entries = Entry.objects.filter(
         Q(visibility='PUBLIC') | 
         Q(author__in=user_following, visibility='UNLISTED') |
-        Q(author__in=user_friends, visibility=['PRIVATE', 'FRIENDS']) |
+        Q(author__in=user_friends, visibility__in=['PRIVATE', 'FRIENDS']) |
         Q(author = user)
     ).exclude(
         visibility = 'DELETED'
