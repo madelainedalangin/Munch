@@ -28,8 +28,8 @@ def get_authors(request):
 @authentication_classes([SessionAuthentication, ServerBasicAuthentication])
 @permission_classes([IsAuthenticated | IsAuthorizedServer])
 def get_authors_paginated(request):
-    page = int(request.GET.get('page'))
-    size = int(request.GET.get('size'))
+    page = request.GET.get('page')
+    size = request.GET.get('size')
 
     if (page is not None) and (size is not None):
         page = int(page)
