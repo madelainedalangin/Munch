@@ -69,10 +69,12 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         actor_author = AuthorSerializer().create(actor_data)
         object_author = AuthorSerializer().create(object_data)
 
-        return Follow.objects.get_or_create(
+        follow, created = Follow.objects.get_or_create(
             actor=actor_author,
-            object=object_author
+            object=object_author,
+            defaults={'status': 'requesting'}
         )
+        return follow
     
     def get_summary(self, obj):
         return f"{obj.actor.displayName} wants to follow {obj.object.displayName}"
