@@ -118,7 +118,6 @@ def manage_following(request, author_serial, target_FQID):
 
             target_author = Author.objects.filter(id=target_FQID).first()
             if target_author is None:
-                # TODO request user data from other nodes in future milestones
                 return Response(
                     {
                         "detail": "Remote author cannot be found. Add them from via admin first"  
@@ -139,14 +138,26 @@ def manage_following(request, author_serial, target_FQID):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         else:
-            response = requests.post(f"{target_service}{target_serial}/inbox", auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=serializer.data, headers={'Origin':settings.BACKEND_URL})
+            # look up per-node credentials
+            node_base_url = target_service.replace('/api/authors/', '')
+            try:
+                server = Server.objects.get(url=node_base_url)
+                outgoing_auth = (server.username, server.password)
+            except Server.DoesNotExist:
+                return Response(
+                    {"detail": f"No server entry found for {node_base_url}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            response = requests.post(
+                f"{target_service}{target_serial}/inbox",
+                auth=outgoing_auth,
+                json=serializer.data
+            )
 
             if response.status_code == 201:
-
-                # assume accepted
                 follow_entry.status = 'accepted'
                 follow_entry.save()
-
                 return Response(response.json(), status=status.HTTP_201_CREATED)
             
             else:
