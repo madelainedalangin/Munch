@@ -19,6 +19,7 @@ from munch.permissions import IsAuthorizedServer
 import base64 #for image_entry api
 from requests import post as requests_post, RequestException
 from django.conf import settings
+import re
 
 def get_inboxs(entry,author):
     visibility = entry.visibility
@@ -45,19 +46,27 @@ def distribute(entry, inbox_urls, notif):
     serializer = EntrySerializer(entry)
     data = serializer.data
     
-    # for every inbox in followers , send a post request to their inbox 
     for inbox_url in inbox_urls:
-
         try:
+            # extract base node URL from inbox_url
+            match = re.match(r'^(https?://[^/]+)', inbox_url)
+            if not match:
+                continue
+            node_base_url = match.group(1)
             
-            response = requests_post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
+            try:
+                server = Server.objects.get(url=node_base_url)
+                outgoing_auth = (server.username, server.password)
+            except Server.DoesNotExist:
+                continue
+
+            response = requests_post(inbox_url, auth=outgoing_auth, json=data)
 
             if notif and (response.status_code == 201 or response.status_code == 200):
-                EntryNotification.objects.get_or_create(entry=entry,inbox_url=inbox_url)
+                EntryNotification.objects.get_or_create(entry=entry, inbox_url=inbox_url)
 
         except RequestException:
             continue
-    return
 
 def edit_entry(request, author_id, entry_serial):
     '''
