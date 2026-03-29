@@ -81,8 +81,8 @@ main {
     cursor: pointer;
     text-decoration: none;
     background: rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.4);
-    border: 1.5px solid rgba(255,255,255,0.4);
+    color: rgba(146, 146, 146, 0.4);
+    border: 1.5px solid #FF965E;
     transition: all 0.22s ease;
 }
 
