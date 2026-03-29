@@ -59,3 +59,58 @@ main {
     border-bottom: var(--border-default);
     padding: 1rem 1.5rem;
 }
+/*unauthenticaed users*/
+
+.nav-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    padding: 16px 0;
+}
+
+.btn-nav-login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 15px 0;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    transition: all 0.22s ease;
+}
+
+.btn-nav-login:hover {
+    border-color: #FF965E;
+    color: #FF965E;
+    background: rgba(255,150,94,0.1);
+    transform: translateY(-2px);
+}
+
+.btn-nav-signup {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 15px 0;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    background: #FF965E;
+    color: #FBF8F2;
+    transition: all 0.22s ease;
+}
+
+.btn-nav-signup:hover {
+    background: #e8804a;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255,150,94,0.35);
+}
