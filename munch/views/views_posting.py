@@ -12,34 +12,52 @@ from rest_framework import status
 from munch.serializers import *
 from munch.models import *
 from munch.forms import EntryForm
-from munch.views.views_utils import check_entry_visibility
+from munch.views.views_utils import *
 from munch.authentication import ServerBasicAuthentication
 from munch.permissions import IsAuthorizedServer
 
 import base64 #for image_entry api
+from requests import post as requests_post, RequestException
+from django.conf import settings
 
-def create_entry_UI(request, author_id):
-    '''
-    Purpose: Creates an entry through a filled out form from the user in the UI 
+def get_inboxs(entry,author):
+    visibility = entry.visibility
 
-    If user fills the form correctly, it will save as an entry in the database
-    '''
-    if not request.user.is_authenticated:
-        return redirect('munch:login')
-
-    if request.method == 'POST':
-        form = EntryForm(request.POST)
-        if form.is_valid():
-            entry = form.save(commit=False)
-            entry.author = request.user
-            entry.save()
-            return redirect('munch:display_entry_by_serial',
-                            author_id=entry.author.uuid,
-                            entry_serial=entry.serial)
+    if visibility == "PUBLIC" or visibility == "UNLISTED":
+        recipients = Author.objects.filter(following_relations__object=author,following_relations__status='accepted').distinct()
+    elif visibility == "PRIVATE":
+        recipients = Author.objects.filter(follower_relations__actor=author,follower_relations__status='accepted',following_relations__object=author,following_relations__status='accepted').distinct()
     else:
-        form = EntryForm()
-        
-    return render(request, 'munch/create_entry.html', {'form': form, 'title':"Create Entry", 'button_title':"Create Entry"})
+        return []
+    
+    inbox_urls = []
+    for recipient in recipients:
+        if recipient.host.rstrip('/') == f"{settings.BACKEND_URL}/api".rstrip('/'):
+            continue
+
+        inbox_urls.append(f"{recipient.id.rstrip('/')}/inbox")
+
+    return inbox_urls
+
+
+# function to distributing entries to qualifying inboxes
+def distribute(entry, inbox_urls, notif):
+    serializer = EntrySerializer(entry)
+    data = serializer.data
+    
+    # for every inbox in followers , send a post request to their inbox 
+    for inbox_url in inbox_urls:
+
+        try:
+            
+            response = requests_post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
+
+            if notif and (response.status_code == 201 or response.status_code == 200):
+                EntryNotification.objects.get_or_create(entry=entry,inbox_url=inbox_url)
+
+        except RequestException:
+            continue
+    return
 
 def edit_entry(request, author_id, entry_serial):
     '''
@@ -77,6 +95,10 @@ def edit_entry(request, author_id, entry_serial):
                 updated_entry.contentType = entry.contentType
             
             updated_entry.save()
+
+            # update all applicable nodes
+            inbox_urls = list(EntryNotification.objects.filter(entry=updated_entry).values_list("inbox_url", flat=True).distinct())
+            distribute(updated_entry, inbox_urls, notif=False)
             
             return redirect(
                 'munch:display_entry_by_serial',
@@ -100,6 +122,11 @@ def delete_entry(request, author_id, entry_serial):
 
         entry.visibility = "DELETED"
         entry.save()
+
+        # update all applicable nodes
+        inbox_urls = list(EntryNotification.objects.filter(entry=entry).values_list("inbox_url", flat=True).distinct())
+        distribute(entry, inbox_urls, notif=False)
+
         return redirect('munch:public_profile', author_uuid=author_id)
     return redirect('munch:manage_entry_by_serial', author_id=author_id, entry_serial=entry_serial)
 
@@ -121,7 +148,7 @@ def display_entry_by_serial(request, author_id, entry_serial):
     all_comments = Comment.objects.filter(entry=entry).order_by("-published")
     total_comments = all_comments.count()
     comments = all_comments[start:end]
-    total_pages = (total_comments + size - 1) // size
+    total_pages = max(1, (total_comments + size - 1) // size)
 
     comments = list(all_comments[start:end])
     for comment in comments:
@@ -130,7 +157,6 @@ def display_entry_by_serial(request, author_id, entry_serial):
             author=request.user,
             object_url=comment.fqid
         ).exists() if request.user.is_authenticated else False
-        #print(f"comment: {comment.serial}, like_count: {comment.like_count}")
 
     context = {
         "entry": entry,
@@ -173,11 +199,6 @@ def display_entry_by_serial(request, author_id, entry_serial):
 
     return render(request, "munch/entry_detail.html", context)
 
-# (this function may be used in the future)
-# def display_entry_by_FQID(request, entry_FQID):
-#     entry = get_object_or_404(Entry, fqid=entry_FQID)
-#     return render(request, "munch/entry_detail.html", {"entry": entry})
-
 @login_required
 def create_entry_UI(request, author_id):
     '''
@@ -201,6 +222,11 @@ def create_entry_UI(request, author_id):
                 entry.contentType = image_file.content_type + ';base64'
             
             entry.save()
+            
+            # update all applicable nodes
+            inbox_urls = get_inboxs(entry, request.user)
+            distribute(entry, inbox_urls, notif=True)
+        
             return redirect('munch:display_entry_by_serial',
                             author_id=entry.author.uuid,
                             entry_serial=entry.serial)
@@ -246,7 +272,10 @@ def manage_entry_by_serial(request, author_id, entry_serial):
 
         serializer = EntrySerializer(entry, data=request.data)
         if serializer.is_valid():
-            serializer.save(author=request.user)
+            entry = serializer.save(author=request.user)
+            # update all applicable nodes
+            inbox_urls = list(EntryNotification.objects.filter(entry=entry).values_list("inbox_url", flat=True).distinct())
+            distribute(entry, inbox_urls, notif=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -265,6 +294,9 @@ def manage_entry_by_serial(request, author_id, entry_serial):
             return Response({"detail": "Entry already deleted."},status=status.HTTP_204_NO_CONTENT)
         entry.visibility = "DELETED"
         entry.save()
+        # update all applicable nodes
+        inbox_urls = list(EntryNotification.objects.filter(entry=entry).values_list("inbox_url", flat=True).distinct())
+        distribute(entry, inbox_urls, notif=False)
         
         return Response({"detail": "Entry successfully deleted."},status=status.HTTP_204_NO_CONTENT)
 
@@ -361,7 +393,15 @@ def create_entry(request, author_id):
 
         serializer = EntrySerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(author=request.user)
+            entry = serializer.save(author=request.user)
+            # update all applicable nodes
+
+            if entry.contentType and entry.contentType.startswith("image/"):
+                push_image_to_remote_followers(entry, request.user)
+
+            inbox_urls = get_inboxs(entry, request.user)
+            distribute(entry, inbox_urls, notif=True)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -31,7 +31,7 @@
                 <a id="edit_profile" href="{% url 'munch:edit_profile' %}">Edit Profile</a>
             {% elif request.user.is_authenticated %}
                 {% csrf_token %}
-                <button id="follow" data-author-fqid="{{ author.id }}" data-user-fqid="{{ user.id }}">Follow</button>
+                <button class="follow" data-author-fqid="{{ author.id }}" data-user-fqid="{{ user.id }}">Follow</button>
             {% endif %}
         </div>
     </div>

@@ -10,13 +10,15 @@
         data-entry-title="{{ entry.title }}">
     <style>
         .entry-card {
-            max-width: 700px;
+            max-width: inherit;
+            min-width: 0;
         }
         .entry-content {
             max-height: none;
             overflow: hidden;
             overflow-wrap: break-word;
-        }   
+            word-break: break-all;
+        }  
         .read-more {
             background: none;
             border: none;
@@ -33,20 +35,29 @@
     <div class="entry-card__headline">
         {% include "munch/profile-summary.html" with author=entry.author only %}
 
-        {% if request.user and request.user.fqid == entry.author.fqid %}
-        <div class="dropdown">
-            <button class="dropdown__toggle">...</button>  
-            <div class="dropdown__content">
-                {% if not entry.github_id %}
-                <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">
+                {% if entry.visibility == 'PUBLIC' %}🌐
+                {% elif entry.visibility == 'UNLISTED' %}🤫
+                {% elif entry.visibility == 'PRIVATE' %}🔒
                 {% endif %}
-                <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
-                    {% csrf_token %}
-                    <button id="delete_button" type="submit">Delete</button>
-                </form>
-            </div>  
+            </span>
+
+            {% if request.user and request.user.fqid == entry.author.fqid %}
+            <div class="dropdown">
+                <button class="dropdown__toggle">...</button>  
+                <div class="dropdown__content">
+                    {% if not entry.github_id %}
+                    <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
+                    {% endif %}
+                    <form method="post" action="{% url 'munch:delete_entry' entry.author.uuid entry.serial %}">
+                        {% csrf_token %}
+                        <button id="delete_button" type="submit">Delete</button>
+                    </form>
+                </div>  
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}" class="entry-card__main-link">
@@ -84,7 +95,9 @@
 
             <div class="entry-card__stat">
                 <button class="comment-button">
-                    <img src="{% static 'munch/icons/comment_for_entry.png' %}" alt="comment" style="width: 16px; height: 16px;">
+                    <a href="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}#comments">
+                        <img src="{% static 'munch/icons/comment_for_entry.png' %}" alt="comment" style="width: 16px; height: 16px;">
+                    </a>
                 </button>
                 <!--
                 Source: https://stackoverflow.com/questions/11800016/adding-the-number-of-comments-to-a-queryset-in-django
@@ -172,6 +185,7 @@
                                         'Content-Type': 'application/json',
                                         "X-CSRFToken": csrftoken,
                                     },
+                                    credentials: "same-origin",
                                     body: JSON.stringify(data),
                                 })
                                 .then(response => {

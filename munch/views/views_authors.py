@@ -17,7 +17,7 @@ from munch.permissions import IsAuthorizedServer
 @authentication_classes([SessionAuthentication, ServerBasicAuthentication])
 @permission_classes([IsAuthenticated | IsAuthorizedServer])
 def get_authors(request):
-    authors = Author.objects.all()
+    authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")
     serializer = AuthorSerializer(authors, many=True)
     return Response({
         "type": "authors",
@@ -28,8 +28,8 @@ def get_authors(request):
 @authentication_classes([SessionAuthentication, ServerBasicAuthentication])
 @permission_classes([IsAuthenticated | IsAuthorizedServer])
 def get_authors_paginated(request):
-    page = request.GET.get('page')
-    size = request.GET.get('size')
+    page = int(request.GET.get('page'))
+    size = int(request.GET.get('size'))
 
     if (page is not None) and (size is not None):
         page = int(page)
@@ -37,7 +37,7 @@ def get_authors_paginated(request):
         start = (page - 1) * size
         end = start + size
 
-        authors = Author.objects.all()[start:end]
+        authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")[start:end]
         serializer = AuthorSerializer(authors, many=True)
         return Response({
             "type": "authors",
@@ -45,7 +45,7 @@ def get_authors_paginated(request):
         })
     
     elif (page is None) and (size is None):
-        authors = Author.objects.all()
+        authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")
         serializer = AuthorSerializer(authors, many=True)
         return Response({
             "type": "authors",

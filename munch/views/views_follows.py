@@ -15,21 +15,27 @@ from munch.permissions import IsAuthorizedServer
 
 import requests
 import re
+from urllib.parse import urlparse
 
 def followers_view(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)   # use fqid in future
-    follower_list = Author.objects.filter(following_relations__object=author)
+    follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='accepted')
+    #remote authors have no username (displays @None right now) so use
+    #their heroku hostname link
+    for follower in follower_list:
+        follower.handle = urlparse(follower.web).netloc
+        
     context = {
-        "user": author,
+        "author": author,
         "followers": follower_list
     }
     return render(request, 'munch/followers.html', context)
 
 def list_following(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)
-    following_list = Author.objects.filter(follower_relations__actor=author)
+    following_list = Author.objects.filter(follower_relations__actor=author, follower_relations__status='accepted')
     context = {
-        "user": author,
+        "author": author,
         "following": following_list
     }
     return render(request, 'munch/following_list.html', context)
@@ -38,10 +44,24 @@ def list_follow_requests(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)
     follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
     context = {
-        "user": author,
+        "author": author,
         "followers": follower_list
     }
     return render(request, 'munch/follow_request_list.html', context)
+
+@login_required
+def connect(request):
+    author = Author.objects.get(id=request.user.id)
+    following_ids = Author.objects.filter(
+        follower_relations__actor=author, 
+        following_relations__status='accepted'
+    ).values_list('id', flat=True)
+    suggestions = Author.objects.exclude(id__in=following_ids).exclude(id=request.user.id)
+
+    context = {
+        "suggested_authors": suggestions,
+    }
+    return render(request, 'munch/connect.html', context)
 
 
 # Following API
@@ -96,10 +116,15 @@ def manage_following(request, author_serial, target_FQID):
         # create follow object if none exists yet
         if follow_entry == None:
 
-            target_author = Author.objects.get(id=target_FQID)
-            if target_author == None:
+            target_author = Author.objects.filter(id=target_FQID).first()
+            if target_author is None:
                 # TODO request user data from other nodes in future milestones
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {
+                        "detail": "Remote author cannot be found. Add them from via admin first"  
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/api/authors/{author_serial}")
 
             follow_entry = Follow.objects.create(

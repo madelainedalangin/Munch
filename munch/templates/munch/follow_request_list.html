@@ -1,4 +1,5 @@
 {% extends "munch/nav-content.html" %}
+{% load static %}
 
 {% block title %}Follow Requests{% endblock title %}
 
@@ -7,14 +8,13 @@
 <script>
     window.addEventListener("load", main);
     function main() {
-        const following_list = document.getElementById('follower_list');
-        following_list.addEventListener('click', (event) => {
+        const follower_list = document.getElementById('follower_list');
+        follower_list.addEventListener('click', (event) => {
             if (event.target && event.target.classList.contains('accept-follow')) {
                 const fqid = event.target.getAttribute('data-follower-id');
                 document.getElementById(`accept-${fqid}`).disabled = true;
                 document.getElementById(`reject-${fqid}`).disabled = true;
                 manageFollow(fqid, 'PUT');
-
             } else if (event.target && event.target.classList.contains('reject-follow')) {
                 const fqid = event.target.getAttribute('data-follower-id');
                 document.getElementById(`accept-${fqid}`).disabled = true;
@@ -29,7 +29,6 @@
         let url = "{% url 'munch:manage_follower' user.uuid 'TARGET_FQID' %}";
         url = url.replace('TARGET_FQID', encodeURIComponent(fqid));
 
-        // send request to following api
         const response = await fetch(url, {
             method: method,
             headers: {
@@ -48,19 +47,34 @@
 {% endblock scripts %}
 
 {% block content-bar %}
-<strong>Follow Requests</strong>
+{% include 'munch/follow-content-bar.html' %}
 {% endblock content-bar %}
 
 {% block content-scrollable %}
-<ul id="follower_list">
+<ul id="follower_list" style="list-style: none; padding: 0; margin: 0;">
     {% for follower in followers %}
-    <li id="follower-{{ follower.id }}">
-        <a href="{{ follower.web }}">{{ follower.displayName }}</a>
-        <button id="accept-{{ follower.id }}" class="accept-follow" data-follower-id="{{ follower.id }}">accept</button>
-        <button id="reject-{{ follower.id }}" class="reject-follow" data-follower-id="{{ follower.id }}">reject</button>
-    </li>
+        <li id="follower-{{ follower.id }}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; border-bottom: 0.5px solid #e0e0e0;">
+            <a href="{{ follower.web }}" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                <img src="{% if follower.profileImage %}{{ follower.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}"
+                    style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">
+                <div>
+                    <p style="font-size: 14px; font-weight: 500; color: #000000; margin: 0;">{{ follower.displayName }}</p>
+                    <p style="font-size: 12px; color: #9e9e9e; margin: 0;">{{ follower.web }}</p>
+                </div>
+            </a>
+            <div style="display: flex; gap: 8px;">
+                <button id="accept-{{ follower.id }}" class="accept-follow" data-follower-id="{{ follower.id }}"
+                    style="padding: 0.25rem 0.75rem; font-size: 13px; font-weight: 500; color: #ffffff; background: #000000; border: none; border-radius: 8px; cursor: pointer;">
+                    Accept
+                </button>
+                <button id="reject-{{ follower.id }}" class="reject-follow" data-follower-id="{{ follower.id }}"
+                    style="padding: 0.25rem 0.75rem; font-size: 13px; font-weight: 500; color: #000000; background: #ffffff; border: 0.5px solid #bdbdbd; border-radius: 8px; cursor: pointer;">
+                    Reject
+                </button>
+            </div>
+        </li>
     {% empty %}
-    <p>No follow requests yet...</p>
+        <p style="padding: 1rem 1.25rem; color: #9e9e9e; font-size: 14px;">No follow requests yet...</p>
     {% endfor %}
 </ul>
 {% endblock content-scrollable %}

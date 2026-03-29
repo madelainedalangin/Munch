@@ -9,6 +9,8 @@ from unittest.mock import patch
 from munch.utils import sync_github_activity
 from rest_framework.test import APIClient
 import unittest
+from unittest.mock import patch, MagicMock
+from munch.models import Server
 
 ###########################
 # POSTING USER STORY TEST #
@@ -218,6 +220,7 @@ class PostingAPITest(TestCase):
         "description": 'this is a test under PostingTest',
       }
     )
+    #print(response.data)
     self.assertEqual(response.status_code, 200)
   def test_put_entry_by_author_and_serial_as_not_author(self):
     self.client.login(username="nineninetynine", password="percentofgamblersquitbeforehittingbig")
@@ -327,6 +330,7 @@ class PostingAPITest(TestCase):
         "description": 'this is a test under PostingTest',
       }
     )
+    #print(response.data)
     self.assertEqual(response.status_code, 201)
 
   def test_post_entry_creation_with_invalid_form(self):
@@ -464,4 +468,56 @@ class ImageEntryAPITest(TestCase):
     response = self.client.get(
         f'/api/authors/{self.author.uuid}/entries/{self.private_image_entry.serial}/image/'
     )
-    self.assertEqual(response.status_code, 403) 
+    self.assertEqual(response.status_code, 403)
+    
+class ImageEntryPushTest(TestCase):
+  def setUp(self):
+    self.author = Author.objects.create_user(username='FettyWap', password='heywhatsuphello', displayName='FettyWap', is_approved=True)
+    
+    # Remote follower (stub — no username)
+    self.remote_follower = Author.objects.create_user_stub(
+        id='http://remotenode.com/api/authors/1738',
+        host='http://remotenode.com/api/',
+        displayName='Remote User FettyWap',
+        web='http://remotenode.com/authors/1738',
+    )
+    Follow.objects.create(actor=self.remote_follower, object=self.author, status='accepted')
+    
+    self.server = Server.objects.create(
+        url='http://remotenode.com',
+        username='node_user',
+        password='node_pass',
+        is_approved=True,
+    )
+
+  @patch('munch.views.views_utils.http_requests.post')
+  def push_image_entry_to_remote_followers(self, mock_post):
+    mock_post.return_value = MagicMock(status_code=201)
+    
+    self.client.force_login(self.author)
+    url = reverse('munch:create_entry', kwargs={'author_id': self.author.uuid})
+    response = self.client.post(url, data={
+        'title': 'Test Image Entry',
+        'description': 'desc',
+        'contentType': 'image/png;base64',
+        'content': 'aGVsbG8=',  # base64 for "hello"
+        'visibility': 'PUBLIC',
+    }, content_type='application/json')
+    #print(response.data)
+    self.assertEqual(response.status_code, 201)
+    mock_post.assert_called_once()
+  
+  @patch("munch.views.views_utils.http_requests.post")
+  def test_dont_push_for_text_entry(self, mock_post):
+    self.client.force_login(self.author)
+    url = reverse("munch:create_entry", kwargs={"author_id": self.author.uuid})
+    response = self.client.post(url, data={
+      "title": "Text Entry No Images",
+      "description": "short description here",
+      "contentType": "text/plain",
+      "content": "no photos :')",
+      "visibility": "PUBLIC",
+    },
+    content_type = "application/json")
+    self.assertEqual(response.status_code, 201)
+    mock_post.assert_not_called()
