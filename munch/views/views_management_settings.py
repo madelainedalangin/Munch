@@ -59,10 +59,8 @@ class ManageNode(APIView):
 
         response = requests.get(
             f"{node.url}/api/authors", 
-            auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
-            headers={
-                'Origin':settings.BACKEND_URL
-            })
+            auth=(node.username, node.password),
+        )
         if not response.ok:
             return Response(
                 data={'error': f"Failed to get authors from node {node.url}: {response.status_code}"},
