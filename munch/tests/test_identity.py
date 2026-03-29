@@ -198,12 +198,12 @@ class SuggestionsPageTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.local_user = Author.objects.create_user(
-            username='CookieMonster',
-            password='YummyCookies',
-            displayName='Cookie Enjoyer',
+            username='alice',
+            password='password123',
+            displayName='Alice',
             is_approved=True
         )
-        # Remote author stub — username is None, no local uuid-based profile
+        # Remote author stub — username is None, local uuid may differ from remote FQID
         cls.remote_author = Author.objects.create(
             displayName='Remote Person',
             host='http://othernode.example.com/api/',
@@ -212,10 +212,18 @@ class SuggestionsPageTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.client.login(username='CookieMonster', password='YummyCookies')
+        self.client.login(username='alice', password='password123')
 
-    def test_suggestions_page_with_remote_author_does_not_crash(self):
-        """profile-summary.html must not call reverse('public_profile') with
-        an empty uuid when a remote author stub appears in suggestions."""
+    def test_suggestions_with_remote_author(self):
+        """profile-summary.html must not call reverse('public_profile')
+        for remote author stubs — username=None is the reliable guard."""
         response = self.client.get(reverse('munch:connect'))
         self.assertEqual(response.status_code, 200)
+
+    def test_profile_summary_weburl_remote_author(self):
+        """Remote authors should link to their own node via author.web,
+        not a local public_profile URL which would 404 or mismatch uuid."""
+        response = self.client.get(reverse('munch:connect'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 
+            f"/authors/{self.remote_author.uuid}/")

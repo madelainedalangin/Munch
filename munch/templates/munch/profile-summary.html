@@ -1,5 +1,5 @@
 {% load static %}
-{% if author.uuid %}
+{% if author.username %}
 <a href="{% url 'munch:public_profile' author_uuid=author.uuid %}">
 {% else %}
 <a href="{{ author.web }}" target="_blank">
