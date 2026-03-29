@@ -46,6 +46,11 @@ def distribute(entry, inbox_urls, notif):
     serializer = EntrySerializer(entry)
     data = serializer.data
     
+    #Because some teams called private posts "friends" for visibility
+    data = dict(data)
+    if data.get('visibility') == 'PRIVATE':
+        data['visibility'] = 'FRIENDS'
+    
     for inbox_url in inbox_urls:
         try:
             # extract base node URL from inbox_url
