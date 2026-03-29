@@ -2,7 +2,7 @@
 {% if author.uuid %}
 <a href="{% url 'munch:public_profile' author_uuid=author.uuid %}">
 {% else %}
-<a href="#">
+<a href="{{ author.url }}" target="_blank">
 {% endif %}
     <div class="user-block">
         <div class="user-block__avatar">

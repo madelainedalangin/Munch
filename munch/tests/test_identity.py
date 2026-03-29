@@ -189,3 +189,33 @@ class GitHubTest(TestCase):
 
         # 3. Assert that a local entry was actually created
         self.assertEqual(Entry.objects.filter(github_id='12345').count(), 1)
+
+#Source: Claude Sonnet 4.6
+#Prompt: write a test for NoReverseMatch
+#Date Accessed: Sunday, March 29, 2026
+class SuggestionsPageTest(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.local_user = Author.objects.create_user(
+            username='CookieMonster',
+            password='YummyCookies',
+            displayName='Cookie Enjoyer',
+            is_approved=True
+        )
+        # Remote author stub — username is None, no local uuid-based profile
+        cls.remote_author = Author.objects.create(
+            displayName='Remote Person',
+            host='http://othernode.example.com/api/',
+            username=None,
+        )
+
+    def setUp(self):
+        self.client = Client()
+        self.client.login(username='CookieMonster', password='YummyCookies')
+
+    def test_suggestions_page_with_remote_author_does_not_crash(self):
+        """profile-summary.html must not call reverse('public_profile') with
+        an empty uuid when a remote author stub appears in suggestions."""
+        response = self.client.get(reverse('munch:connect'))
+        self.assertEqual(response.status_code, 200)
