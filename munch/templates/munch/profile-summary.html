@@ -1,5 +1,5 @@
 {% load static %}
-<a href="{% url 'munch:public_profile' author_uuid=author.uuid %}">
+<a href="{% url 'munch:public_profile' author_uuid=author.uuid %}{% else %}#{% endif %}">
     <div class="user-block">
         <div class="user-block__avatar">
             <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
