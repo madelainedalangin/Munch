@@ -139,7 +139,7 @@ def manage_following(request, author_serial, target_FQID):
 
         else:
             # look up per-node credentials
-            node_base_url = target_service.replace('/api/authors/', '')
+            node_base_url = target_service.replace('/api/authors/', '').rstrip('/')
             try:
                 server = Server.objects.get(url=node_base_url)
                 outgoing_auth = (server.username, server.password)
