@@ -21,31 +21,44 @@ from requests import post as requests_post, RequestException
 from munch.views.views_posting import get_inboxs
 import re
 
-def like_distribute(like,inbox_urls):
+def like_distribute(like, inbox_urls):
     serializer = LikeSerializer(like)
     data = serializer.data
     
     for inbox_url in inbox_urls:
-
-        try:  
-            requests_post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
-
+        try:
+            match = re.match(r'^(https?://[^/]+)', inbox_url)
+            if not match:
+                continue
+            node_base_url = match.group(1)
+            try:
+                server = Server.objects.get(url=node_base_url)
+                outgoing_auth = (server.username, server.password)
+            except Server.DoesNotExist:
+                continue
+            requests_post(inbox_url, auth=outgoing_auth, json=data)
         except RequestException:
             continue
-    return
 
-def comment_distribute(comment,inbox_urls):
+def comment_distribute(comment, inbox_urls):
     serializer = CommentSerializer(comment)
     data = serializer.data
     
     for inbox_url in inbox_urls:
-
-        try:  
-            requests_post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
-
+        try:
+            match = re.match(r'^(https?://[^/]+)', inbox_url)
+            if not match:
+                continue
+            node_base_url = match.group(1)
+            try:
+                server = Server.objects.get(url=node_base_url)
+                outgoing_auth = (server.username, server.password)
+            except Server.DoesNotExist:
+                continue
+            requests_post(inbox_url, auth=outgoing_auth, json=data)
         except RequestException:
             continue
-    return
+
 
 
 @api_view(["GET"])
