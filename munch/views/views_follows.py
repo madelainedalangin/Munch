@@ -15,10 +15,16 @@ from munch.permissions import IsAuthorizedServer
 
 import requests
 import re
+from urllib.parse import urlparse
 
 def followers_view(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)   # use fqid in future
     follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='accepted')
+    #remote authors have no username (displays @None right now) so use
+    #their heroku hostname link
+    for follower in follower_list:
+        follower.handle = urlparse(follower.web).netloc
+        
     context = {
         "author": author,
         "followers": follower_list
