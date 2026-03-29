@@ -597,6 +597,9 @@ def post_comment(request, author_id, entry_serial):
             )
             # Forward comment to entry author's inbox
             inbox_urls = get_inboxs(comment.entry,comment.entry.author)
-            comment_distribute(comment,inbox_urls)
+            # also send directly to the entry author if they're remote
+            if comment.entry.author.host.rstrip('/') != f"{settings.BACKEND_URL}/api".rstrip('/'):
+                inbox_urls.append(f"{comment.entry.author.id.rstrip('/')}/inbox")
+            comment_distribute(comment, inbox_urls)
     
     return redirect('munch:display_entry_by_serial', author_id=author_id, entry_serial=entry_serial)
