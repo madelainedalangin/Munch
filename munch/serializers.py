@@ -69,7 +69,7 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         actor_author = AuthorSerializer().create(actor_data)
         object_author = AuthorSerializer().create(object_data)
 
-        return Follow.objects.create(
+        return Follow.objects.get_or_create(
             actor=actor_author,
             object=object_author
         )
