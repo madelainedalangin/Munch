@@ -155,7 +155,7 @@ def manage_following(request, author_serial, target_FQID):
                 json=serializer.data
             )
 
-            if response.status_code == 201:
+            if response.status_code in [200, 201]:
                 follow_entry.status = 'accepted'
                 follow_entry.save()
                 return Response(response.json(), status=status.HTTP_201_CREATED)
