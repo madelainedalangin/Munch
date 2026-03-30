@@ -284,11 +284,11 @@ def liked(request, author_serial):
                 if entry:
                     inbox_urls.update(get_inboxs(entry,entry.author))
                     # make sure the entry author gets it too
-                    inbox_urls.add(f"{entry.author.id.rstrip('/')}/inbox/")
+                    inbox_urls.add(f"{entry.author.id.rstrip('/')}/inbox")
                 else:
                     match = re.match(r'(.*?/api/authors/[^/]+)', object_url)
                     if match:
-                        inbox_urls.add(f"{match.group(1).rstrip('/')}/inbox/")
+                        inbox_urls.add(f"{match.group(1).rstrip('/')}/inbox")
     
                     
             else:
@@ -296,9 +296,9 @@ def liked(request, author_serial):
                 if comment:
                     inbox_urls.update(get_inboxs(comment.entry,comment.entry.author))
                     # make sure comment author gets it
-                    inbox_urls.add(f"{comment.author.id.rstrip('/')}/inbox/")
+                    inbox_urls.add(f"{comment.author.id.rstrip('/')}/inbox")
                     # optional: also notify entry author
-                    inbox_urls.add(f"{comment.entry.author.id.rstrip('/')}/inbox/")
+                    inbox_urls.add(f"{comment.entry.author.id.rstrip('/')}/inbox")
 
             like_distribute(like,list(inbox_urls))
             
@@ -599,7 +599,7 @@ def post_comment(request, author_id, entry_serial):
             inbox_urls = get_inboxs(comment.entry,comment.entry.author)
             # also send directly to the entry author if they're remote
             if comment.entry.author.host.rstrip('/') != f"{settings.BACKEND_URL}/api".rstrip('/'):
-                inbox_urls.append(f"{comment.entry.author.id.rstrip('/')}/inbox/")
+                inbox_urls.append(f"{comment.entry.author.id.rstrip('/')}/inbox")
             comment_distribute(comment, inbox_urls)
     
     return redirect('munch:display_entry_by_serial', author_id=author_id, entry_serial=entry_serial)

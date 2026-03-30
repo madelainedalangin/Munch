@@ -154,7 +154,7 @@ def manage_following(request, author_serial, target_FQID):
                 )
 
             response = requests.post(
-                f"{target_service}{target_serial}/inbox/",
+                f"{target_service}{target_serial}/inbox",
                 auth=outgoing_auth,
                 json=serializer.data
             )
@@ -172,7 +172,7 @@ def manage_following(request, author_serial, target_FQID):
 
                 return Response(
                     {
-                        "detail": f"Inbox request failed: {target_service}{target_serial}/inbox/",
+                        "detail": f"Inbox request failed: {target_service}{target_serial}/inbox",
                         "status_code": response.status_code,
                         "remote_error": remote_detail,
                     }, 
