@@ -71,6 +71,8 @@
         <button class="read-more" type="button" hidden>Read more</button>
     {% elif entry.contentType == 'image/png;base64' or entry.contentType == 'image/jpeg;base64' %}
         <img src="data:{{ entry.contentType }},{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
+    {% elif entry.contentType == 'image/png' or entry.contentType == 'image/jpeg' %}
+        <img src="data:{{ entry.contentType }};base64,{{ entry.content }}" alt="{{ entry.title }}" style="max-width: 100%;">
     {% else %}
         <div class="entry-content collapsed" >{{ entry.content|linebreaks }}</div>
         <button class="read-more" type="button" hidden>Read more</button>
@@ -99,11 +101,6 @@
                         <img src="{% static 'munch/icons/comment_for_entry.png' %}" alt="comment" style="width: 16px; height: 16px;">
                     </a>
                 </button>
-                <!--
-                Source: https://stackoverflow.com/questions/11800016/adding-the-number-of-comments-to-a-queryset-in-django
-                Date Accessed: Saturday, March 15, 2026
-                Comment by girasquid is used here
-                -->
                 <p class="comments-count">{{ entry.comment_set.count }}</p>
             </div>
 
