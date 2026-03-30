@@ -38,9 +38,10 @@ class AuthorSerializer(serializers.ModelSerializer):
         
         try:
             author = Author.objects.get(id=author_id)
-            for field, value in defaults.items():       # update if author exists in database
-                setattr(author, field, value)
-            author.save()
+            if not self.isLocal(host):
+                for field, value in defaults.items():       # update if remote author exists in database
+                    setattr(author, field, value)
+                author.save()
 
         except Author.DoesNotExist:
             if self.isLocal(host):
