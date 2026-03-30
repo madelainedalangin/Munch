@@ -43,13 +43,19 @@ def inbox(request, target_serial):
 
         if existing_comment:
             return Response(CommentSerializer(existing_comment).data, status=status.HTTP_200_OK)
+        
+        # check visibility before saving
+        entry_fqid = request.data.get("entry")
+        entry = Entry.objects.filter(fqid=entry_fqid).first()
+        if entry and entry.visibility == 'PRIVATE':
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        
         serializer = CommentSerializer(data=request.data)
 
         if serializer.is_valid():
             comment = serializer.save()
 
             local_host = f"{settings.BACKEND_URL}/api".rstrip("/")
-
 
             if comment.entry.author.host.rstrip("/") == local_host:
                 inbox_urls = set(get_inboxs(comment.entry, comment.entry.author))

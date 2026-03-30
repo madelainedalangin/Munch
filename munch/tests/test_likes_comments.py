@@ -171,53 +171,121 @@ class CommentAPITest(TestCase):
     self.assertEqual(response.status_code, 201)
     self.assertTrue(Comment.objects.filter(comment='great post from a remote node!').exists())
 
-def test_remote_comment_on_nonexistent_entry_via_inbox(self):
-  comment_data = {
-      "type": "comment",
-      "author": {
-        "type": "author",
-        "id": "http://remotenode.com/api/authors/111",
-        "host": "http://remotenode.com/api/",
-        "displayName": "Remote User",
-        "github": "",
-        "profileImage": "",
-        "web": "http://remotenode.com/authors/111",
-      },
-    "comment": "hello is anyone there",
-    "contentType": "text/plain",
-    "published": "2026-06-06T13:07:04+00:00",
-    "id": "http://remotenode.com/api/authors/111/commented/999",
-    "entry": "http://remotenode.com/api/authors/111/entries/doesnotexist",
-  }
-  self._node_auth()
-  url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
-  response = self.client.post(url, data=comment_data, format='json')
-  self.assertEqual(response.status_code, 400)
+  def test_remote_comment_on_nonexistent_entry_via_inbox(self):
+    comment_data = {
+        "type": "comment",
+        "author": {
+          "type": "author",
+          "id": "http://remotenode.com/api/authors/111",
+          "host": "http://remotenode.com/api/",
+          "displayName": "Remote User",
+          "github": "",
+          "profileImage": "",
+          "web": "http://remotenode.com/authors/111",
+        },
+      "comment": "hello is anyone there",
+      "contentType": "text/plain",
+      "published": "2026-06-06T13:07:04+00:00",
+      "id": "http://remotenode.com/api/authors/111/commented/999",
+      "entry": "http://remotenode.com/api/authors/111/entries/doesnotexist",
+    }
+    self._node_auth()
+    url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+    response = self.client.post(url, data=comment_data, format='json')
+    self.assertEqual(response.status_code, 400)
 
-def test_remote_comment_private_entry_inbox(self):
-  comment_data = {
-      "type": "comment",
-      "author": {
-        "type": "author",
-        "id": "http://remotenode.com/api/authors/111",
-        "host": "http://remotenode.com/api/",
-        "displayName": "Remote User",
-        "github": "",
-        "profileImage": "",
-        "web": "http://remotenode.com/authors/111",
-      },
-    "comment": "sneaking into a private entry",
-    "contentType": "text/plain",
-    "published": "2026-06-06T13:07:04+00:00",
-    "id": "http://remotenode.com/api/authors/111/commented/998",
-    "entry": self.private_entry.fqid,
-  }
-  self._node_auth()
-  url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
-  response = self.client.post(url, data=comment_data, format='json')
-  self.assertEqual(response.status_code, 403)
+  def test_remote_comment_private_entry_inbox(self):
+    comment_data = {
+        "type": "comment",
+        "author": {
+          "type": "author",
+          "id": "http://remotenode.com/api/authors/111",
+          "host": "http://remotenode.com/api/",
+          "displayName": "Remote User",
+          "github": "",
+          "profileImage": "",
+          "web": "http://remotenode.com/authors/111",
+        },
+      "comment": "sneaking into a private entry",
+      "contentType": "text/plain",
+      "published": "2026-06-06T13:07:04+00:00",
+      "id": "http://remotenode.com/api/authors/111/commented/998",
+      "entry": self.private_entry.fqid,
+    }
+    self._node_auth()
+    url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+    response = self.client.post(url, data=comment_data, format='json')
+    self.assertEqual(response.status_code, 403)
 
+  def test_local_comment_on_remote_entry(self):
+    # Create a remote author and entry stub
+    remote_author = Author.objects.create(
+        id='http://remotenode.com/api/authors/999',
+        host='http://remotenode.com/api/',
+        displayName='Remote Author',
+        web='http://remotenode.com/authors/999',
+    )
+    remote_entry = Entry.objects.create(
+        author=remote_author,
+        title='Remote Entry',
+        content='from another node',
+        visibility='PUBLIC',
+        fqid='http://remotenode.com/api/authors/999/entries/abc123',
+    )
+    self.client.login(username='RealFriend', password='imyouroppfr')
+    url = reverse('munch:commented', kwargs={'author_serial': self.friend.uuid})
+    response = self.client.post(url, {
+        'entry': remote_entry.fqid,
+        'comment': 'nice post from the remote node!'
+    })
+    self.assertEqual(response.status_code, 201)
+    self.assertTrue(Comment.objects.filter(comment='nice post from the remote node!').exists())
 
+  def test_remote_comment_duplicate_ignored(self):
+      """Same comment ID sent twice should not create duplicate"""
+      comment_data = {
+          "type": "comment",
+          "author": {
+              "type": "author",
+              "id": "http://remotenode.com/api/authors/111",
+              "host": "http://remotenode.com/api/",
+              "displayName": "Remote User",
+              "github": "",
+              "profileImage": "",
+              "web": "http://remotenode.com/authors/111",
+          },
+          "comment": "duplicate comment test",
+          "contentType": "text/plain",
+          "published": "2026-06-06T13:07:04+00:00",
+          "id": "http://remotenode.com/api/authors/111/commented/777",
+          "entry": self.public_entry.fqid,
+      }
+      self._node_auth()
+      url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+      self.client.post(url, data=comment_data, format='json')
+      response = self.client.post(url, data=comment_data, format='json')
+      self.assertEqual(response.status_code, 200)
+      self.assertEqual(Comment.objects.filter(fqid='http://remotenode.com/api/authors/111/commented/777').count(), 1)
+
+  def test_remote_comment_missing_fields(self):
+      """Comment with missing required fields should return 400"""
+      comment_data = {
+          "type": "comment",
+          "author": {
+              "type": "author",
+              "id": "http://remotenode.com/api/authors/111",
+              "host": "http://remotenode.com/api/",
+              "displayName": "Remote User",
+              "github": "",
+              "profileImage": "",
+              "web": "http://remotenode.com/authors/111",
+          },
+          # missing comment and entry fields
+      }
+      self._node_auth()
+      url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+      response = self.client.post(url, data=comment_data, format='json')
+      self.assertEqual(response.status_code, 400)
 class LikeAPITest(TestCase):
 
   def setUp(self):
@@ -400,3 +468,127 @@ class LikeAPITest(TestCase):
       self.client.post(url, data=like_data, format='json')
       response = self.client.post(url, data=like_data, format='json')  # send twice
       self.assertEqual(response.status_code, 400)
+
+  def test_remote_like_comment_inbox(self):
+      like_data = {
+          "type": "like",
+          "author": {
+              "type": "author",
+              "id": "http://remotenode.com/api/authors/6767",
+              "host": "http://remotenode.com/api/",
+              "displayName": "Remote User",
+              "github": "",
+              "profileImage": "",
+              "web": "http://remotenode.com/authors/6767",
+          },
+          "published": "2026-03-09T13:06:07+00:00",
+          "id": "http://remotenode.com/api/authors/6767/liked/300",
+          "object": self.comment.fqid,
+      }
+      self._node_auth()
+      url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+      response = self.client.post(url, data=like_data, format='json')
+      self.assertEqual(response.status_code, 201)
+      self.assertTrue(Like.objects.filter(object_url=self.comment.fqid).exists())
+
+  def test_remote_like_on_remote_entry_inbox(self):
+    remote_author = Author.objects.create(
+      id='http://remotenode.com/api/authors/888',
+      host='http://remotenode.com/api/',
+      displayName='Remote Author 2',
+      web='http://remotenode.com/authors/888',
+    )
+    remote_entry = Entry.objects.create(
+      author=remote_author,
+      title='Remote Entry',
+      content='from another node',
+      visibility='PUBLIC',
+      fqid='http://remotenode.com/api/authors/888/entries/xyz456',
+    )
+    like_data = {
+      "type": "like",
+      "author": {
+        "type": "author",
+        "id": "http://remotenode.com/api/authors/6767",
+        "host": "http://remotenode.com/api/",
+        "displayName": "Remote User",
+        "github": "",
+        "profileImage": "",
+        "web": "http://remotenode.com/authors/6767",
+      },
+      "published": "2026-03-09T13:06:07+00:00",
+      "id": "http://remotenode.com/api/authors/6767/liked/400",
+      "object": remote_entry.fqid,
+    }
+    self._node_auth()
+    url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+    response = self.client.post(url, data=like_data, format='json')
+    self.assertEqual(response.status_code, 201)
+    self.assertTrue(Like.objects.filter(object_url=remote_entry.fqid).exists())
+
+  def test_remote_like_comment_duplicate_inbox(self):
+      """Same comment like sent twice should return 400"""
+      like_data = {
+          "type": "like",
+          "author": {
+              "type": "author",
+              "id": "http://remotenode.com/api/authors/6767",
+              "host": "http://remotenode.com/api/",
+              "displayName": "Remote User",
+              "github": "",
+              "profileImage": "",
+              "web": "http://remotenode.com/authors/6767",
+          },
+          "published": "2026-03-09T13:06:07+00:00",
+          "id": "http://remotenode.com/api/authors/6767/liked/301",
+          "object": self.comment.fqid,
+      }
+      self._node_auth()
+      url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+      self.client.post(url, data=like_data, format='json')
+      response = self.client.post(url, data=like_data, format='json')
+      self.assertEqual(response.status_code, 400)
+
+  def test_remote_like_missing_object_inbox(self):
+      """Like with missing object field should return 400"""
+      like_data = {
+          "type": "like",
+          "author": {
+              "type": "author",
+              "id": "http://remotenode.com/api/authors/6767",
+              "host": "http://remotenode.com/api/",
+              "displayName": "Remote User",
+              "github": "",
+              "profileImage": "",
+              "web": "http://remotenode.com/authors/6767",
+          },
+          "published": "2026-03-09T13:06:07+00:00",
+          "id": "http://remotenode.com/api/authors/6767/liked/302",
+          # missing object field
+      }
+      self._node_auth()
+      url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+      response = self.client.post(url, data=like_data, format='json')
+      self.assertEqual(response.status_code, 400)
+
+  def test_remote_like_nonexistent_entry_inbox(self):
+      """Like on a nonexistent entry FQID should still be stored"""
+      like_data = {
+          "type": "like",
+          "author": {
+              "type": "author",
+              "id": "http://remotenode.com/api/authors/6767",
+              "host": "http://remotenode.com/api/",
+              "displayName": "Remote User",
+              "github": "",
+              "profileImage": "",
+              "web": "http://remotenode.com/authors/6767",
+          },
+          "published": "2026-03-09T13:06:07+00:00",
+          "id": "http://remotenode.com/api/authors/6767/liked/303",
+          "object": "http://remotenode.com/api/authors/999/entries/doesnotexist",
+      }
+      self._node_auth()
+      url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
+      response = self.client.post(url, data=like_data, format='json')
+      self.assertEqual(response.status_code, 201)
