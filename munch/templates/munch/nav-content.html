@@ -13,6 +13,7 @@
     Munch
 </h1>
 
+{% if request.user.is_authenticated %}
 {% include "munch/profile-summary.html" with author=user request=request only %}
 
 <div><hr></div>
@@ -32,13 +33,19 @@
     </a></li>
 </menu>
 
-{% if request.user.is_authenticated %}
 <div><hr></div>
 
 <a id="create-entry" class="nav-link" href="{% url 'munch:create_entry_UI' user.uuid %}">
     <img src="{% static 'munch/icons/edit_square.svg' %}">
     Post
 </a>
+
+{% else %}
+<div><hr></div>
+<div class="nav-auth">
+    <a href="{% url 'munch:login' %}" class="btn-nav-login">Log in</a>
+    <a href="{% url 'munch:signup' %}" class="btn-nav-signup">Sign up</a>
+</div>
 {% endif %}
 {% endblock nav %}
 

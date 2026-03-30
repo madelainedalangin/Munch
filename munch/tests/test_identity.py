@@ -189,3 +189,41 @@ class GitHubTest(TestCase):
 
         # 3. Assert that a local entry was actually created
         self.assertEqual(Entry.objects.filter(github_id='12345').count(), 1)
+
+#Source: Claude Sonnet 4.6
+#Prompt: write a test for NoReverseMatch
+#Date Accessed: Sunday, March 29, 2026
+class SuggestionsPageTest(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.local_user = Author.objects.create_user(
+            username='alice',
+            password='password123',
+            displayName='Alice',
+            is_approved=True
+        )
+        # Remote author stub — username is None, local uuid may differ from remote FQID
+        cls.remote_author = Author.objects.create(
+            displayName='Remote Person',
+            host='http://othernode.example.com/api/',
+            username=None,
+        )
+
+    def setUp(self):
+        self.client = Client()
+        self.client.login(username='alice', password='password123')
+
+    def test_suggestions_with_remote_author(self):
+        """profile-summary.html must not call reverse('public_profile')
+        for remote author stubs — username=None is the reliable guard."""
+        response = self.client.get(reverse('munch:connect'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_profile_summary_weburl_remote_author(self):
+        """Remote authors should link to their own node via author.web,
+        not a local public_profile URL which would 404 or mismatch uuid."""
+        response = self.client.get(reverse('munch:connect'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 
+            f"/authors/{self.remote_author.uuid}/")

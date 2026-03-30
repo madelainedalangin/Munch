@@ -22,8 +22,8 @@ class ServerBasicAuthentication(BaseAuthentication):
         # check db if server connection exists
         # storing passwords as plaintext for now
         try:
-            origin = request.META.get('HTTP_ORIGIN', '')
-            server = Server.objects.get(url=origin, username=username, password=password, is_approved=True)
+            
+            server = Server.objects.get(username=username, password=password, is_approved=True)
         except Server.DoesNotExist:
             raise AuthenticationFailed('Invalid credentials')
         

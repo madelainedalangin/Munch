@@ -1,0 +1,171 @@
+{% load static %}
+<!--
+Source: CLaude Sonnet 4.6
+Prompt: Create a landing page with modern UI
+tweaked the ui afterwards to our preference
+Date Accessed: SUnday, Macth 29, 2026
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Munch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --warm-white: #FBF8F2;
+    --amber: #FF965E;
+    --muted: rgba(255,255,255,0.75);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Nunito', sans-serif;
+    overflow-x: hidden;
+    background: #111;
+  }
+
+  .bg-photo {
+    position: fixed;
+    inset: 0;
+    background-size: cover;
+    background-position: center 85%;
+    background-repeat: no-repeat;
+    filter: brightness(0.45);
+    z-index: 0;
+  }
+
+  .page-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Title ── */
+  .hero-title {
+    font-family: 'Fredoka One', cursive;
+    font-weight: 900;
+    font-size: clamp(5rem, 14vw, 11rem);
+    line-height: 0.92;
+    letter-spacing: -5pt;
+    color: #FF965E;
+    margin-bottom: 10px;
+    display: inline-block;
+    animation: blurElastic 1.2s 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+
+  @keyframes blurElastic {
+    0%   { filter: blur(20px); transform: scaleX(2.2) scaleY(0.4); opacity: 0; }
+    30%  { filter: blur(8px);  transform: scaleX(0.8) scaleY(1.2); opacity: 0.6; }
+    50%  { filter: blur(2px);  transform: scaleX(1.15) scaleY(0.9); opacity: 0.9; }
+    65%  { filter: blur(0px);  transform: scaleX(0.95) scaleY(1.05); opacity: 1; }
+    78%  { filter: blur(0px);  transform: scaleX(1.04) scaleY(0.97); }
+    88%  { filter: blur(0px);  transform: scaleX(0.98) scaleY(1.01); }
+    100% { filter: blur(0px);  transform: scaleX(1) scaleY(1); opacity: 1; }
+  }
+
+  /* ── Caption ── */
+  .hero-caption {
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    line-height: 1.6;
+    margin-bottom: 52px;
+    opacity: 0;
+    animation: fadeIn 1s 1.3s ease forwards;
+  }
+
+  /* ── Buttons ── */
+  .hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 260px;
+    padding: 15px 0;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    transition: all 0.22s ease;
+    opacity: 0;
+  }
+
+  .btn-login {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    animation: fadeIn 0.7s 2.2s ease forwards;
+  }
+  .btn-login:hover {
+    border-color: #FF965E;
+    color: #FF965E;
+    background: rgba(255,150,94,0.1);
+    transform: translateY(-2px);
+  }
+
+  .btn-signup {
+    background: #FF965E;
+    color: var(--warm-white);
+    animation: fadeIn 0.7s 2.7s ease forwards;
+  }
+  .btn-signup:hover {
+    background: #e8804a;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255,150,94,0.35);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-photo" style="background-image: url('{% static 'munch/icons/IMG_1406.JPG' %}');"></div>
+<div class="page-content">
+
+<section class="hero">
+  <h1 class="hero-title">Munch</h1>
+  <p class="hero-caption">Social Distribution project by team whitesmoke.</p>
+  <div class="hero-buttons">
+    <a href="{% url 'munch:login' %}" class="btn btn-login">Log in</a>
+    <a href="{% url 'munch:signup' %}" class="btn btn-signup">Sign up</a>
+  </div>
+</section>
+
+</div>
+
+
+</body>
+</html>
+
+<!--
+Image background photo taken by Madelaine Dalangin August 15, 2015, New York, NY
+-->

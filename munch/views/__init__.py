@@ -8,3 +8,4 @@ from .views_posting import *
 from .views_reading import *
 from .views_utils import *
 from .views_inbox import *
+from .views_homepage import *

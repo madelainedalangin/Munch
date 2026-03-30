@@ -1,12 +1,18 @@
 {% load static %}
+{% if author.username and author.uuid %}
 <a href="{% url 'munch:public_profile' author_uuid=author.uuid %}">
+{% else %}
+<a href="{{ author.web }}" target="_blank">
+{% endif %}
     <div class="user-block">
         <div class="user-block__avatar">
             <img src="{% if author.profileImage %}{{ author.profileImage }}{% else %}{% static 'munch/icons/anonymous.jpg' %}{% endif %}">
         </div>
         <div class="user-block__details">
-           <p class="user-block__display-name">{{ author.displayName }}</p>
-           <p class="user-block__username">@{{ author.username }}</p>
+            <p class="user-block__display-name">{{ author.displayName }}</p>
+            {% if author.username %}
+                <p class="user-block__username">@{{ author.username }}</p>
+            {% endif %}
         </div>
     </div>
 </a>

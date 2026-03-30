@@ -38,9 +38,10 @@ class AuthorSerializer(serializers.ModelSerializer):
         
         try:
             author = Author.objects.get(id=author_id)
-            for field, value in defaults.items():       # update if author exists in database
-                setattr(author, field, value)
-            author.save()
+            if not self.isLocal(host):
+                for field, value in defaults.items():       # update if remote author exists in database
+                    setattr(author, field, value)
+                author.save()
 
         except Author.DoesNotExist:
             if self.isLocal(host):
@@ -69,10 +70,12 @@ class FollowRequestSerializer(serializers.ModelSerializer):
         actor_author = AuthorSerializer().create(actor_data)
         object_author = AuthorSerializer().create(object_data)
 
-        return Follow.objects.create(
+        follow, created = Follow.objects.get_or_create(
             actor=actor_author,
-            object=object_author
+            object=object_author,
+            defaults={'status': 'requesting'}
         )
+        return follow
     
     def get_summary(self, obj):
         return f"{obj.actor.displayName} wants to follow {obj.object.displayName}"
@@ -173,7 +176,7 @@ class CommentSerializer(serializers.ModelSerializer):
         validated_data.pop('type', None)
         author_data = validated_data.pop('author')
         author = AuthorSerializer().create(author_data)
-        entry_fqid = validated_data.pop('entry')
+        entry_fqid = validated_data.pop('entry').rstrip('/') #added for lavenderblush to not get 400
         fqid = validated_data.pop('fqid', None)
 
         try:

@@ -7,6 +7,11 @@
 <link rel="stylesheet" href="{% static 'munch/css/stream.css' %}">
 {% endblock links %}
 
+{% block scripts %}
+{{ block.super }}
+<script defer src="{% static 'munch/js/entry.js' %}"></script>
+{% endblock scripts %}
+
 {% block title %}
 Stream
 {% endblock title %} 

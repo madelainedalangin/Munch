@@ -19,7 +19,10 @@ from munch.permissions import IsAuthorizedServer
 def get_authors(request):
     authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")
     serializer = AuthorSerializer(authors, many=True)
-    return Response(serializer.data)
+    return Response({
+        "type": "authors",
+        "authors": serializer.data,
+    })
 
 @api_view(['GET'])
 @authentication_classes([SessionAuthentication, ServerBasicAuthentication])
@@ -28,18 +31,26 @@ def get_authors_paginated(request):
     page = request.GET.get('page')
     size = request.GET.get('size')
 
-    if (page != None) and (size != None):
-        start = page * size
+    if (page is not None) and (size is not None):
+        page = int(page)
+        size = int(size)
+        start = (page - 1) * size
         end = start + size
 
         authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")[start:end]
         serializer = AuthorSerializer(authors, many=True)
-        return Response(serializer.data)
+        return Response({
+            "type": "authors",
+            "authors": serializer.data
+        })
     
-    elif (page == None) and (size == None):
+    elif (page is None) and (size is None):
         authors = Author.objects.filter(host=f"{settings.BACKEND_URL}/api/")
         serializer = AuthorSerializer(authors, many=True)
-        return Response(serializer.data)
+        return Response({
+            "type": "authors",
+            "authors": serializer.data
+        })
     
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -47,26 +58,33 @@ def get_authors_paginated(request):
 @api_view(['GET', 'PUT'])
 @authentication_classes([SessionAuthentication, ServerBasicAuthentication])
 def get_author(request, author_id):
+    
     id_type = 'FQID' if (author_id.find("http://") != -1) else 'serial'
     fqid = None
 
     if id_type == 'serial' and IsAuthenticated().has_permission(request, None):
         fqid = f"{settings.BACKEND_URL}/api/authors/{author_id}"
-    elif IsAuthorizedServer().has_permission(request, None):
+    elif id_type == 'FQID' and IsAuthorizedServer().has_permission(request, None):
         fqid = author_id
 
     if fqid == None:
         return Response(data={'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
     
-    author = Author.objects.get(id=fqid)
-    if author == None:
+    try:
+        author = Author.objects.get(id=fqid)
+    except Author.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
+    
     if request.method == 'GET':
         serializer = AuthorSerializer(author)
         return Response(serializer.data)
     
     elif request.method == 'PUT' and id_type == 'serial':
+        if str(request.user.uuid) != str(author.uuid):
+            return Response(
+                data={"error": "You cannot update profiles except your own"},
+                status=status.HTTP_403_FORBIDDEN)
+            
         serializer = AuthorSerializer(author, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()

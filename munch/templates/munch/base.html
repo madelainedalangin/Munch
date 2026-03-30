@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,10 +26,61 @@
             {% endblock nav %}
         </nav>
     </header>
+<div class="page">
     <main>
         {% block content %}
         {% endblock content %}
     </main>
+</div>
+<div id="loading">
+    <div class="loader"></div>
+    <p style="color:white; font-size:1.2rem; font-weight:bold;">Loading...</p>
+</div>
     {% endblock body %}
+    <script>
+    function setVisible(selector, visible) {
+        document.querySelector(selector).style.display = visible ? 'block' : 'none';
+    }
+
+    function onReady(callback) {
+        var intervalId = window.setInterval(function() {
+            if (document.getElementsByTagName('body')[0] !== undefined) {
+                window.clearInterval(intervalId);
+                callback.call(this);
+            }
+        }, 1000);
+    }
+
+    onReady(function() {
+        setVisible('.page', true);
+        setVisible('#loading', false);
+    });
+
+    let loadingTimer = null;
+
+    function showLoading() {
+        loadingTimer = setTimeout(() => {
+            setVisible('#loading', true);
+            setVisible('.page', false);
+        }, 1500);
+    }
+
+    function hideLoading() {
+        clearTimeout(loadingTimer);
+        setVisible('.page', true);
+        setVisible('#loading', false);
+    }
+
+    document.addEventListener("click", (e) => {
+        const link = e.target.closest("a[href]");
+        if (!link || link.target === "_blank") return;
+        if (link.origin !== window.location.origin) return;
+        showLoading();
+    });
+
+    document.addEventListener("submit", () => showLoading());
+
+    window.addEventListener("pageshow", () => hideLoading());
+    </script>
 </body>
 </html>

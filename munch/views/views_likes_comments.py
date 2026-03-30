@@ -19,32 +19,46 @@ import requests
 from urllib.parse import unquote
 from requests import post as requests_post, RequestException
 from munch.views.views_posting import get_inboxs
+import re
 
-def like_distribute(like,inbox_urls):
+def like_distribute(like, inbox_urls):
     serializer = LikeSerializer(like)
     data = serializer.data
     
     for inbox_url in inbox_urls:
-
-        try:  
-            requests_post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
-
+        try:
+            match = re.match(r'^(https?://[^/]+)', inbox_url)
+            if not match:
+                continue
+            node_base_url = match.group(1)
+            try:
+                server = Server.objects.get(url=node_base_url)
+                outgoing_auth = (server.username, server.password)
+            except Server.DoesNotExist:
+                continue
+            requests_post(inbox_url, auth=outgoing_auth, json=data)
         except RequestException:
             continue
-    return
 
-def comment_distribute(comment,inbox_urls):
+def comment_distribute(comment, inbox_urls):
     serializer = CommentSerializer(comment)
     data = serializer.data
     
     for inbox_url in inbox_urls:
-
-        try:  
-            requests_post(inbox_url, auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=data, headers={"Origin": settings.BACKEND_URL})
-
+        try:
+            match = re.match(r'^(https?://[^/]+)', inbox_url)
+            if not match:
+                continue
+            node_base_url = match.group(1)
+            try:
+                server = Server.objects.get(url=node_base_url)
+                outgoing_auth = (server.username, server.password)
+            except Server.DoesNotExist:
+                continue
+            requests_post(inbox_url, auth=outgoing_auth, json=data)
         except RequestException:
             continue
-    return
+
 
 
 @api_view(["GET"])
@@ -269,18 +283,38 @@ def liked(request, author_serial):
                 entry = Entry.objects.filter(fqid=object_url).first()
                 if entry:
                     inbox_urls.update(get_inboxs(entry,entry.author))
+
                     # make sure the entry author gets it too
-                    inbox_urls.add(f"{entry.author.id.rstrip('/')}/inbox")
+                    inbox_url = f"{entry.author.id.rstrip('/')}/inbox"
+                    if entry.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                        inbox_url = f"{inbox_url}/"
+
+                    inbox_urls.add(inbox_url)
+                else:
+                    match = re.match(r'(.*?/api/authors/[^/]+)', object_url)
+                    if match:
+                        inbox_url = f"{match.group(1).rstrip('/')}/inbox"
+                        if object_url.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                            inbox_url = f"{inbox_url}/"
+                        inbox_urls.add(inbox_url)
     
                     
             else:
                 comment = Comment.objects.filter(fqid=object_url).first()
                 if comment:
                     inbox_urls.update(get_inboxs(comment.entry,comment.entry.author))
+
                     # make sure comment author gets it
-                    inbox_urls.add(f"{comment.author.id.rstrip('/')}/inbox")
+                    comment_author_inbox_url = f"{comment.author.id.rstrip('/')}/inbox"
+                    if comment.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                        comment_author_inbox_url = f"{comment_author_inbox_url}/"
+                    inbox_urls.add(comment_author_inbox_url)
+
                     # optional: also notify entry author
-                    inbox_urls.add(f"{comment.entry.author.id.rstrip('/')}/inbox")
+                    entry_author_inbox_url = f"{comment.entry.author.id.rstrip('/')}/inbox"
+                    if comment.entry.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                        entry_author_inbox_url = f"{entry_author_inbox_url}/"
+                    inbox_urls.add(entry_author_inbox_url)
 
             like_distribute(like,list(inbox_urls))
             
@@ -524,7 +558,7 @@ def commented(request, author_serial):
         })
         
     elif request.method == "POST":
-        if not IsAuthenticated().has_permission(request, None):
+        if not (IsAuthenticated().has_permission(request, None) or IsAuthorizedServer().has_permission(request, None)):
             return Response(status=status.HTTP_403_FORBIDDEN, data={'error': 'Not authorized'})
 
         entry_url = request.data.get("entry")
@@ -579,6 +613,13 @@ def post_comment(request, author_id, entry_serial):
             )
             # Forward comment to entry author's inbox
             inbox_urls = get_inboxs(comment.entry,comment.entry.author)
-            comment_distribute(comment,inbox_urls)
+            # also send directly to the entry author if they're remote
+            if comment.entry.author.host.rstrip('/') != f"{settings.BACKEND_URL}/api".rstrip('/'):
+
+                inbox_url = f"{comment.entry.author.id.rstrip('/')}/inbox"
+                if comment.entry.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                    inbox_url = f"{inbox_url}/"
+                inbox_urls.append(inbox_url)
+            comment_distribute(comment, inbox_urls)
     
     return redirect('munch:display_entry_by_serial', author_id=author_id, entry_serial=entry_serial)

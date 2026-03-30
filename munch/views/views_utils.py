@@ -3,9 +3,11 @@ from rest_framework import status
 
 from munch.serializers import *
 from munch.models import *
+
+from django.conf import settings
+
 import requests as http_requests
 
-#-helper function for entry visibility
 def check_entry_visibility(request, entry):
     """
     Helper function that checks for entries visibility settings.
@@ -16,7 +18,14 @@ def check_entry_visibility(request, entry):
     
     if entry.visibility == "DELETED":
         return Response(status=status.HTTP_410_GONE)
-    
+
+    # Remote node authenticated via ServerBasicAuthentication
+    # request.user is a Server instance, not an Author
+    if isinstance(request.user, Server):
+        if entry.visibility in ('PUBLIC', 'UNLISTED'):
+            return None
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
     follows_author = Follow.objects.filter(
         actor=request.user,
         object=entry.author,
@@ -32,14 +41,13 @@ def check_entry_visibility(request, entry):
     if entry.visibility == 'PRIVATE':
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_403_FORBIDDEN)
-    
         if not is_friend and request.user != entry.author:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
     elif entry.visibility == 'UNLISTED':
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_403_FORBIDDEN)
-        
+
 def push_image_to_remote_followers(entry, author):
     """
     POST entry to inbox of all remote followers.
@@ -58,11 +66,11 @@ def push_image_to_remote_followers(entry, author):
 
     for follow in remote_followers:
         follower = follow.actor
-        # Extract base host from follower's FQID
-        # e.g. http://remotenode.com/api/authors/1111 -> http://remotenode.com/api/
         inbox_url = f"{follower.id.split('/authors/')[0]}/authors/{follower.id.split('/authors/')[1]}/inbox"
+        
+        if follower.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+            inbox_url = f"{inbox_url}/"
 
-        # Find a Server credential for this remote node
         try:
             server = Server.objects.get(
                 url__icontains=follower.host.replace('/api/', ''),
@@ -79,4 +87,4 @@ def push_image_to_remote_followers(entry, author):
                 timeout=5
             )
         except http_requests.RequestException:
-            continue  # no crashing :') PLEASEEEE
+            continue

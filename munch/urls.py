@@ -98,4 +98,7 @@ urlpatterns = [
     # Node Connection API
     path('api/nodes/', views.ConnectNode.as_view(), name='connect_node'),
     path('api/nodes/<path:node_url>', views.ManageNode.as_view(), name='refresh_node'),
+    
+    #hompage
+    path('', views.landing, name='landing')
 ]

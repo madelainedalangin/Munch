@@ -15,13 +15,20 @@ from munch.permissions import IsAuthorizedServer
 
 import requests
 import re
+from urllib.parse import urlparse
 
 def followers_view(request, author_uuid):
     author = Author.objects.get(uuid=author_uuid)   # use fqid in future
     follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='accepted')
+    #remote authors have no username (displays @None right now) so use
+    #their heroku hostname link
+    for follower in follower_list:
+        follower.handle = urlparse(follower.web).netloc
+        
     context = {
         "author": author,
-        "followers": follower_list
+        "followers": follower_list,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/followers.html', context)
 
@@ -30,7 +37,8 @@ def list_following(request, author_uuid):
     following_list = Author.objects.filter(follower_relations__actor=author, follower_relations__status='accepted')
     context = {
         "author": author,
-        "following": following_list
+        "following": following_list,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/following_list.html', context)
 
@@ -39,7 +47,8 @@ def list_follow_requests(request, author_uuid):
     follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
     context = {
         "author": author,
-        "followers": follower_list
+        "followers": follower_list,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/follow_request_list.html', context)
 
@@ -50,10 +59,11 @@ def connect(request):
         follower_relations__actor=author, 
         following_relations__status='accepted'
     ).values_list('id', flat=True)
-    suggestions = Author.objects.exclude(id__in=following_ids).exclude(id=request.user.id)
+    suggestions = Author.objects.exclude(id__in=following_ids).exclude(id=request.user.id).order_by("web", "displayName")
 
     context = {
         "suggested_authors": suggestions,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/connect.html', context)
 
@@ -110,10 +120,14 @@ def manage_following(request, author_serial, target_FQID):
         # create follow object if none exists yet
         if follow_entry == None:
 
-            target_author = Author.objects.get(id=target_FQID)
-            if target_author == None:
-                # TODO request user data from other nodes in future milestones
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+            target_author = Author.objects.filter(id=target_FQID).first()
+            if target_author is None:
+                return Response(
+                    {
+                        "detail": "Remote author cannot be found. Add them from via admin first"  
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             actor_author = Author.objects.get(id=f"{settings.BACKEND_URL}/api/authors/{author_serial}")
 
             follow_entry = Follow.objects.create(
@@ -128,18 +142,46 @@ def manage_following(request, author_serial, target_FQID):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         else:
-            response = requests.post(f"{target_service}{target_serial}/inbox", auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD), json=serializer.data, headers={'Origin':settings.BACKEND_URL})
+            # look up per-node credentials
+            node_base_url = target_service.replace('/api/authors/', '').rstrip('/')
+            try:
+                server = Server.objects.get(url=node_base_url)
+                outgoing_auth = (server.username, server.password)
+            except Server.DoesNotExist:
+                return Response(
+                    {"detail": f"No server entry found for {node_base_url}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            url = f"{target_service}{target_serial}/inbox"
+            if target_service.removesuffix('/api/authors') in settings.TRAILING_SLASH_HOSTS:
+                url = f"{url}/"
 
-            if response.status_code == 201:
+            response = requests.post(
+                url,
+                auth=outgoing_auth,
+                json=serializer.data
+            )
 
-                # assume accepted
+            if response.status_code in [200, 201]:
                 follow_entry.status = 'accepted'
                 follow_entry.save()
-
                 return Response(response.json(), status=status.HTTP_201_CREATED)
             
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                try:
+                    remote_detail = response.json()
+                except ValueError:
+                    remote_detail = response.text
+
+                return Response(
+                    {
+                        "detail": f"Inbox request failed: {url}",
+                        "status_code": response.status_code,
+                        "remote_error": remote_detail,
+                    }, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
 
 # Followers API

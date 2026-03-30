@@ -34,6 +34,8 @@ def create_node_connection(request):
 # Node Connection API
 
 class ConnectNode(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [IsAdminUser]
 
     def post(self, request):
         serializer = ServerSerializer(data=request.data)
@@ -57,10 +59,8 @@ class ManageNode(APIView):
 
         response = requests.get(
             f"{node.url}/api/authors", 
-            auth=(settings.AUTH_USERNAME, settings.AUTH_PASSWORD),
-            headers={
-                'Origin':settings.BACKEND_URL
-            })
+            auth=(node.username, node.password),
+        )
         if not response.ok:
             return Response(
                 data={'error': f"Failed to get authors from node {node.url}: {response.status_code}"},
@@ -68,7 +68,9 @@ class ManageNode(APIView):
             )
         
         data=response.json()
-        serializer = AuthorSerializer(data=data, many=True)
+        authors_list = data.get("authors", [])
+        serializer = AuthorSerializer(data=authors_list, many=True)
+        
         if not serializer.is_valid():
             return Response(
                 data={
@@ -79,4 +81,4 @@ class ManageNode(APIView):
             )
         
         serializer.save()
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(authors_list, status=status.HTTP_200_OK)

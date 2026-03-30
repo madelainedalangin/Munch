@@ -37,6 +37,9 @@ def get_stream_entries(user):
         entries = Entry.objects.filter(
             Q(visibility = 'PUBLIC') | 
             Q(visibility = 'DELETED') |
+            Q(visibility = 'UNLISTED') |
+            Q(visibility = 'PRIVATE') |
+            Q(visibility = 'FRIENDS') |
             Q(author = user)
         ).order_by('-published')
         
@@ -47,7 +50,7 @@ def get_stream_entries(user):
     
     #Gimme a list of author IDs the user currently logged in is following
     # but not the full follow object
-    user_following = user_follows.values_list('object', flat=True)
+    user_following = user_follows.values_list('object__id', flat=True)
     
     #Source: https://docs.djangoproject.com/en/6.0/ref/models/querysets/#top
     #Date Accessed: Feb. 28, 2026
@@ -56,7 +59,7 @@ def get_stream_entries(user):
         actor__in = user_following,
         object = user,
         status = 'accepted'
-    ).values_list('actor', flat=True)
+    ).values_list('actor__id', flat=True)
     
     #Source: https://www.freecodecamp.org/news/what-is-q-in-django-and-why-its-super-useful/
     #Date Accessed: Saturday, Feb. 28, 2026
@@ -65,7 +68,7 @@ def get_stream_entries(user):
     entries = Entry.objects.filter(
         Q(visibility='PUBLIC') | 
         Q(author__in=user_following, visibility='UNLISTED') |
-        Q(author__in=user_friends, visibility='PRIVATE') |
+        Q(author__in=user_friends, visibility__in=['PRIVATE', 'FRIENDS']) |
         Q(author = user)
     ).exclude(
         visibility = 'DELETED'
