@@ -25,27 +25,6 @@ def inbox(request, target_serial):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     elif payload_type == 'entry':
-        author_data = request.data.get('author', {})
-        author_fqid = author_data.get('id')
-
-        if not author_fqid:
-            return Response(
-                {"detail": "Entry author is required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        author = Author.objects.filter(id=author_fqid).first()
-
-        if author is None:
-            author = Author.objects.create(
-                id=author_fqid,
-                host=author_data.get('host'),
-                displayName=author_data.get('displayName'),
-                github=author_data.get('github'),
-                profileImage=author_data.get('profileImage'),
-                web=author_data.get('web') or author_fqid.replace('/api/', '/'),
-            )
-
         existing_entry = Entry.objects.filter(fqid=request.data.get("id")).first()
 
         if existing_entry:
@@ -54,7 +33,7 @@ def inbox(request, target_serial):
             serializer = EntrySerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save(author=author)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
