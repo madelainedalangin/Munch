@@ -27,7 +27,8 @@ def followers_view(request, author_uuid):
         
     context = {
         "author": author,
-        "followers": follower_list
+        "followers": follower_list,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/followers.html', context)
 
@@ -36,7 +37,8 @@ def list_following(request, author_uuid):
     following_list = Author.objects.filter(follower_relations__actor=author, follower_relations__status='accepted')
     context = {
         "author": author,
-        "following": following_list
+        "following": following_list,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/following_list.html', context)
 
@@ -45,7 +47,8 @@ def list_follow_requests(request, author_uuid):
     follower_list = Author.objects.filter(following_relations__object=author, following_relations__status='requesting')
     context = {
         "author": author,
-        "followers": follower_list
+        "followers": follower_list,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/follow_request_list.html', context)
 
@@ -60,6 +63,7 @@ def connect(request):
 
     context = {
         "suggested_authors": suggestions,
+        "backend_url": settings.BACKEND_URL,
     }
     return render(request, 'munch/connect.html', context)
 
