@@ -69,7 +69,7 @@ def inbox(request, target_serial):
         existing_like = Like.objects.filter(fqid=incoming_id).first()
 
         if existing_like:
-            return Response(LikeSerializer(existing_like).data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(LikeSerializer(existing_like).data, status=status.HTTP_200_OK)
 
         serializer = LikeSerializer(data=request.data)
         if serializer.is_valid():
