@@ -56,7 +56,7 @@ def connect(request):
         follower_relations__actor=author, 
         following_relations__status='accepted'
     ).values_list('id', flat=True)
-    suggestions = Author.objects.exclude(id__in=following_ids).exclude(id=request.user.id)
+    suggestions = Author.objects.exclude(id__in=following_ids).exclude(id=request.user.id).order_by("web", "displayName")
 
     context = {
         "suggested_authors": suggestions,
