@@ -161,8 +161,17 @@ def manage_following(request, author_serial, target_FQID):
                 return Response(response.json(), status=status.HTTP_201_CREATED)
             
             else:
+                try:
+                    remote_detail = response.json()
+                except ValueError:
+                    remote_detail = response.text
+
                 return Response(
-                    {"detail": f"Inbox request failed: {target_service}{target_serial}/inbox"}, 
+                    {
+                        "detail": f"Inbox request failed: {target_service}{target_serial}/inbox",
+                        "status_code": response.status_code,
+                        "remote_error": remote_detail,
+                    }, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
