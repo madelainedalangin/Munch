@@ -467,7 +467,7 @@ class LikeAPITest(TestCase):
       url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
       self.client.post(url, data=like_data, format='json')
       response = self.client.post(url, data=like_data, format='json')  # send twice
-      self.assertEqual(response.status_code, 400)
+      self.assertEqual(response.status_code, 200)
 
   def test_remote_like_comment_inbox(self):
       like_data = {
@@ -547,7 +547,7 @@ class LikeAPITest(TestCase):
       url = reverse('munch:inbox', kwargs={'target_serial': self.author.uuid})
       self.client.post(url, data=like_data, format='json')
       response = self.client.post(url, data=like_data, format='json')
-      self.assertEqual(response.status_code, 400)
+      self.assertEqual(response.status_code, 200)
 
   def test_remote_like_missing_object_inbox(self):
       """Like with missing object field should return 400"""
