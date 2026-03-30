@@ -176,7 +176,7 @@ class CommentSerializer(serializers.ModelSerializer):
         validated_data.pop('type', None)
         author_data = validated_data.pop('author')
         author = AuthorSerializer().create(author_data)
-        entry_fqid = validated_data.pop('entry')
+        entry_fqid = validated_data.pop('entry').rstrip('/') #added for lavenderblush to not get 400
         fqid = validated_data.pop('fqid', None)
 
         try:
