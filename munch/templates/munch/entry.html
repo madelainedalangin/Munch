@@ -43,7 +43,7 @@
                 {% endif %}
             </span>
 
-            {% if request.user and request.user.fqid == entry.author.fqid %}
+            {% if request.user and request.user.uuid == entry.author.uuid %}
             <div class="dropdown">
                 <button class="dropdown__toggle">...</button>  
                 <div class="dropdown__content">
