@@ -47,7 +47,7 @@ urlpatterns = [
     # API endpoints
 
     # Inbox API
-    path('api/authors/<str:target_serial>/inbox', views.inbox, name='inbox'),
+    path('api/authors/<str:target_serial>/inbox/', views.inbox, name='inbox'),
 
     # Following API
     path('api/authors/<str:author_serial>/following/', views.get_following, name='get_following'),
