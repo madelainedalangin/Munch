@@ -161,7 +161,10 @@ def manage_following(request, author_serial, target_FQID):
                 return Response(response.json(), status=status.HTTP_201_CREATED)
             
             else:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"detail": f"Inbox request failed: {target_service}{target_serial}/inbox"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
 
 # Followers API
