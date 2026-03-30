@@ -106,14 +106,14 @@
         </div>
 
         <div class="dropdown">
-            <button class="dropdown__toggle" onclick="copyToClipboard()">
+            <button class="dropdown__toggle"
+                data-url="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}"
+                onclick="copyToClipboard(this.dataset.url)">
                 <img src="{% static 'munch/icons/copy_link.png' %}">
             </button>
             <!-- copyToClipboard function from Google, Gemini, "Django Shareable Link", 03-15-26 -->
-            <span id="share-url" style="display: none">{{ request.build_absolute_uri }}</span>
             <script>
-                function copyToClipboard() {
-                    const url = document.getElementById('share-url').innerText;
+                function copyToClipboard(url) {
                     navigator.clipboard.writeText(url).then(() => {
                         alert("Link copied to clipboard!");
                     });
