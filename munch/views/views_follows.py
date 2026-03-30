@@ -152,9 +152,13 @@ def manage_following(request, author_serial, target_FQID):
                     {"detail": f"No server entry found for {node_base_url}"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            url = f"{target_service}{target_serial}/inbox"
+            if target_service.removesuffix('/api/authors') in settings.TRAILING_SLASH_HOSTS:
+                url = f"{url}/"
 
             response = requests.post(
-                f"{target_service}{target_serial}/inbox",
+                url,
                 auth=outgoing_auth,
                 json=serializer.data
             )
@@ -172,7 +176,7 @@ def manage_following(request, author_serial, target_FQID):
 
                 return Response(
                     {
-                        "detail": f"Inbox request failed: {target_service}{target_serial}/inbox",
+                        "detail": f"Inbox request failed: {url}",
                         "status_code": response.status_code,
                         "remote_error": remote_detail,
                     }, 

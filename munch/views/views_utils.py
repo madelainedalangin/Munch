@@ -3,6 +3,9 @@ from rest_framework import status
 
 from munch.serializers import *
 from munch.models import *
+
+from django.conf import settings
+
 import requests as http_requests
 
 #-helper function for entry visibility
@@ -61,6 +64,9 @@ def push_image_to_remote_followers(entry, author):
         # Extract base host from follower's FQID
         # e.g. http://remotenode.com/api/authors/1111 -> http://remotenode.com/api/
         inbox_url = f"{follower.id.split('/authors/')[0]}/authors/{follower.id.split('/authors/')[1]}/inbox"
+        
+        if follower.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+            inbox_url = f"{inbox_url}/"
 
         # Find a Server credential for this remote node
         try:

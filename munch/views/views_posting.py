@@ -36,7 +36,10 @@ def get_inboxs(entry,author):
         if recipient.host.rstrip('/') == f"{settings.BACKEND_URL}/api".rstrip('/'):
             continue
 
-        inbox_urls.append(f"{recipient.id.rstrip('/')}/inbox")
+        inbox_url = f"{recipient.id.rstrip('/')}/inbox"
+
+        if recipient.host.rstrip('/') in settings.TRAILING_SLASH_HOSTS:
+            inbox_urls.append(f"{inbox_url}/")
 
     return inbox_urls
 
