@@ -60,7 +60,7 @@ def push_image_to_remote_followers(entry, author):
         follower = follow.actor
         # Extract base host from follower's FQID
         # e.g. http://remotenode.com/api/authors/1111 -> http://remotenode.com/api/
-        inbox_url = f"{follower.id.split('/authors/')[0]}/authors/{follower.id.split('/authors/')[1]}/inbox"
+        inbox_url = f"{follower.id.split('/authors/')[0]}/authors/{follower.id.split('/authors/')[1]}/inbox/"
 
         # Find a Server credential for this remote node
         try:
