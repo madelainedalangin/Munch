@@ -40,6 +40,8 @@ def get_inboxs(entry,author):
 
         if recipient.host.rstrip('/') in settings.TRAILING_SLASH_HOSTS:
             inbox_urls.append(f"{inbox_url}/")
+        else:
+            inbox_urls.append(inbox_url)
 
     return inbox_urls
 
