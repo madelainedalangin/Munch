@@ -283,22 +283,38 @@ def liked(request, author_serial):
                 entry = Entry.objects.filter(fqid=object_url).first()
                 if entry:
                     inbox_urls.update(get_inboxs(entry,entry.author))
+
                     # make sure the entry author gets it too
-                    inbox_urls.add(f"{entry.author.id.rstrip('/')}/inbox")
+                    inbox_url = f"{entry.author.id.rstrip('/')}/inbox"
+                    if entry.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                        inbox_url = f"{inbox_url}/"
+
+                    inbox_urls.add(inbox_url)
                 else:
                     match = re.match(r'(.*?/api/authors/[^/]+)', object_url)
                     if match:
-                        inbox_urls.add(f"{match.group(1).rstrip('/')}/inbox")
+                        inbox_url = f"{match.group(1).rstrip('/')}/inbox"
+                        if object_url.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                            inbox_url = f"{inbox_url}/"
+                        inbox_urls.add(inbox_url)
     
                     
             else:
                 comment = Comment.objects.filter(fqid=object_url).first()
                 if comment:
                     inbox_urls.update(get_inboxs(comment.entry,comment.entry.author))
+
                     # make sure comment author gets it
-                    inbox_urls.add(f"{comment.author.id.rstrip('/')}/inbox")
+                    comment_author_inbox_url = f"{comment.author.id.rstrip('/')}/inbox"
+                    if comment.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                        comment_author_inbox_url = f"{comment_author_inbox_url}/"
+                    inbox_urls.add(comment_author_inbox_url)
+
                     # optional: also notify entry author
-                    inbox_urls.add(f"{comment.entry.author.id.rstrip('/')}/inbox")
+                    entry_author_inbox_url = f"{comment.entry.author.id.rstrip('/')}/inbox"
+                    if comment.entry.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                        entry_author_inbox_url = f"{entry_author_inbox_url}/"
+                    inbox_urls.add(entry_author_inbox_url)
 
             like_distribute(like,list(inbox_urls))
             
@@ -599,7 +615,11 @@ def post_comment(request, author_id, entry_serial):
             inbox_urls = get_inboxs(comment.entry,comment.entry.author)
             # also send directly to the entry author if they're remote
             if comment.entry.author.host.rstrip('/') != f"{settings.BACKEND_URL}/api".rstrip('/'):
-                inbox_urls.append(f"{comment.entry.author.id.rstrip('/')}/inbox")
+
+                inbox_url = f"{comment.entry.author.id.rstrip('/')}/inbox"
+                if comment.entry.author.id.split('/api/')[0] in settings.TRAILING_SLASH_HOSTS:
+                    inbox_url = f"{inbox_url}/"
+                inbox_urls.append(inbox_url)
             comment_distribute(comment, inbox_urls)
     
     return redirect('munch:display_entry_by_serial', author_id=author_id, entry_serial=entry_serial)

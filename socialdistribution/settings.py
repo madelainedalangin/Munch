@@ -145,3 +145,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000')
 AUTH_USERNAME = os.getenv('AUTH_USERNAME', 'munch')
 AUTH_PASSWORD = os.getenv('AUTH_PASSWORD', 'munch')
+
+TRAILING_SLASH_HOSTS = [
+    "https://jd-node-b-9c1da1a35b21.herokuapp.com",
+]
