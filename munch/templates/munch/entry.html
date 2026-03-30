@@ -45,7 +45,9 @@
 
             {% if request.user and request.user.uuid == entry.author.uuid %}
             <div class="dropdown">
-                <button class="dropdown__toggle">...</button>  
+                <button class="dropdown__toggle">
+                    <img src="{% static 'munch/icons/three_dots.svg' %}" alt="..." style="width: 20px; height: 20px;">
+                </button> 
                 <div class="dropdown__content">
                     {% if not entry.github_id %}
                     <a class="edit_entry" href="{% url 'munch:edit_entry' entry.author.uuid entry.serial %}">Edit</a>
@@ -56,6 +58,7 @@
                     </form>
                 </div>  
             </div>
+    
             {% endif %}
         </div>
     </div>
