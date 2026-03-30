@@ -107,7 +107,7 @@
 
         <div class="dropdown">
             <button class="dropdown__toggle"
-                data-url="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial %}"
+                data-url="{% url 'munch:display_entry_by_serial' entry.author.uuid entry.serial as entry_url %}{{ request.build_absolute_uri entry_url }}"
                 onclick="copyToClipboard(this.dataset.url)">
                 <img src="{% static 'munch/icons/copy_link.png' %}">
             </button>
