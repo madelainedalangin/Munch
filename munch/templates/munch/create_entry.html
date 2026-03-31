@@ -17,6 +17,25 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+
+    const typeSelect = document.querySelector('select[name="contentType"]');
+    const contentArea = document.querySelector('textarea[name="content"]');
+    const contentRow = contentArea.closest('p') || contentArea.parentElement;
+
+    function toggleRequired() {
+        const isImage = typeSelect.value.includes('image/');
+
+        if (isImage) {
+            contentRow.style.display = 'none';
+            contentArea.removeAttribute('required');
+        } else {
+            contentRow.style.display = 'block';
+            contentArea.setAttribute('required', 'required');
+        }
+    }
+
+    typeSelect.addEventListener('change', toggleRequired);
+    toggleRequired();
     const fileInput = document.querySelector('input[type="file"]');
     if (!fileInput) return;
 

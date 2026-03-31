@@ -69,6 +69,9 @@ class EntryForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+            super(EntryForm, self).__init__(*args, **kwargs)
+            self.fields['content'].required = False
         
         
     
