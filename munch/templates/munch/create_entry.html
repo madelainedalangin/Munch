@@ -17,7 +17,41 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const typeSelect = document.querySelector('select[name="contentType"]');
+    const contentArea = document.querySelector('textarea[name="content"]');
     const fileInput = document.querySelector('input[type="file"]');
+    
+    const contentRow = contentArea.closest('p') || contentArea.parentElement;
+    const fileRow = fileInput.closest('p') || fileInput.parentElement;
+
+    // The following function from Google, Gemini, "Toggle required attribute", March 30, 2026
+    function toggleRequired() {
+        const isImage = typeSelect.value.includes('image/');
+
+        if (isImage) {
+            // Hide text box, show file upload
+            contentRow.style.display = 'none';
+            contentArea.removeAttribute('required');
+            
+            fileRow.style.display = 'block';
+            fileInput.setAttribute('required', 'required');
+        } else {
+            // Show text box, hide file upload
+            contentRow.style.display = 'block';
+            contentArea.setAttribute('required', 'required');
+            
+            fileRow.style.display = 'none';
+            fileInput.removeAttribute('required');
+            
+            // Clear file selection if switched back to text mode
+            fileInput.value = ""; 
+            const label = fileRow.querySelector('.file-input-label');
+            if (label) label.textContent = 'No file selected';
+        }
+    }
+
+    typeSelect.addEventListener('change', toggleRequired);
+    toggleRequired();
     if (!fileInput) return;
 
     const wrapper = document.createElement('div');
