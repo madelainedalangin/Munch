@@ -281,7 +281,7 @@ class EntrySerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         author_data = validated_data.pop("author", None)
-        if author_data:
+        if author_data and not isinstance(author_data, Author):
             AuthorSerializer().create(author_data)  # upsert the author
         
         validated_data.pop("fqid", None)  # don't overwrite the fqid
