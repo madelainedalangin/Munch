@@ -1,16 +1,10 @@
 from django.test import TestCase, Client
-from munch.models import Author, Entry, Comment, Like, Follow
 from django.conf import settings
-from django.utils import timezone
-from datetime import timedelta
-import uuid
 from django.urls import reverse
-from unittest.mock import patch
-from munch.utils import sync_github_activity
 from rest_framework.test import APIClient
-import unittest
 from unittest.mock import patch, MagicMock
-from munch.models import Server
+from munch.models import Server, Author, Entry, Follow
+from munch.serializers import AuthorSerializer
 
 ###########################
 # POSTING USER STORY TEST #
@@ -218,7 +212,8 @@ class PostingAPITest(TestCase):
         "contentType": "text/plain",
         "visibility": 'PUBLIC',
         "description": 'this is a test under PostingTest',
-      }
+      },
+      format='json'
     )
     #print(response.data)
     self.assertEqual(response.status_code, 200)
@@ -227,13 +222,14 @@ class PostingAPITest(TestCase):
     response = self.client.put(
       f'/api/authors/{self.author.uuid}/entries/{self.public_entry.serial}/',
       {
-        "author": self.author,
+        "author": AuthorSerializer(self.author).data,
         "title": 'rahhh',
         "content":'rahh rahh rahh',
         "contentType": "text/plain",
         "visibility": 'PUBLIC',
         "description": 'this is a test under PostingTest',
-      }
+      },
+      format='json'
     )
     self.assertEqual(response.status_code, 403)
     

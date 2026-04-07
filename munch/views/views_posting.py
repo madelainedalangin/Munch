@@ -239,6 +239,8 @@ def create_entry_UI(request, author_id):
                 image_data = image_file.read()
                 entry.content = base64.b64encode(image_data).decode('utf-8')
                 entry.contentType = image_file.content_type + ';base64'
+            if not entry.content:
+                return HttpResponse("Content or Image required", status=400)
             
             entry.save()
             
