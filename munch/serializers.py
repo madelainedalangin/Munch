@@ -278,6 +278,21 @@ class EntrySerializer(serializers.ModelSerializer):
             entry.url = url or fqid
             entry.save()
         return entry
+    
+    def update(self, instance, validated_data):
+        author_data = validated_data.pop("author", None)
+        if author_data and not isinstance(author_data, Author):
+            AuthorSerializer().create(author_data)  # upsert the author
+        
+        validated_data.pop("fqid", None)  # don't overwrite the fqid
+        validated_data.pop("url", None)
+        validated_data.pop("type", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+            
+        instance.save()
+        return instance
         
 class EntriesSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=100, default='entries')
