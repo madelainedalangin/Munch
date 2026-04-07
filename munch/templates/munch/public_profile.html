@@ -40,7 +40,9 @@
     <div class="profile-card__body">
         <div class="profile-card__identity">
             <h2 class="profile__display-name">{{ author.displayName }}</h2>
-            <p class="profile__handle">@{{ author.username }}</p>
+            {% if author.username %}
+                <p class="profile__handle">@{{ author.username }}</p>
+            {% endif %}
 
             <!--Author FQID (full API URL) is included for frontend JS also to pass the test we have-->
             <p class="profile__fqid" style="display:none;">{{ author.id }}</p>
