@@ -47,8 +47,30 @@ def inbox(request, target_serial):
         # check visibility before saving
         entry_fqid = request.data.get("entry")
         entry = Entry.objects.filter(fqid=entry_fqid).first()
+        #fix for remote user commenting getting a 403. They shouldnt.
+        #dont reject comments in private entries from friends.
         if entry and entry.visibility == 'PRIVATE':
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            comment_author_id = request.data.get("author", {}).get("id")
+            if not comment_author_id:
+                return Response(
+                    status=status.HTTP_403_FORBIDDEN
+                    )
+            comment_author = Author.objects.filter(id=comment_author_id).first()
+            if not comment_author:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            is_friend = (
+                Follow.objects.filter(
+                    actor=comment_author, 
+                    object=entry.author, 
+                    status='accepted'
+                    ).exists() and
+                Follow.objects.filter(
+                    actor=entry.author, 
+                    object=comment_author, 
+                    status='accepted').exists()
+            )
+            if not is_friend:
+                return Response(status=status.HTTP_403_FORBIDDEN)
         
         serializer = CommentSerializer(data=request.data)
 
