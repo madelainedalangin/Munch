@@ -6,11 +6,11 @@ Munch is a distributed blogging and social networking application inspired by [D
 
 # 🎥 Promotional Video
 
-<div align="center">
+<p align="center">
 
-[![Promotional Video](https://img.youtube.com/vi/nAhhbCwwSL8/0.jpg)](https://www.youtube.com/watch?v=nAhhbCwwSL8)
+  <video src="demo.mp4" controls></video>
 
-</div>
+</p>
 
 ## 💡 The Problem
 
