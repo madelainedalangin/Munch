@@ -7,9 +7,7 @@ Munch is a distributed blogging and social networking application inspired by [D
 # 🎥 Promotional Video
 
 <p align="center">
-
-  <video src="munch video.mp4" controls></video>
-
+  <video src="https://github.com/madelainedalangin/Munch/raw/main/munch%20video.mp4" controls></video>
 </p>
 
 ## 💡 The Problem
