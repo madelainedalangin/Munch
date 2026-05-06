@@ -85,7 +85,7 @@ The web was designed to be interconnected and peer-to-peer. But most social netw
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/madelainedalangin/Munch
+   git clone https://github.com/madelainedalangin/Munch.git
    cd Munch
    ```
 
