@@ -12,7 +12,7 @@ Munch is a distributed blogging and social networking application inspired by [D
 
 ## 💡 The Problem
 
-Traditional social media platforms are centralized. Your data, identity, and connections all live on a single server which is also owned by a single company. If that platform goes haywire, you would have no recourse. Thid design keeps users locked into one service, and there is no way to take your social media use elsewhere.
+Traditional social media platforms are centralized. Your data, identity, and connections all live on a single server which is also owned by a single company. If that platform goes haywire, you would have no recourse. This design keeps users locked into one service, and there is no way to take your social media use elsewhere.
 
 The web was designed to be interconnected and peer-to-peer. But most social networking today funnels through corporate gatekeeping. There is no technical reason why users on different platforms cannot interact with each other, follow each other, and share content freely across services.
 
