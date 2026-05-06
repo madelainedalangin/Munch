@@ -85,8 +85,8 @@ The web was designed to be interconnected and peer-to-peer. But most social netw
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/uofa-cmput404/f24-project-whitesmoke.git
-   cd f24-project-whitesmoke
+   git clone [https://github.com/uofa-cmput404/f24-project-whitesmoke.git](https://github.com/madelainedalangin/Munch)
+   cd Munch
    ```
 
 2. Create and activate a virtual environment:
@@ -123,6 +123,7 @@ Each team member deploys their own node:
 
 ```bash
 git push heroku <branch>:main
+git push heroku main
 ```
 
 Heroku automatically runs migrations on each deploy. The app uses Whitenoise for serving static files in production.
