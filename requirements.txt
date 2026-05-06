@@ -28,6 +28,7 @@ pillow==12.1.1
 psycopg2-binary==2.9.11
 Pygments==2.18.0
 pymongo==4.15.4
+python-dotenv==1.2.2
 PySocks==1.7.1
 python-dateutil==2.9.0.post0
 requests==2.32.5
