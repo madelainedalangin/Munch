@@ -151,7 +151,7 @@ Remote nodes authenticate using HTTP Basic Auth. Node credentials are managed th
 ## 📄 Collaboration & External Sources
 
 - Collaboration with other CMPUT 404 teams for federation cross-node compatibility.
-- All external source code is documented below.
+- See Wiki for our API documentation.
 
 ## 📝 License
 
