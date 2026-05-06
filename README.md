@@ -145,7 +145,7 @@ Munch uses an inbox-based federation model. The inbox is not a UI feature or a p
 **Connected Teams:**
 - peachpuff
 - lavenderblush
-- jd-node
+- red
 
 Remote nodes authenticate using HTTP Basic Auth. Node credentials are managed through the `Server` model and configured via the Django shell.
 
