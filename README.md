@@ -4,9 +4,11 @@
 
 Munch is a distributed blogging and social networking application inspired by [Diaspora](https://diasporafoundation.org/) and [ActivityPub](https://www.w3.org/TR/activitypub/). Authors on different nodes can follow each other, share entries, comment, and like content across a federated network.
 
-# Promotional Video
+# 🎥 Promotional Video
 
+<div align="center">
 [![Promotional Video](https://img.youtube.com/vi/nAhhbCwwSL8/0.jpg)](https://www.youtube.com/watch?v=nAhhbCwwSL8)
+</div>
 
 ## 💡 The Problem
 
