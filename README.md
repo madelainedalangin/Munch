@@ -12,9 +12,9 @@ Munch is a distributed blogging and social networking application inspired by [D
 
 ## 💡 The Problem
 
-Traditional social media platforms are centralized. Your data, identity, and connections all live on a single server owned by a single company. If that platform goes down or decides to remove your content, you would have no recourse. You are locked into one service with no way to take your social graph elsewhere.
+Traditional social media platforms are centralized. Your data, identity, and connections all live on a single server which is also owned by a single company. If that platform goes haywire, you would have no recourse. Thid design keeps users locked into one service, and there is no way to take your social media use elsewhere.
 
-The web was designed to be interconnected and peer-to-peer, yet most social networking today funnels through a handful of corporate gatekeepers. There is no technical reason why authors on different platforms cannot interact with each other, follow each other, and share content freely across services.
+The web was designed to be interconnected and peer-to-peer. But most social networking today funnels through corporate gatekeeping. There is no technical reason why users on different platforms cannot interact with each other, follow each other, and share content freely across services.
 
 **Munch addresses this by decentralizing the social network.** Each node operates independently with its own server and database, but nodes communicate with each other through a shared protocol. Authors own their identity on their own node while still being able to follow, like, and comment on content hosted anywhere in the network. No single point of failure, no single authority, and no vendor lock-in.
 
@@ -31,7 +31,7 @@ The web was designed to be interconnected and peer-to-peer, yet most social netw
 ## ✨ Features
 
 **Identity & Profiles**
-- Author registration with admin approval
+- Author (User) registration with admin approval
 - Editable profiles with name, bio, profile picture (via URL), and GitHub link
 - Public profile pages displaying recent entries
 - Automatic GitHub activity integration as public entries
@@ -139,7 +139,7 @@ The project includes 113+ passing tests covering all user stories at the API and
 
 ## 🤝 Federation
 
-Munch uses an inbox-based federation model. The inbox is not a UI feature or a page that users interact with. It is a server-to-server endpoint that nodes use behind the scenes to push entries, likes, comments, and follow requests to one another. When an author creates a public entry, their node sends it to the inbox endpoints of all followers' nodes, including remote ones. Friends only entries are only seen between users who follow each other, regardless of their node origin.
+Munch uses an inbox-based federation model. The inbox is not a UI feature or a page that users interact with. It is a server-to-server endpoint that nodes use behind the scenes to push entries, likes, comments, and follow requests to one another. When a user creates a public entry, their node sends it to the inbox endpoints of all followers' nodes, including remote ones. Friends only entries are only seen between users who follow each other, regardless of their node origin.
 
 **Connected Teams:**
 - peachpuff
